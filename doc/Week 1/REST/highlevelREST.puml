@@ -1,0 +1,33 @@
+@startuml
+title REST Architecture (Layered System)
+
+skinparam componentStyle rectangle
+skinparam wrapWidth 180
+skinparam maxMessageSize 100
+
+node "Client" as Client
+node "Edge / Network" as Edge {
+  [DNS] as DNS
+  [CDN/Cache] as CDN
+  [API Gateway / WAF] as GW
+}
+node "Application Layer" as App {
+  [API Service A] as SvcA
+  [API Service B] as SvcB
+}
+node "Data Layer" as Data {
+  database "Primary DB" as DB
+  [Service Cache] as Cache
+  [Other Services / gRPC] as XSvc
+}
+
+Client --> DNS : Resolve api.example.com
+Client --> CDN : HTTPS (GET/POST/PUT/DELETE)
+CDN --> GW : Cache miss -> forward
+GW --> SvcA : Route/authn/authz/quotas
+SvcA --> Cache : read/write
+SvcA --> DB : queries
+SvcA --> XSvc : downstream calls
+GW --> CDN : Response (cacheable headers)
+CDN --> Client : Response (JSON)
+@enduml

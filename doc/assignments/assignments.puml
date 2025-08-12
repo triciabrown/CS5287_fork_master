@@ -1,0 +1,25 @@
+@startuml
+!option handwritten true
+
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam rectangle {
+  BorderColor #1f2937
+  BackgroundColor #4F81BD
+  FontColor white
+  BorderRoundCorner 12
+}
+skinparam ArrowColor #1f2937
+
+rectangle "CA0 Assignment\n**Manual Deployment**\n— Any cloud (student choice)\n— Manual VM provisioning & config\n— Understand components end-to-end\n— SSH keys, basic firewall" as A
+rectangle "CA1 Assignment\n**IaaS Automation**\n— Ansible/Terraform/Puppet/Chef/etc.\n— Idempotent VM + package + firewall setup\n— Parameterized configs, secret handling" as B
+rectangle "CA2 Assignment\n**PaaS Orchestration**\n— Kubernetes or Docker Swarm\n— Declarative manifests/Stacks\n— Scale producers 1→N, secrets, isolation" as C
+rectangle "CA3 Assignment\n**Cloud-Native Ops**\n— Observability (logs/metrics/dashboards)\n— Autoscaling (HPA)\n— NetworkPolicies & TLS\n— Resilience/failure drills" as D
+rectangle "CA4 Assignment\n**Multi-Hybrid Cloud (Final)**\n— Multi-cluster / multi-cloud / edge→cloud\n— VPN/mesh/tunnels for secure connectivity\n— Image/registry strategy\n— Failover & runbooks" as E
+
+A --> B
+B --> C
+C --> D
+D --> E
+
+@enduml

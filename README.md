@@ -5,8 +5,8 @@ University for Fall 2025.
 
 ## Course Resources
 
-- [Course Syllabus](https://vanderbilt.instructure.com/courses/25487)
-- [Course Schedule](https://vanderbilt.instructure.com/courses/25487/assignments/syllabus)
+- [Course Syllabus](https://vanderbilt.instructure.com/courses/25487/sllabus)
+- [Course Schedule](https://vanderbilt.instructure.com/courses/25487/assignments/Schedule)
 
 ## Course Description
 

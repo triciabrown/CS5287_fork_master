@@ -1,0 +1,245 @@
+---
+- name: Deploy Kafka cluster with producers & consumers
+  hosts: all
+  vars:
+    kafka_version: "3.5.0"
+    scala_version: "2.13"
+    kafka_install_dir: /opt/kafka
+    kafka_user: kafka
+    kafka_group: kafka
+    topics:
+      - topic1
+      - topic2
+      - topic3
+      - topic4
+    producers:
+      - { name: producer1, topic: topic1, message: "hello from p1" }
+      - { name: producer2, topic: topic2, message: "hello from p2" }
+      - { name: producer3, topic: topic3, message: "hello from p3" }
+    consumers:
+      - { name: consumer1, topic: topic1 }
+      - { name: consumer2, topic: topic2 }
+
+  pre_tasks:
+    - name: Ensure kafka user exists
+      ansible.builtin.user:
+        name: "{{ kafka_user }}"
+        group: "{{ kafka_group }}"
+        system: yes
+        create_home: no
+
+    - name: Install Java & wget
+      ansible.builtin.package:
+        name:
+          - openjdk-11-jre-headless
+          - wget
+        state: present
+
+  tasks:
+    - name: Download Kafka tarball
+      ansible.builtin.get_url:
+        url: "https://downloads.apache.org/kafka/{{ kafka_version }}/kafka_{{ scala_version }}-{{ kafka_version }}.tgz"
+        dest: /tmp/kafka.tgz
+        mode: '0644'
+
+    - name: Extract Kafka
+      ansible.builtin.unarchive:
+        src: /tmp/kafka.tgz
+        dest: /opt
+        remote_src: yes
+      register: kafka_unarchive
+
+    - name: Create symlink to kafka
+      ansible.builtin.file:
+        src: "/opt/kafka_{{ scala_version }}-{{ kafka_version }}"
+        dest: "{{ kafka_install_dir }}"
+        state: link
+      when: kafka_unarchive.changed
+
+    - name: Ensure data log dir exists
+      ansible.builtin.file:
+        path: /var/lib/kafka-logs
+        state: directory
+        owner: "{{ kafka_user }}"
+        group: "{{ kafka_group }}"
+        mode: '0755'
+
+    - name: Configure server.properties
+      ansible.builtin.template:
+        src: server.properties.j2
+        dest: "{{ kafka_install_dir }}/config/server.properties"
+        owner: "{{ kafka_user }}"
+        group: "{{ kafka_group }}"
+        mode: '0644'
+
+    - name: Create systemd unit for Zookeeper
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/zookeeper.service
+        content: |
+          [Unit]
+          Description=Apache Zookeeper
+          After=network.target
+
+          [Service]
+          Type=simple
+          User={{ kafka_user }}
+          ExecStart={{ kafka_install_dir }}/bin/zookeeper-server-start.sh {{ kafka_install_dir }}/config/zookeeper.properties
+          ExecStop={{ kafka_install_dir }}/bin/zookeeper-server-stop.sh
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: restart zookeeper
+
+    - name: Create systemd unit for Kafka broker
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/kafka.service
+        content: |
+          [Unit]
+          Description=Apache Kafka
+          After=zookeeper.service
+
+          [Service]
+          Type=simple
+          User={{ kafka_user }}
+          ExecStart={{ kafka_install_dir }}/bin/kafka-server-start.sh {{ kafka_install_dir }}/config/server.properties
+          ExecStop={{ kafka_install_dir }}/bin/kafka-server-stop.sh
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: restart kafka
+
+    - name: Enable and start Zookeeper & Kafka
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      loop:
+        - zookeeper
+        - kafka
+
+    - name: Wait for Kafka to be up
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 9092
+        timeout: 60
+
+    - name: Create Kafka topics
+      ansible.builtin.shell: |
+        {{ kafka_install_dir }}/bin/kafka-topics.sh \
+          --create --topic {{ item }} \
+          --bootstrap-server localhost:9092 \
+          --partitions 1 --replication-factor 1
+      loop: "{{ topics }}"
+
+    - name: Deploy producer scripts & systemd units
+      ansible.builtin.block:
+        - name: Create produce script
+          ansible.builtin.copy:
+            dest: "/home/{{ kafka_user }}/{{ item.name }}.sh"
+            content: |
+              #!/bin/bash
+              while true; do
+                echo "{{ item.message }}" | {{ kafka_install_dir }}/bin/kafka-console-producer.sh \
+                  --broker-list localhost:9092 --topic {{ item.topic }}
+                sleep 5
+              done
+            owner: "{{ kafka_user }}"
+            mode: '0755'
+
+        - name: Create systemd for producer
+          ansible.builtin.copy:
+            dest: "/etc/systemd/system/{{ item.name }}.service"
+            content: |
+              [Unit]
+              Description=Kafka Producer {{ item.name }}
+              After=kafka.service
+
+              [Service]
+              Type=simple
+              User={{ kafka_user }}
+              ExecStart=/home/{{ kafka_user }}/{{ item.name }}.sh
+              Restart=on-failure
+
+              [Install]
+              WantedBy=multi-user.target
+          notify: restart "{{ item.name }}"
+
+      loop: "{{ producers }}"
+
+    - name: Deploy consumer scripts & systemd units
+      ansible.builtin.block:
+        - name: Create consume script
+          ansible.builtin.copy:
+            dest: "/home/{{ kafka_user }}/{{ item.name }}.sh"
+            content: |
+              #!/bin/bash
+              {{ kafka_install_dir }}/bin/kafka-console-consumer.sh \
+                --bootstrap-server localhost:9092 \
+                --topic {{ item.topic }} --from-beginning
+            owner: "{{ kafka_user }}"
+            mode: '0755'
+
+        - name: Create systemd for consumer
+          ansible.builtin.copy:
+            dest: "/etc/systemd/system/{{ item.name }}.service"
+            content: |
+              [Unit]
+              Description=Kafka Consumer {{ item.name }}
+              After=kafka.service
+
+              [Service]
+              Type=simple
+              User={{ kafka_user }}
+              ExecStart=/home/{{ kafka_user }}/{{ item.name }}.sh
+              Restart=on-failure
+
+              [Install]
+              WantedBy=multi-user.target
+          notify: restart "{{ item.name }}"
+
+      loop: "{{ consumers }}"
+
+    - name: Enable and start all producers & consumers
+      ansible.builtin.systemd:
+        name: "{{ item.name }}"
+        enabled: yes
+        state: started
+      loop: "{{ producers + consumers }}"
+
+  handlers:
+    - name: restart zookeeper
+      ansible.builtin.systemd:
+        name: zookeeper
+        state: restarted
+
+    - name: restart kafka
+      ansible.builtin.systemd:
+        name: kafka
+        state: restarted
+
+    - name: restart producer1
+      ansible.builtin.systemd:
+        name: producer1
+        state: restarted
+
+    - name: restart producer2
+      ansible.builtin.systemd:
+        name: producer2
+        state: restarted
+
+    - name: restart producer3
+      ansible.builtin.systemd:
+        name: producer3
+        state: restarted
+
+    - name: restart consumer1
+      ansible.builtin.systemd:
+        name: consumer1
+        state: restarted
+
+    - name: restart consumer2
+      ansible.builtin.systemd:
+        name: consumer2
+        state: restarted

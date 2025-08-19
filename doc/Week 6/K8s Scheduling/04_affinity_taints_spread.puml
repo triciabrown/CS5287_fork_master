@@ -1,0 +1,30 @@
+@startuml
+title Affinity, Tolerations & Topology Spread
+skinparam componentStyle rectangle
+
+package "Cluster" {
+  node "Node A\nlabels: zone=a" as NA
+  node "Node B\nlabels: zone=b\ntaint: spot=true:NoSchedule" as NB
+  node "Node C\nlabels: zone=c" as NC
+}
+
+component "Deployment\nreplicas=3\nnodeAffinity: preferred zones {a,c}\npodAntiAffinity: app=web (host)\ntopologySpread: zone, maxSkew=1\ntolerations: spot=true" as Dep
+
+queue "Pod 1 (app=web)" as P1
+queue "Pod 2 (app=web)" as P2
+queue "Pod 3 (app=web)" as P3
+
+Dep -down-> P1
+Dep -down-> P2
+Dep -down-> P3
+
+P1 -down-> NA : allowed by affinity\nzone=a
+P2 -down-> NB : tolerates taint\nzone=b
+P3 -down-> NC : spread across zones\nzone=c
+
+note bottom
+Anti-affinity keeps replicas off same node.
+Topology spread balances across zones.
+Preferred affinity biases to zones a,c.
+end note
+@enduml

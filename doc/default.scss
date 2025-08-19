@@ -1,0 +1,303 @@
+/*!
+ * Marp default theme.
+ *
+ * @theme default
+ * @author Yuki Hattori
+ *
+ * @auto-scaling true
+ * @size 16:9 1280px 720px
+ * @size 4:3 960px 720px
+ */
+
+@use 'sass:meta';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+@include meta.load-css('pkg:github-markdown-css/github-markdown.css');
+
+h1 {
+  border-bottom: none;
+  color: var(--h1-color);
+  font-size: 1.6em;
+  font-family: 'Roboto', sans-serif;
+}
+
+h2 {
+  border-bottom: none;
+  font-size: 1.3em;
+  font-family: 'Roboto', sans-serif;
+}
+
+h3 {
+  font-size: 1.1em;
+  font-family: 'Roboto', sans-serif;
+}
+
+h4 {
+  font-size: 1.05em;
+  font-family: 'Roboto', sans-serif;
+}
+
+h5 {
+  font-size: 1em;
+  font-family: 'Roboto', sans-serif;
+}
+
+h6 {
+  font-size: 0.9em;
+  font-family: 'Roboto', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  strong {
+    font-weight: inherit;
+    color: var(--heading-strong-color);
+  }
+
+  &::part(auto-scaling) {
+    max-height: 563px;
+  }
+}
+
+hr {
+  height: 0;
+  padding-top: 0.25em;
+}
+
+img {
+  background-color: transparent;
+  max-width: 100%;
+  height: auto;
+}
+
+pre {
+  /* stylelint-disable-next-line custom-property-pattern */
+  border: 1px solid var(--borderColor-default);
+  line-height: 1.15;
+  overflow: visible;
+
+  &::part(auto-scaling) {
+    max-height: 529px;
+  }
+
+  :where(.hljs) {
+    color: var(--color-prettylights-syntax-storage-modifier-import);
+  }
+
+  :where(.hljs-doctag),
+  :where(.hljs-keyword),
+  :where(.hljs-meta .hljs-keyword),
+  :where(.hljs-template-tag),
+  :where(.hljs-template-variable),
+  :where(.hljs-type),
+  :where(.hljs-variable.language_) {
+    color: var(--color-prettylights-syntax-keyword);
+  }
+
+  :where(.hljs-title),
+  :where(.hljs-title.class_),
+  :where(.hljs-title.class_.inherited__),
+  :where(.hljs-title.function_) {
+    color: var(--color-prettylights-syntax-entity);
+  }
+
+  :where(.hljs-attr),
+  :where(.hljs-attribute),
+  :where(.hljs-literal),
+  :where(.hljs-meta),
+  :where(.hljs-number),
+  :where(.hljs-operator),
+  :where(.hljs-selector-attr),
+  :where(.hljs-selector-class),
+  :where(.hljs-selector-id),
+  :where(.hljs-variable) {
+    color: var(--color-prettylights-syntax-constant);
+  }
+
+  :where(.hljs-string),
+  :where(.hljs-meta .hljs-string),
+  :where(.hljs-regexp) {
+    color: var(--color-prettylights-syntax-string);
+  }
+
+  :where(.hljs-built_in),
+  :where(.hljs-symbol) {
+    color: var(--color-prettylights-syntax-variable);
+  }
+
+  :where(.hljs-code),
+  :where(.hljs-comment),
+  :where(.hljs-formula) {
+    color: var(--color-prettylights-syntax-comment);
+  }
+
+  :where(.hljs-name),
+  :where(.hljs-quote),
+  :where(.hljs-selector-pseudo),
+  :where(.hljs-selector-tag) {
+    color: var(--color-prettylights-syntax-entity-tag);
+  }
+
+  :where(.hljs-subst) {
+    color: var(--color-prettylights-syntax-storage-modifier-import);
+  }
+
+  :where(.hljs-section) {
+    font-weight: bold;
+    color: var(--color-prettylights-syntax-markup-heading);
+  }
+
+  :where(.hljs-bullet) {
+    color: var(--color-prettylights-syntax-markup-list);
+  }
+
+  :where(.hljs-emphasis) {
+    font-style: italic;
+    color: var(--color-prettylights-syntax-markup-italic);
+  }
+
+  :where(.hljs-strong) {
+    font-weight: bold;
+    color: var(--color-prettylights-syntax-markup-bold);
+  }
+
+  :where(.hljs-addition) {
+    color: var(--color-prettylights-syntax-markup-inserted-text);
+    background-color: var(--color-prettylights-syntax-markup-inserted-bg);
+  }
+
+  :where(.hljs-deletion) {
+    color: var(--color-prettylights-syntax-markup-deleted-text);
+    background-color: var(--color-prettylights-syntax-markup-deleted-bg);
+  }
+
+  /* stylelint-enable selector-class-pattern */
+}
+
+header,
+footer {
+  margin: 0;
+  position: absolute;
+  left: 30px;
+  color: var(--header-footer-color);
+  font-size: 18px;
+  font-family: 'Roboto', sans-serif;
+}
+
+header {
+  top: 21px;
+}
+
+footer {
+  bottom: 21px;
+}
+
+section {
+  /* stylelint-disable-next-line scss/at-extend-no-missing-placeholder */
+  @extend .markdown-body;
+
+  --h1-color: #246;
+  --header-footer-color: #{rgba(#666, 0.75)};
+  --heading-strong-color: #48c;
+  --paginate-color: #777;
+  background-color: white;
+  color: #123456;
+  font-family: 'Roboto', sans-serif;
+
+  /*
+   * GitHub Markdown CSS has defined space sizes with the rem unit. The root
+   * font size was changed by `font-size` property on `section` element so we
+   * have to revert them to the default value.
+   */
+  --base-size-4: 4px;
+  --base-size-8: 8px;
+  --base-size-16: 16px;
+  --base-size-24: 24px;
+  --base-size-40: 40px;
+
+  display: block;
+  place-content: safe center center;
+  font-size: 29px;
+  height: 720px;
+  padding: 78.5px;
+  width: 1280px;
+
+  /* Definitions for classic bhavior: Users can adopt flex centering by tweaking style `section { display: flex }` */
+  flex-flow: column nowrap;
+  align-items: stretch;
+
+  &:where(.invert) {
+    --h1-color: #cee7ff;
+    --header-footer-color: #{rgba(#999, 0.75)};
+    --heading-strong-color: #7bf;
+    --paginate-color: #999;
+  }
+
+  > *:last-child,
+  &[data-footer] > :nth-last-child(2) {
+    margin-bottom: 0;
+  }
+
+  > *:first-child,
+  > header:first-child + * {
+    margin-top: 0;
+  }
+
+  &::after {
+    position: absolute;
+    padding: 0;
+    right: 30px;
+    bottom: 21px;
+    font-size: 24px;
+    color: var(--paginate-color);
+  }
+
+  &[data-color] {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: currentcolor;
+    }
+  }
+}
+/* custom.css */
+
+/* 1. Base slide box */
+section {
+  box-sizing: border-box;
+  padding: 2rem;
+}
+
+/* 2. Float all images and constrain their size */
+section img {
+  float: right;
+  max-width: 50%;      /* image won’t exceed 40% of slide width */
+  max-height: calc(100% - 4rem); /* account for slide padding */
+  object-fit: contain;
+  margin: 0 1rem 1rem 1rem;
+}
+
+/* 3. Clear floats at the bottom so footer/pagination stays below */
+section::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+section code {
+  font-size: 0.6;
+  color: #000000;
+  padding: 0.2em 0.4em;
+  border-radius: 0.2em;
+  font-family: monospace;
+}
+marp-pre {
+  background-color: #ddeeff;
+}

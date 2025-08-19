@@ -1,0 +1,31 @@
+@startuml
+
+actor User
+participant "kubectl" as CLI
+participant "kube-apiserver" as APIServer
+participant etcd
+participant "kube-scheduler" as Scheduler
+participant "kube-controller-manager" as ControllerManager
+
+User -> CLI : kubectl apply -f deployment.yaml
+CLI -> APIServer : HTTP POST /apis/... (Deployment)
+APIServer -> etcd : write Deployment object
+etcd --> APIServer : ack
+
+note over Scheduler: Watches API server for new Pods
+Scheduler -> APIServer : GET /api/v1/pods?fieldSelector=spec.nodeName=
+APIServer --> Scheduler : returns unassigned Pods
+Scheduler -> APIServer : PATCH Pod.spec.nodeName=<selected-node>
+APIServer -> etcd : update Pod spec
+etcd --> APIServer : ack
+APIServer --> Scheduler : confirmation
+
+note over ControllerManager: Reconciles desired vs. actual state
+ControllerManager -> APIServer : GET ReplicaSet status
+APIServer --> ControllerManager : current ReplicaSet
+ControllerManager -> APIServer : create/delete Pod requests
+APIServer -> etcd : update Pod list
+etcd --> APIServer : ack
+APIServer --> ControllerManager : confirmation
+
+@enduml

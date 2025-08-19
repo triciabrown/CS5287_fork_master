@@ -1,0 +1,37 @@
+@startuml
+
+left to right direction
+
+node "Host A" as A {
+  node "Container A\n10.244.1.0/24" as CA
+  interface "eth0" as EthA
+  database "Linux Host Routing Table" as RTA
+  CA --> EthA
+  EthA --> RTA
+}
+
+node "Host B" as B {
+  node "Container B\n10.244.2.0/24" as CB
+  interface "eth0" as EthB
+  database "Linux Host Routing Table" as RTB
+  CB --> EthB
+  EthB --> RTB
+}
+
+' BGP sessions between hosts
+A -[#green]-> B : BGP Session (TCP 179)
+
+' Routes advertised via BGP
+A -[dotted]-> B : "10.244.1.0/24"
+B -[dotted]-> A : "10.244.2.0/24"
+
+note right of A
+  • Calico agent configures BGP  
+  • Container subnets injected into host routes  
+end note
+
+note left of B
+  • No VXLAN encapsulation  
+  • Native L3 routing between hosts  
+end note
+@enduml

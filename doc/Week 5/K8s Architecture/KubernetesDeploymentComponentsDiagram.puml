@@ -1,0 +1,41 @@
+@startuml
+!theme spacelab
+
+node "Cluster" {
+  folder "Namespace: my-namespace" {
+  
+    folder "Deployment: my-app" {
+      [ReplicaSet Controller]
+      node "Pods (3 x my-app-pod)" {
+        component "Pod A\n(containing Container)" as PodA
+        component "Pod B\n(containing Container)" as PodB
+        component "Pod C\n(containing Container)" as PodC
+      }
+    }
+    
+    component "Service: my-app-service\nClusterIP: 10.0.0.100" as Service
+    
+    artifact "ConfigMap: app-config" as ConfigMap
+    artifact "Secret: db-credentials" as Secret
+  }
+}
+
+Service --> PodA : forwards traffic
+Service --> PodB
+Service --> PodC
+
+ConfigMap -> PodA : mounted into Pod
+ConfigMap -> PodB
+ConfigMap -> PodC
+
+Secret -> PodA : mounted into Pod
+Secret -> PodB
+Secret -> PodC
+
+note bottom
+  - Deployment manages ReplicaSet and Pods  
+  - Service provides stable IP + load balancing  
+  - ConfigMap and Secret inject config & credentials  
+  - Namespace isolates resources  
+end note
+@enduml

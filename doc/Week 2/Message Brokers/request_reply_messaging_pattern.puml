@@ -1,0 +1,19 @@
+@startuml
+title Request/Reply Messaging Pattern
+
+actor Producer
+rectangle "Request Queue" as ReqQueue
+actor Consumer
+rectangle "Reply Queue" as RepQueue
+actor ProducerClient
+
+Producer --> ReqQueue : send(request)\nincludes reply-to: RepQueue
+ReqQueue --> Consumer : deliver(request)
+Consumer --> RepQueue : send(response)
+RepQueue --> ProducerClient : deliver(response)
+
+note right of ReqQueue
+  • Producer sends a request with a reply-to header  
+  • Consumer reads, processes, and replies  
+end note
+@enduml

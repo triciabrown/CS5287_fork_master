@@ -1,0 +1,115 @@
+version: "3.8"
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-net
+
+  kafka:
+    image: bitnami/kafka:3.5
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      # Create 3 topics (1 partition, replication-factor 1 each)
+      - KAFKA_CREATE_TOPICS=topic1:1:1,topic2:1:1,topic3:1:1
+    ports:
+      - "9092:9092"
+    networks:
+      - kafka-net
+
+  producer1:
+    image: bitnami/kafka:3.5
+    container_name: producer1
+    depends_on:
+      - kafka
+    entrypoint:
+      - sh
+      - -c
+      - |
+        while true; do
+          echo "msg from p1 $(date +%s)" \
+            | kafka-console-producer.sh \
+                --broker-list kafka:9092 --topic topic1
+          sleep 5
+        done
+    networks:
+      - kafka-net
+
+  producer2:
+    image: bitnami/kafka:3.5
+    container_name: producer2
+    depends_on:
+      - kafka
+    entrypoint:
+      - sh
+      - -c
+      - |
+        while true; do
+          echo "msg from p2 $(date +%s)" \
+            | kafka-console-producer.sh \
+                --broker-list kafka:9092 --topic topic2
+          sleep 5
+        done
+    networks:
+      - kafka-net
+
+  consumer1:
+    image: bitnami/kafka:3.5
+    container_name: consumer1
+    depends_on:
+      - kafka
+    entrypoint:
+      - sh
+      - -c
+      - |
+        kafka-console-consumer.sh \
+          --bootstrap-server kafka:9092 \
+          --topic topic1 --from-beginning
+    networks:
+      - kafka-net
+
+  consumer2:
+    image: bitnami/kafka:3.5
+    container_name: consumer2
+    depends_on:
+      - kafka
+    entrypoint:
+      - sh
+      - -c
+      - |
+        kafka-console-consumer.sh \
+          --bootstrap-server kafka:9092 \
+          --topic topic2 --from-beginning
+    networks:
+      - kafka-net
+
+  consumer3:
+    image: bitnami/kafka:3.5
+    container_name: consumer3
+    depends_on:
+      - kafka
+    entrypoint:
+      - sh
+      - -c
+      - |
+        kafka-console-consumer.sh \
+          --bootstrap-server kafka:9092 \
+          --topic topic3 --from-beginning
+    networks:
+      - kafka-net
+
+networks:
+  kafka-net:
+    driver: bridge

@@ -1,0 +1,18 @@
+@startuml
+title Generalized Message Broker Architecture
+
+actor "Producer\n(Service A, B, ...)" as Producer
+rectangle "Message Broker\n- Queue/Topic\n- Routing\n- Persistence\n- Load Balancing" as Broker
+actor "Consumer\n(Worker X, Y, ...)" as Consumer
+
+Producer --> Broker : Publish message
+Broker --> Consumer : Deliver message
+
+note right of Broker
+  • Routing (topics, keys)
+  • Durability (persisted queues)
+  • Load Balancing (competing consumers)
+  • Dead-Letter Queues
+end note
+
+@enduml

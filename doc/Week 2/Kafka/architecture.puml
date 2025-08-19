@@ -1,0 +1,13 @@
+@startuml
+rectangle "Producer(s)\n(publish data)" as producer
+rectangle "Broker(s)\n(Kafka)" as broker
+rectangle "Consumer Group\n(pull data)" as consumer
+rectangle "ZooKeeper\n(legacy)" as zk
+rectangle "KRaft in new" as kraft
+
+producer --> broker
+broker --> consumer
+broker <--> zk
+broker <--> kraft
+
+@enduml

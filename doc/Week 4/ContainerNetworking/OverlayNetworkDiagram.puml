@@ -1,0 +1,22 @@
+@startuml
+title Overlay Network Across Hosts (VXLAN)
+
+node "Host 1" as H1 {
+  node "Pod A" as PA
+  PA --> "vethA" 
+  "vethA" --> "vxlan1" 
+}
+
+node "Host 2" as H2 {
+  node "Pod B" as PB
+  PB --> "vethB"
+  "vethB" --> "vxlan1"
+}
+
+H1 -[#blue,dashed]> H2 : VXLAN Tunnel (UDP encapsulation)
+
+note bottom
+  Overlay network spans hosts via VXLAN encapsulation  
+  Pods appear on same virtual L2 network  
+end note
+@enduml

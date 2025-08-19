@@ -1,0 +1,35 @@
+@startuml
+title Filtering (Predicates) Pipeline
+skinparam componentStyle rectangle
+
+component "Pending Pod\n- requests: cpu=500m, mem=512Mi\n- nodeSelector: zone=us-west-1a\n- hostPort: 8080" as Pod
+
+node "Node A\nallocatable: 4CPU/8Gi\nlabels: zone=us-west-1a\nports used: 80" as A
+node "Node B\nallocatable: 1CPU/2Gi\nlabels: zone=us-west-1b\nports used: 8080" as B
+node "Node C\nallocatable: 2CPU/4Gi\nlabels: zone=us-west-1a\ntaints: gpu=true:NoSchedule" as C
+
+rectangle "Predicates" as P {
+  [ResourceFits]
+  [PodFitsPorts]
+  [NodeSelector]
+  [Taints/Tolerations]
+  [Affinity/AntiAffinity]
+}
+
+Pod --> P
+P --> A : passes
+P -[#red,dashed]-> B : fails PodFitsPorts
+P -[#red,dashed]-> C : fails Taints
+
+note right of A
+Feasible node
+end note
+
+note right of B
+Host port 8080 already in use
+end note
+
+note right of C
+Pod lacks toleration: gpu=true:NoSchedule
+end note
+@enduml

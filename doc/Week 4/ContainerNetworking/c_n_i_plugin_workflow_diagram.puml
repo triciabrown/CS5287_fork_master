@@ -1,0 +1,60 @@
+@startuml
+
+participant "Kubelet / Orchestrator" as Orchestrator
+participant "CNI Config\n(/etc/cni/net.d/*.conf)" as Config
+participant "CNI Plugins\n(/opt/cni/bin)" as Plugins
+participant "Worker Node" as Node
+
+Orchestrator -> Config: 1. Reads network definition
+activate Config
+return Configuration
+
+Orchestrator -> Plugins: 2. Calls `cni ADD` for Pod\n(provision veth & namespace)
+activate Plugins
+
+Plugins -> Node: 3. Create network namespace
+activate Node
+return Namespace created
+
+Plugins -> Node: 4. Create veth pair
+activate Node
+return Veth pair created
+
+Plugins -> Node: 5. Move veth end into namespace
+activate Node
+return Veth moved
+
+Plugins -> Node: 6. Configure IP & routes
+activate Node
+return Network configured
+
+Plugins -> Node: 7. Attach host end to bridge/overlay
+activate Node
+return Host end attached
+
+return ADD completed
+
+...Pod lifecycle...
+
+Orchestrator -> Plugins: 8. Calls `cni DEL` for Pod\n(clean up interfaces)
+activate Plugins
+
+Plugins -> Node: 9. Delete veth pair
+activate Node
+return Veth pair deleted
+
+Plugins -> Node: 10. Remove namespace links
+activate Node
+return Links removed
+
+Plugins -> Node: 11. Cleanup routes
+activate Node
+return Routes cleaned
+
+return DEL completed
+
+note right of Node
+  Popular CNI plugins: Calico (BGP), Flannel (VXLAN), Weave, Cilium, bridge
+end note
+
+@enduml

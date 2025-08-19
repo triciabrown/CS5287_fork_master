@@ -1,0 +1,35 @@
+@startuml
+node "Host" {
+rectangle "Container 1" as c1 {
+interface "eth0" as eth1
+}
+
+rectangle "Container 2" as c2 {
+interface "eth0" as eth2
+}
+
+rectangle "docker0 Bridge" as bridge {
+interface "172.17.0.0/16" as subnet
+}
+
+rectangle "NAT" as nat
+interface "eth0" as hosteth
+
+eth1 -[hidden]d- eth2
+eth1 -- bridge
+eth2 - bridge
+bridge -- nat
+nat -- hosteth
+
+note right of bridge
+Default Docker network mode
+Containers share subnet and
+communicate via bridge
+end note
+}
+
+cloud "Internet" as net
+
+hosteth -- net
+
+@enduml

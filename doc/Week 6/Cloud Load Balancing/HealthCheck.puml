@@ -1,0 +1,22 @@
+@startuml
+skinparam sequenceArrowColor #444
+actor Client
+participant "Load Balancer" as LB
+participant "Health Checker" as HC
+participant "Backend A" as A
+participant "Backend B" as B
+
+HC -> A : HTTP GET /healthz
+alt Healthy
+  A --> HC : 200 OK
+else Unhealthy
+  A --> HC : 500/timeout
+end
+
+HC -> B : TCP SYN :port
+B --> HC : SYN-ACK
+
+LB -> LB : Update pool\n(A removed if threshold reached)
+Client -> LB : Request
+LB -> B : Forward
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+start
+:Receive new connection/request;
+if (Policy?) then (Round Robin)
+  :Select next backend in list;
+elseif (Least Connections)
+  :Pick backend with min(active_conns);
+elseif (Latency-Based)
+  :Pick backend with min(RTT/health score);
+else (Weighted)
+  :Random choice with weights;
+endif
+:Forward to selected backend;
+stop
+@enduml

@@ -1,0 +1,56 @@
+@startuml
+!theme spacelab
+
+title OpenStack Core Services Deployment
+
+node "Controller Node(s)" as ControllerNodes {
+    node Controller
+  folder "API Services" {
+    [Keystone API]
+    [Glance API]
+    [Nova API]
+    [Neutron API]
+    [Cinder API]
+    [Heat API]
+  }
+
+  database "State Database\n(MySQL/MariaDB)" as DB
+
+  queue "Message Bus\n(RabbitMQ / Qpid)" as MQ
+
+  [Horizon\n(Dashboard)]   as Horizon
+}
+
+node "Compute Node(s)" as ComputeNode {
+  component "Nova\nCompute Service" as Compute
+  component "Neutron\nL3 / DHCP / Metadata\nAgents" as NeutronAgents
+}
+
+node "Block Storage Node(s)" as BlockStore {
+  component "Cinder\nVolume Service" as CinderSvc
+}
+
+node "Object Storage Node(s)" as ObjectStore {
+  component "Swift\nProxy & Storage" as SwiftSvc
+}
+
+node "Network Node(s)" as NetworkNode {
+  component "Neutron\nL2 Agent & Plugin" as NeutronPlugin
+}
+
+' Deployment relationships
+Controller --> DB     : reads/writes state
+Controller --> MQ     : pub/sub notifications
+Compute    --> MQ     : notifications
+Compute    --> Controller : API calls
+Compute    --> NeutronAgents : network services
+Compute    --> BlockStore : attach/detach volumes
+BlockStore --> Controller : Cinder API calls
+BlockStore --> MQ     : volume events
+ObjectStore --> MQ     : object events
+ObjectStore --> Controller : Swift API calls
+NetworkNode --> Controller : Neutron API calls
+NetworkNode --> MQ     : network events
+Horizon    --> Controller : API calls
+
+@enduml

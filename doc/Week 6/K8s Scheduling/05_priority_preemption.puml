@@ -1,0 +1,20 @@
+@startuml
+title Priority & Preemption
+actor Scheduler
+rectangle "Node X (2 CPU)" as NodeX
+queue "Low-priority Pod L1\nreq: 1 CPU\npriority: 0" as L1
+queue "Low-priority Pod L2\nreq: 1 CPU\npriority: 0" as L2
+queue "High-priority Pod H\nreq: 2 CPU\npriority: 1000" as H
+
+L1 -down-> NodeX
+L2 -down-> NodeX
+H -> Scheduler : Pending (no room)
+Scheduler -> Scheduler : Evaluate preemption candidates
+Scheduler -[#red]-> L1 : evict
+Scheduler -[#red]-> L2 : evict
+Scheduler -> NodeX : Bind H
+note right of Scheduler
+Higher-priority Pod can preempt
+lower-priority Pods to make room.
+end note
+@enduml

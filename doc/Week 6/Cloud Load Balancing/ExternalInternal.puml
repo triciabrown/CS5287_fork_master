@@ -1,0 +1,28 @@
+@startuml
+skinparam cloudBackgroundColor #EEF7EE
+skinparam nodeBackgroundColor #F5F5F5
+skinparam rectangleBorderColor #888888
+
+cloud "Internet" as Internet
+rectangle "Public LB (External)\nAnycast IP / Public DNS" as PubLB
+rectangle "VPC / VNet" as VPC {
+  rectangle "Private LB (Internal)" as PrivLB
+  node "Service A (EC2/VMSS/GCE/VMSS Pool)" as SvcA
+  node "Service B (ASG/MIG/Scale Set)" as SvcB
+}
+
+Internet --> PubLB : HTTPS
+PubLB --> PrivLB : mTLS / Private Link\n(optional)
+PubLB --> SvcA : HTTPS
+PrivLB --> SvcB : HTTP/gRPC
+
+note right of PubLB
+  External exposure
+  WAF, TLS termination
+end note
+
+note right of PrivLB
+  East-West traffic
+  Microservices
+end note
+@enduml

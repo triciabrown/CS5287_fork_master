@@ -1,0 +1,22 @@
+@startuml
+title Host Networking Mode
+
+actor UserApp as Client
+
+node "Host Machine" {
+  interface "eth0\n(Host Interface)" as HostEth
+  rectangle "Container\nNetwork Namespace" as Container {
+    interface "eth0\n(shared with host)" as ContEth
+  }
+}
+
+Client --> HostEth : send/receive traffic
+HostEth <-- ContEth : same namespace, no NAT
+
+note right of HostEth
+  • Container shares host’s network namespace  
+  • Uses host’s IP and interfaces directly  
+  • No port mapping needed  
+  • High performance, low isolation  
+end note
+@enduml

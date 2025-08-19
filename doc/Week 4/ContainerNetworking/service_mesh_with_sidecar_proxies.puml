@@ -1,0 +1,42 @@
+@startuml
+title Service Mesh with Sidecar Proxies
+
+node "Host A" as A {
+  rectangle "Pod: Service A" as SA {
+    [App Container A] 
+    [Sidecar Proxy A]
+  }
+}
+
+node "Host B" as B {
+  rectangle "Pod: Service B" as SB {
+    [Sidecar Proxy B]
+    [App Container B]
+  }
+}
+
+SA --> SB : App calls via Proxy A  
+SB --> SA : Response via Proxy B  
+
+cloud "Control Plane" {
+  component "Service Registry" as Registry
+  component "Certificate Authority" as CA
+  component "Policy Manager" as Policy
+}
+
+Registry --> [Sidecar Proxy A]
+Registry --> [Sidecar Proxy B]
+
+CA --> [Sidecar Proxy A]
+CA --> [Sidecar Proxy B]
+
+Policy --> [Sidecar Proxy A]
+Policy --> [Sidecar Proxy B]
+
+note right of SA
+  • L7 routing  
+  • mTLS encryption  
+  • Observability (metrics, logs)  
+end note
+
+@enduml

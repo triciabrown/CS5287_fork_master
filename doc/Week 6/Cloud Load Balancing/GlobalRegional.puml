@@ -1,0 +1,19 @@
+@startuml
+skinparam cloudBackgroundColor #F0F7FF
+cloud "Client (Anycast DNS/IP)" as Client
+rectangle "Global LB" as GLB
+rectangle "Region: us-east" as USE {
+  node "LB-us-east" as LBE
+  node "Backends-us-east" as BE1
+}
+rectangle "Region: eu-west" as EUW {
+  node "LB-eu-west" as LBW
+  node "Backends-eu-west" as BE2
+}
+
+Client --> GLB : DNS/Anycast Route
+GLB --> LBE : Latency/Geo proximity
+GLB --> LBW : Failover/Proximity
+LBE --> BE1
+LBW --> BE2
+@enduml

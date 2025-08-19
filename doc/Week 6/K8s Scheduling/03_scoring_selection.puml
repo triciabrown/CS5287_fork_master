@@ -1,0 +1,17 @@
+@startuml
+title Scoring and Node Selection
+actor Scheduler
+participant "Node A" as A
+participant "Node D" as D
+participant "Node E" as E
+
+Scheduler -> Scheduler: Apply scoring functions\n(LeastRequested, Balanced,\nAffinity, TaintToleration, Plugins)
+Scheduler -> A: compute score()
+A --> Scheduler: 30
+Scheduler -> D: compute score()
+D --> Scheduler: 34
+Scheduler -> E: compute score()
+E --> Scheduler: 26
+Scheduler -> Scheduler: Choose highest (Node D)
+Scheduler -> D: Bind Pod
+@enduml

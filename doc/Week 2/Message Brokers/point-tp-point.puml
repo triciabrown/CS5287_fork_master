@@ -1,0 +1,15 @@
+@startuml
+title Point-to-Point Messaging Pattern
+
+actor Producer
+queue "Work Queue" as Queue
+actor Consumer
+
+Producer --> Queue : send(message)
+Queue --> Consumer : deliver(message)
+
+note left of Queue
+  • Single consumer processes each message
+  • Messages consumed only once
+end note
+@enduml

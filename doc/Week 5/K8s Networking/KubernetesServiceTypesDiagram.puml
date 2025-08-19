@@ -1,0 +1,59 @@
+@startuml
+
+title Kubernetes Service Types
+
+actor "External Client" as Client
+
+node "Kubernetes Cluster" {
+  rectangle "Service: ClusterIP\n10.0.0.100" as ClusterIP
+  rectangle "Service: NodePort\nNodeIP:30080" as NodePort
+  rectangle "Service: LoadBalancer\nLB-IP:203.0.113.10" as LoadBalancer
+  rectangle "Ingress\n(hostname → path rules)" as Ingress
+
+  node "Pod A\n(10.0.0.11)" as PodA
+  node "Pod B\n(10.0.0.12)" as PodB
+}
+
+' ClusterIP usage
+PodA --> ClusterIP : register endpoint
+PodB --> ClusterIP : register endpoint
+ClusterIP --> PodA : load-balance
+ClusterIP --> PodB : load-balance
+
+' NodePort usage
+Client --> NodePort : TCP:30080
+NodePort --> ClusterIP
+ClusterIP --> PodA
+ClusterIP --> PodB
+
+' LoadBalancer usage
+Client --> LoadBalancer : TCP:80
+LoadBalancer --> NodePort
+NodePort --> ClusterIP
+
+' Ingress usage
+Client --> Ingress : HTTP request (host/path)
+Ingress --> LoadBalancer : route to LB-IP
+LoadBalancer --> NodePort
+NodePort --> ClusterIP
+
+note right of ClusterIP
+  - Internal-only IP  
+  - No external access  
+end note
+
+note right of NodePort
+  - Opens port on each node  
+  - External clients use NodeIP:port  
+end note
+
+note right of LoadBalancer
+  - Cloud LB provisioned  
+  - Direct external IP  
+end note
+
+note right of Ingress
+  - L7 routing (HTTP/S)  
+  - Hostname & path-based rules  
+end note
+@enduml

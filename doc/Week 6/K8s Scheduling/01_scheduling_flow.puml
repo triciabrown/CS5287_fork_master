@@ -1,0 +1,21 @@
+@startuml
+title Kubernetes Scheduling Flow
+start
+:Watch API server for unscheduled Pods\n(spec.nodeName empty);
+:Pop next Pending Pod;
+partition "Filtering (Predicates)" {
+  :List candidate nodes;
+  :Eliminate nodes failing\nResourceFits / PodFitsPorts /\nNodeSelector / Taints / Affinity;
+}
+if (Any feasible nodes?) then (yes)
+  partition "Scoring (Priorities)" {
+    :Score feasible nodes:\nLeastRequested, Balanced,\nNodeAffinity, TaintToleration,\nCustom Plugins;
+    :Pick highest-scoring node\n(tie-breaker: policy/random);
+  }
+  :Bind Pod -> Node via\nBinding API;
+else (no)
+  :Leave Pod Pending;
+  :Retry on cluster events\n(new node, CA scale-up,\nresources freed);
+endif
+stop
+@enduml

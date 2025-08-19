@@ -1,0 +1,35 @@
+@startuml
+title CNI Plugin Workflow & Supported Plugins
+
+actor "kubelet" as K
+
+node "Worker Node" as WNode {
+  folder "CNI Config\n(/etc/cni/net.d)" as Config
+  database "CNI Plugins\n(/opt/cni/bin)" as Plugins
+  
+  node "Pod Network Namespace" as PodNS {
+    interface "eth0 (Pod IP)" as PodEth
+  }
+  
+  interface "vethX" as VethHost
+  node "Host Network\n(bridge/overlay)" as HostNet
+  node Node
+}
+
+K --> Config : Read network definition
+K --> Plugins : Execute `cni ADD` for Pod
+Plugins --> Node : 1) Create network namespace & veth pair
+Plugins --> VethHost : 2) Attach veth host end to bridge/overlay
+Plugins --> PodEth : 3) Assign Pod IP & routes
+K <-- Plugins : Return interface details
+
+note left
+  Supported CNI Plugins:
+  - Calico (BGP/routing)
+  - Flannel (VXLAN overlay)
+  - Weave Net (mesh overlay)
+  - Cilium (eBPF L3–L7)
+  - Bridge (host-bridge)
+end note
+
+@enduml

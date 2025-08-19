@@ -1,0 +1,20 @@
+@startuml
+title CNI Plugin Workflow
+
+actor "Kubelet" as K
+entity "CNI Config\n(/etc/cni/net.d)" as Config
+database "CNI Plugins\n(/opt/cni/bin)" as Plugins
+node "Worker Node" as Node
+
+K --> Config : Read network definition
+K --> Plugins : Execute ADD for Pod
+Plugins --> Node : Create veth pair & namespace
+Plugins --> Node : Attach to bridge or overlay
+Plugins --> Node : Configure IP & routes
+K <-- Plugins : Return interface details
+
+note left
+  - CNI standard: ADD, DEL operations  
+  - Supports multiple network plugins  
+end note
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+skinparam rectangleBackgroundColor #F7F1FF
+rectangle "Client" as C
+rectangle "Edge LB (TLS Termination)\nCert: *.example.com" as ELB
+rectangle "Backend Pool" as Pool {
+  node "Service A" as SA
+  node "Service B" as SB
+}
+
+C -[#blue]-> ELB : TLS (SNI=www.example.com)
+ELB -[#green]-> SA : HTTP or TLS (mTLS optional)
+ELB -[#green]-> SB : HTTP or TLS (mTLS optional)
+
+note right of ELB
+  - Renew/rotate certs
+  - HTTP/2, gRPC
+  - WAF/Rate limiting
+end note
+@enduml

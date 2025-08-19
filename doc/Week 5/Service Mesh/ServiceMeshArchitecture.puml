@@ -1,0 +1,44 @@
+@startuml
+
+title Service Mesh Core Components
+
+actor "Client Service" as Client
+
+node "Data Plane" {
+  rectangle "App Service A" as AppA {
+    [App Container A]
+    [Sidecar Proxy A]
+  }
+  rectangle "App Service B" as AppB {
+    [Sidecar Proxy B]
+    [App Container B]
+  }
+}
+
+cloud "Control Plane" as CP {
+  component "Service Registry" as Registry
+  component "Traffic Management\n(Istio Pilot)" as TrafficMgr
+  component "Certificate Authority\n(mTLS Certs)" as CA
+}
+
+Client --> [Sidecar Proxy A] : request
+[Sidecar Proxy A] --> [Sidecar Proxy B] : mTLS encrypted call
+
+Registry --> [Sidecar Proxy A]
+Registry --> [Sidecar Proxy B]
+
+TrafficMgr --> [Sidecar Proxy A]
+TrafficMgr --> [Sidecar Proxy B]
+
+CA --> [Sidecar Proxy A]
+CA --> [Sidecar Proxy B]
+
+note right of AppA
+  • Sidecar intercepts inbound/outbound traffic  
+  • Enforces policies, collects telemetry  
+end note
+
+note right of CP
+  • Provides discovery, routing rules, and certificates  
+end note
+@enduml

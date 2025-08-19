@@ -1,0 +1,31 @@
+@startuml
+
+node "Host A" as A {
+  node "Container A\n(ns1)" as CA
+  interface vethA as VA
+  interface "br-overlay" as BA
+  CA --> VA
+  VA --> BA
+}
+
+node "Host B" as B {
+  node "Container B\n(ns2)" as CB
+  interface vethB as VB
+  interface "br-overlay" as BB
+  CB --> VB
+  VB --> BB
+}
+
+BA -[#blue,dashed]-> BB : VXLAN Tunnel (UDP encapsulation)
+
+note right of BA
+  • Overlay bridge on each host  
+  • VXLAN encapsulates L2 frames in UDP  
+  • Managed by Flannel/Weave/Calico agent
+end note
+
+note right of BB
+  • Containers on different hosts share same virtual L2 network  
+  • No direct physical connectivity required  
+end note
+@enduml

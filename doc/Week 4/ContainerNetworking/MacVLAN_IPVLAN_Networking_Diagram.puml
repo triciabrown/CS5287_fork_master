@@ -1,0 +1,24 @@
+@startuml
+title MacVLAN / IPVLAN Networking
+
+node "Physical Host" {
+  interface "eth0\n(physical NIC)" as HostNic
+
+  rectangle "Network Namespace: Container A" as C1 {
+    interface "eth0\n(MacVLAN)\nMAC: 02:AA:AA:01\nIP: 192.0.2.11" as C1Eth
+  }
+  rectangle "Network Namespace: Container B" as C2 {
+    interface "eth0\n(MacVLAN)\nMAC: 02:AA:AA:02\nIP: 192.0.2.12" as C2Eth
+  }
+
+  HostNic <--> C1Eth : direct L2 link
+  HostNic <--> C2Eth : direct L2 link
+}
+
+note right
+  • Containers share host NIC but have unique MAC/IP  
+  • No bridge or NAT needed  
+  • Full L2 connectivity for legacy apps  
+  • IPVLAN variant: multiple IPs on same MAC
+end note
+@enduml

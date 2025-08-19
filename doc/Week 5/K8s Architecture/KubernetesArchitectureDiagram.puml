@@ -1,0 +1,33 @@
+@startuml
+!theme spacelab
+
+package "Control Plane (Master)" {
+  [kube-apiserver] as APIServer
+  [etcd\n(key-value store)] as ETCD
+  [kube-scheduler] as Scheduler
+  [kube-controller-manager] as ControllerManager
+  [cloud-controller-manager\n(optional)] as CloudController
+}
+
+package "Worker Node (Data Plane)" {
+  [kubelet] as Kubelet
+  [kube-proxy] as KubeProxy
+  [Container Runtime\n(Docker, containerd, CRI-O)] as Runtime
+}
+
+APIServer --> ETCD : reads/writes state
+Scheduler --> APIServer : watches Pods
+Scheduler --> Kubelet : assigns Pods to nodes
+
+ControllerManager --> APIServer : watches resources
+ControllerManager --> Kubelet : creates/deletes Pods
+
+CloudController --> APIServer : watches cloud resources
+CloudController --> ETCD : updates cloud state
+
+Kubelet --> APIServer : registers/node status
+Kubelet --> Runtime : manages containers
+KubeProxy --> APIServer : watches Services & Endpoints
+KubeProxy --> Runtime : programs networking rules
+
+@enduml

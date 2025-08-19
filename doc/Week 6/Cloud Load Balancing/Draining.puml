@@ -1,0 +1,10 @@
+@startuml
+participant "LB" as LB
+participant "Backend X" as BX
+participant "Backend Y" as BY
+
+LB -> LB : Mark BX = draining\n(no new connections)
+LB -> BY : New requests -> BY
+LB -> BX : Allow existing to complete
+LB -> LB : When active=0 -> remove BX
+@enduml

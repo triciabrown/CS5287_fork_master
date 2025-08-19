@@ -1,0 +1,27 @@
+@startuml
+rectangle "Software-Defined Infrastructure (SDI)" #bbbbff {
+
+  rectangle "Orchestration" {
+  }
+
+  rectangle "Compute"
+  rectangle "Storage"
+  rectangle "Network"
+  rectangle "Accelerators"
+  rectangle "Security"
+
+  ' Position bottom-layer packages horizontally
+  Orchestration -[hidden]-> Compute
+  Orchestration -[hidden]-> Storage
+  Orchestration -[hidden]-> Network
+  Orchestration -[hidden]-> Accelerators
+  Orchestration -[hidden]-> Security
+
+  Compute  --> Orchestration
+  Storage  --> Orchestration
+  Network  --> Orchestration
+  Accelerators --> Orchestration
+  Security --> Orchestration
+}
+
+@enduml

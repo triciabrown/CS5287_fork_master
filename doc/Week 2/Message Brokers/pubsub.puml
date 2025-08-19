@@ -1,0 +1,22 @@
+@startuml
+title Publish/Subscribe Messaging Pattern
+
+actor Producer
+rectangle "Exchange / Topic" as Exchange
+queue "Subscriber Queue A" as QueueA
+queue "Subscriber Queue B" as QueueB
+actor SubscriberA
+actor SubscriberB
+
+Producer --> Exchange : publish(message)
+Exchange --> QueueA : route(message)
+Exchange --> QueueB : route(message)
+QueueA --> SubscriberA : deliver(message)
+QueueB --> SubscriberB : deliver(message)
+
+note right of Exchange
+  • Fan-out or topic-based routing
+  • Multiple subscribers receive each message
+end note
+
+@enduml

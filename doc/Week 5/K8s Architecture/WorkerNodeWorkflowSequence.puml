@@ -1,0 +1,38 @@
+@startuml
+title Worker Node Workflow Sequence
+
+actor "kubelet" as Kubelet
+participant "kube-apiserver" as APIServer
+participant "Container Runtime" as Runtime
+
+Kubelet -> APIServer : List Pods assigned to this node
+APIServer --> Kubelet : Pod spec list
+
+Kubelet -> Runtime : Pull container image
+Runtime --> Kubelet : Image pulled
+
+Kubelet -> Runtime : Create & start container(s)
+Runtime --> Kubelet : Container running
+
+loop Health checks
+  Kubelet -> Runtime : Execute liveness/readiness probe
+  Runtime --> Kubelet : Probe result
+end
+
+Kubelet -> APIServer : Update Pod status (Ready/NotReady)
+
+== Service Networking ==
+
+participant "kube-proxy" as KubeProxy
+participant "iptables/IPVS" as NetRules
+
+KubeProxy -> APIServer : Watch Services & Endpoints
+APIServer --> KubeProxy : Service & Endpoint updates
+KubeProxy -> NetRules : Program forwarding rules
+
+note over KubeProxy, NetRules
+  Enables Pod → Service → Pod connectivity  
+  via ClusterIP, NodePort, or VIPs
+end note
+
+@enduml

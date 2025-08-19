@@ -1,0 +1,31 @@
+@startuml
+
+node "HostNamespace" {
+  node "Linux Bridge\n(e.g., docker0)" as Bridge
+  interface "veth0" as VethHost1
+  interface "veth1" as VethHost2
+
+  Bridge --> VethHost1
+  Bridge --> VethHost2
+}
+
+node "Container A Namespace" {
+  interface "eth0" as EthA
+}
+node "Container B Namespace" {
+  interface "eth0" as EthB
+}
+
+VethHost1 <-- EthA : virtual link
+VethHost2 <-- EthB : virtual link
+
+note left of EthA
+  - Isolated network namespace
+  - Own interfaces & routes
+end note
+
+note right of Bridge
+  - Acts like a switch
+  - Learns & forwards MACs
+end note
+@enduml

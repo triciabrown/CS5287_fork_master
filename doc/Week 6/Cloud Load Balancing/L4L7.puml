@@ -1,0 +1,25 @@
+@startuml
+skinparam rectangle {
+  BackgroundColor<<L4>> #E6F7FF
+  BackgroundColor<<L7>> #FFF7E6
+  BorderColor black
+}
+
+rectangle "Client" as C
+rectangle "Load Balancer\n(L4: TCP/UDP)" <<L4>> as L4
+rectangle "Load Balancer\n(L7: HTTP/gRPC)" <<L7>> as L7
+rectangle "Backends" as B {
+  rectangle "App A" as A1
+  rectangle "App B" as A2
+}
+
+C --> L4 : TCP/UDP\n(IP:Port)
+C --> L7 : HTTP(S)/gRPC\n(Headers, Path, Cookies)
+
+L4 --> A1 : Forward by 5-tuple
+L4 --> A2 : Forward by 5-tuple
+
+L7 --> A1 : Path=/api/v1/*
+L7 --> A2 : Host=img.example.com
+
+@enduml

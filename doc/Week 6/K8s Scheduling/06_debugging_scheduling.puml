@@ -1,0 +1,15 @@
+@startuml
+title Debugging Scheduling
+actor "SRE/Dev" as User
+participant "API Server" as API
+participant "kube-scheduler" as KS
+database "Metrics/Logs" as ML
+
+User -> API: kubectl describe pod <pod>
+API --> User: Events (e.g., 0/5 nodes available:\nInsufficient cpu, taints, affinity)
+User -> KS: Check logs\n(journalctl -u kube-scheduler)
+KS --> User: Filter/score decisions
+User -> API: Adjust spec (requests,\ntolerations, affinity, PDB)
+User -> ML: Observe metrics & dashboards
+ML --> User: Pending duration & reasons
+@enduml

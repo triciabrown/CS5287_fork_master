@@ -1,0 +1,27 @@
+@startuml
+title Routing / Topic-Based Messaging Pattern
+
+actor Producer
+rectangle "Topic Exchange" as Exchange
+queue "Queue: *.critical" as Q1
+queue "Queue: order.*" as Q2
+queue "Queue: *.error" as Q3
+actor Subscriber1
+actor Subscriber2
+actor Subscriber3
+
+Producer --> Exchange : publish(message with routing key)
+Exchange --> Q1 : if key matches "*.critical"
+Exchange --> Q2 : if key matches "order.*"
+Exchange --> Q3 : if key matches "*.error"
+Q1 --> Subscriber1 : deliver(message)
+Q2 --> Subscriber2 : deliver(message)
+Q3 --> Subscriber3 : deliver(message)
+
+note right of Exchange
+  • Messages tagged with routing keys  
+  • Queues subscribe to patterns  
+  • Flexible, selective delivery  
+end note
+
+@enduml

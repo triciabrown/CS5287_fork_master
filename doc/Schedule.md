@@ -11,24 +11,24 @@
 
 ## Lectures
 
-| Week    | Topics                                                                                                                                     |
-|---------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| Week 0  | Course Overview & Expectations, How to Use GitHub Repo & Chameleon Cloud                                                                   |
-| Week 1  | The Evolution of Cloud Computing, Cloud Service Models, Deployment Models, REST & RESTful APIs                                             |
-| Week 2  | Computer Architecture for the Cloud, Operating Systems Essentials, Networking Fundamentals, Basic Cloud Security, Message Brokers Overview |
-| Week 3  | Virtualization Theory, OpenStack Architecture, Infrastructure as Code Fundamentals                                                         |
-| Week 4  | Container Theory, Docker Fundamentals, Container Orchestration Overview                                                                    |
-| Week 5  | Kubernetes Architecture, Kubernetes Networking, Service Mesh Basics                                                                        |
-| Week 6  | Cloud Load Balancing, Kubernetes Scheduling, Scaling in Kubernetes                                                                         |
-| Week 7  | Tail Latency Problem, SRE Concepts                                                                                                         |
-| Week 8  | Observability in Cloud, Chaos Engineering                                                                                                  |
-| Week 9  | Serverless Computing, Edge & Fog Computing                                                                                                 |
-| Week 10 | Distributed File Systems, Data Partitioning & Sharding                                                                                     |
-| Week 11 | MapReduce, Apache Spark Overview, Apache Ray Overview                                                                                      |
-| Week 12 | GPU Architectures for Cloud, LLM Serving in the Cloud, Agentic Workflows                                                                   |
-| Week 13 | Software Defined Networking (SDN), Network Function Virtualization (NFV), 5G & Beyond                                                      |
-| Week 14 | Final Project Proposal                                                                                                                     |
-| Week 15 | Final Project Presentation                                                                                                                 |
+| Week                           | Topics                                                                                                                                     |
+|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| Week 0                         | Course Overview & Expectations, How to Use GitHub Repo & Chameleon Cloud                                                                   |
+| [Week 1](Week%201/README.md)   | The Evolution of Cloud Computing, Cloud Service Models, Deployment Models, REST & RESTful APIs                                             |
+| [Week 2](Week%202/README.md)   | Computer Architecture for the Cloud, Operating Systems Essentials, Networking Fundamentals, Basic Cloud Security, Message Brokers Overview |
+| [Week 3](Week%203/README.md)   | Virtualization Theory, OpenStack Architecture, Infrastructure as Code Fundamentals                                                         |
+| [Week 4](Week%204/README.md)   | Container Theory, Docker Fundamentals, Container Orchestration Overview                                                                    |
+| [Week 5 ](Week%205/README.md)  | Kubernetes Architecture, Kubernetes Networking, Service Mesh Basics                                                                        |
+| [Week 6 ](Week%206/README.md)  | Cloud Load Balancing, Kubernetes Scheduling, Scaling in Kubernetes                                                                         |
+| [Week 7 ](Week%207/README.md)  | Tail Latency Problem, SRE Concepts                                                                                                         |
+| [Week 8 ](Week%208/README.md)  | Observability in Cloud, Chaos Engineering                                                                                                  |
+| [Week 9 ](Week%209/README.md)  | Serverless Computing, Edge & Fog Computing                                                                                                 |
+| [Week 10](Week%2010/README.md) | Distributed File Systems, Data Partitioning & Sharding                                                                                     |
+| [Week 11](Week%2011/README.md) | MapReduce, Apache Spark Overview, Apache Ray Overview                                                                                      |
+| [Week 12](Week%2012/README.md) | GPU Architectures for Cloud, LLM Serving in the Cloud, Agentic Workflows                                                                   |
+| [Week 13](Week%2013/README.md) | Software Defined Networking (SDN), Network Function Virtualization (NFV), 5G & Beyond                                                      |
+| [Week 14](Week%2014/README.md) | Final Project Proposal                                                                                                                     |
+| [Week 15](Week%2015/README.md) | Final Project Presentation                                                                                                                 |
 
 ### **Week 0 – Orientation**
 

@@ -20,10 +20,10 @@ async function traverseAndConvert(dir) {
       await traverseAndConvert(fullPath);
     }
     else if (entry.isFile() && entry.name.endsWith('.marp.md')) {
-      const outPdf = path.resolve('.output', fullPath.replace(/\.marp\.md$/, '.pdf'));
+      const outPdf = path.resolve('.output', fullPath.replace(/\.marp\.md$/, '.pptx'));
       console.log(`⏳  Generating PDF for ${fullPath}`);
         const result = spawnSync(
-            'npx marp --pdf --theme ./doc/default.scss --allow-local-files ' +
+            'npx marp --pptx --theme ./doc/default.scss --allow-local-files ' +
             `-o "${outPdf}" "${fullPath}"`,
             { stdio: 'inherit', shell: true }
         );

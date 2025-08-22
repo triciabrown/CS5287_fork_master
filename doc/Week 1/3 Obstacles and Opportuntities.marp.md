@@ -7,6 +7,8 @@ paginate: true
 
 # Obstacles and Opportunities
 
+Video: [Obstacles and Opportunities](https://youtu.be/u-skcK6CyL8)
+
 ---
 
 ## Availability issues
@@ -94,6 +96,11 @@ paginate: true
 | 3 | Data confidentiality and auditability | Deploy encryption, VLANs, firewalls |
 | 4 | Data transfer bottlenecks | FedExing disks; higher BW switches |
 | 5 | Performance unpredictability | Improved VM support; flash memory; gang schedule VMs |
+
+--- 
+
+| # | Obstacle | Opportunity |
+|----------|-----------|-------------|
 | 6 | Scalable storage | Invent scalable store |
 | 7 | Bugs in large distributed systems | Invent debugger that relies on distributed VMs |
 | 8 | Scaling quickly | Invent auto-scaler that relies on ML; snapshots for conservation |

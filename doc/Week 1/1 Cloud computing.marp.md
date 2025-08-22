@@ -7,6 +7,8 @@ paginate: true
  
 ## Cloud Computing
 
+Video link: [Cloud Computing](https://youtu.be/NYlDMK28Hyk)
+
 --- 
 
 ## Motivating Scenario

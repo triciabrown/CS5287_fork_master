@@ -8,6 +8,8 @@ paginate: true
 
 # Enablers for Cloud Computing
 
+Video: [Enablers for Cloud Computing](https://youtu.be/RYOShekP4Y8)
+
 ---
 
 ## History of Cloud Computing

@@ -24,7 +24,7 @@ It abstracts networking complexity and provides **traffic management, security, 
 - Service discovery, traffic policies, mTLS certificates.
 - Examples: Istio Pilot, Linkerd2 Control Plane.
 
-![ServiceMeshArchitecture-Service_Mesh_Core_Components.png](ServiceMeshArchitecture-Service_Mesh_Core_Components.png)
+![Service Mesh Core Components](ServiceMeshArchitecture-Service_Mesh_Core_Components.png)
 
 ---
 

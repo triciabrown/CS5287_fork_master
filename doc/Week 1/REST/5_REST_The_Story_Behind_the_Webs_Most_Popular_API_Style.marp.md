@@ -8,6 +8,8 @@ theme: default
 # REST: The Story Behind the Web’s Most Popular API Style
 ### A deep dive into architecture, constraints, and real‐world impact
 
+Video: (https://youtu.be/Jr56k9dfVyA)[https://youtu.be/Jr56k9dfVyA]
+
 ---
 
 ## The Web in the 1990s: Challenges & Context

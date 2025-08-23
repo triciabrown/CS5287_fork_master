@@ -7,6 +7,8 @@ theme: default
 
 # REST in Practice: How It Works
 
+Video: (https://youtu.be/0SPwD-7mwaI)[https://youtu.be/0SPwD-7mwaI]
+
 ---
 
 ## REST’s Six Constraints (Refresher)

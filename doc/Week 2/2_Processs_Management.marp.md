@@ -7,6 +7,8 @@ theme: default
 
   # Processs Management
 
+  Video: [https://youtu.be/gKxkOrSK0Fs](https://youtu.be/gKxkOrSK0Fs)
+
 --- 
 
 ## Process Concept

@@ -7,6 +7,8 @@ theme: default
 
   # Operating Systems and Networks
 
+Video: [https://youtu.be/20nYpzybp14](https://youtu.be/20nYpzybp14)
+
 ---
 
 ## Sources

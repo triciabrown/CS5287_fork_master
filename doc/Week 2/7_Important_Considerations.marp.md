@@ -5,7 +5,9 @@ paginate: true
 theme: default
 ---
 
-  # Important Considerations
+# Important Considerations
+
+Video: [https://youtu.be/Ry1WohzU2E4](https://youtu.be/Ry1WohzU2E4)
 
 ---
 ## Reasons for Losses and Delays
@@ -18,9 +20,10 @@ theme: default
 ## Reasons for Losses and Delays
 
 ![Packet Delay.png](Packet%20Delay.png)
-```
+
+
 dnodal = dproc + dqueue + dtrans + dprop
-```
+
 
 - dproc: nodal processing
     - Check bit errors

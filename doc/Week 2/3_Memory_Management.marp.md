@@ -5,7 +5,9 @@ paginate: true
 theme: default
 ---
 
-  # Memory Management
+# Memory Management
+
+Video: [https://youtu.be/geFoSPvQ9jQ](https://youtu.be/geFoSPvQ9jQ)
 
 ---
 ## Memory Management
@@ -61,14 +63,14 @@ theme: default
 --- 
 ## Shared Pages
 ### Shared code
-- One copy of read -only (reentrant) code shared among
-- processes (i.e., text editors, compilers, window systems)
-- Shared code must appear in same location in the logical
-- address space of all processes
+- One copy of read -only (reentrant) code shared among processes (i.e., text editors, compilers, window systems)
+- Shared code must appear in same location in the logical address space of all processes
+
 ### Private code and data
+
 - Each process keeps a separate copy of the code and data
-- The pages for the private code and data can appear anywhere
-- in the logical address space
+- The pages for the private code and data can appear anywhere in the logical address space
+- 
 ---
 ## Virtual Memory
 
@@ -88,15 +90,19 @@ theme: default
 ![page_38_img_3.png](page_38_img_3.png)
 
 ---
+
 ## Virtual-Address Space
+
+![page_39_img_3.png](page_39_img_3.png)
+
 - Stack
 - Virtual -Address Space
 - Heap
 - Data
 - Code
-![page_39_img_3.png](page_39_img_3.png)
 
 ---
+
 ## Demand Paging
 - Bring a page into memory only when it is needed
     - Less I/O needed

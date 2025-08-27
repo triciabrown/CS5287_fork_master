@@ -1,0 +1,651 @@
+﻿1
+00:00:02,672 --> 00:00:03,893
+this lectures on operating
+
+2
+00:00:03,893 --> 00:00:07,754
+systems and networks and how they can be.
+
+3
+00:00:08,150 --> 00:00:09,866
+It's a basic fundamentals on this.
+
+4
+00:00:09,866 --> 00:00:13,595
+We need to understand this
+in order to understand cloud computing and
+
+5
+00:00:13,595 --> 00:00:15,641
+and what's happening
+underneath the covers.
+
+6
+00:00:15,641 --> 00:00:18,017
+So let's, let's dive right in.
+
+7
+00:00:18,017 --> 00:00:22,208
+First off, I'm taking,
+the information primarily comes in
+
+8
+00:00:22,208 --> 00:00:26,828
+and even listed some diagrams
+from, Cyber Shores operating system book.
+
+9
+00:00:27,620 --> 00:00:30,227
+And then also on networking on,
+
+10
+00:00:30,227 --> 00:00:33,164
+cruise
+Ross textbook on computer networking.
+
+11
+00:00:33,164 --> 00:00:38,807
+You can check those out, online
+and but they're, they're great resources
+
+12
+00:00:38,807 --> 00:00:42,338
+for the fundamentals
+and even even, some more details on that.
+
+13
+00:00:43,460 --> 00:00:43,790
+All right.
+
+14
+00:00:43,790 --> 00:00:46,793
+Let's go over operating systems
+real quick.
+
+15
+00:00:46,958 --> 00:00:50,258
+How a modern, computer works
+is really simple.
+
+16
+00:00:50,654 --> 00:00:53,690
+It's the von Neumann, model
+that's been around for decades.
+
+17
+00:00:54,482 --> 00:00:58,541
+And the basic functionality is still there
+where I've got a CPU,
+
+18
+00:00:59,366 --> 00:01:02,798
+I've got memory or
+data, and I've got devices,
+
+19
+00:01:04,052 --> 00:01:04,547
+and it's
+
+20
+00:01:04,547 --> 00:01:07,550
+it's really, really simple
+when you think about it, a device
+
+21
+00:01:07,616 --> 00:01:10,619
+can is anything external,
+
+22
+00:01:11,015 --> 00:01:13,292
+to the CPU and the memory.
+
+23
+00:01:13,292 --> 00:01:16,328
+And when I talk memory here
+this is primarily random access memory.
+
+24
+00:01:17,219 --> 00:01:20,222
+People go, well, Doctor Darren,
+what about,
+
+25
+00:01:20,519 --> 00:01:23,456
+you know, storage
+that's considered a device, right?
+
+26
+00:01:23,456 --> 00:01:26,690
+There were some disruptions
+by having nonvolatile memory.
+
+27
+00:01:27,680 --> 00:01:29,165
+That's, happening right now.
+
+28
+00:01:29,165 --> 00:01:32,960
+And, CXL that you can look
+
+29
+00:01:32,960 --> 00:01:36,359
+into, into those things, the von
+Neumann model still fits pretty well.
+
+30
+00:01:36,821 --> 00:01:39,824
+Well, I have a CPU
+that's doing all the work.
+
+31
+00:01:39,890 --> 00:01:42,794
+I have devices where there's data or input
+
+32
+00:01:42,794 --> 00:01:45,797
+or a way to send information to a user
+
+33
+00:01:45,962 --> 00:01:49,823
+or to other computers,
+like networking goes through devices.
+
+34
+00:01:50,780 --> 00:01:53,981
+There's lots of things
+in that device realm and then memory.
+
+35
+00:01:53,981 --> 00:01:57,215
+So what happens is instructions
+
+36
+00:01:57,215 --> 00:02:00,185
+are put into memory,
+whether it's a program or data.
+
+37
+00:02:00,350 --> 00:02:04,640
+That data is moved
+into the cache of the CPU.
+
+38
+00:02:04,838 --> 00:02:09,524
+The CPU works through that cache, sends
+data back out to the memory,
+
+39
+00:02:09,788 --> 00:02:13,418
+and all that execution happens in CPU.
+
+40
+00:02:14,375 --> 00:02:18,335
+There are other accelerators
+that kind of sit around the CPU
+
+41
+00:02:18,467 --> 00:02:22,922
+that's still considered, external device
+to the CPU, but we're seeing more
+
+42
+00:02:22,922 --> 00:02:27,278
+and more of these accelerators
+put being put directly into the CPU,
+
+43
+00:02:29,126 --> 00:02:33,185
+that, do things like encryption or AI.
+
+44
+00:02:33,449 --> 00:02:36,848
+And we're seeing
+but the basic model is, is the same.
+
+45
+00:02:36,848 --> 00:02:42,194
+There's a central processing unit
+and expose or extended processing units,
+
+46
+00:02:42,755 --> 00:02:47,672
+like a math processor or things like that
+that are sitting, inside the CPU.
+
+47
+00:02:47,870 --> 00:02:50,873
+But the basic functionality is the same.
+
+48
+00:02:51,764 --> 00:02:52,853
+All right.
+
+49
+00:02:52,853 --> 00:02:57,341
+Traditional computing means that I've got
+lots of different devices that I'm now
+
+50
+00:02:57,341 --> 00:03:03,083
+hooking up to the CPU to get information
+into the CPU or into memory.
+
+51
+00:03:03,413 --> 00:03:08,033
+But the idea here is even a GPU
+needs a CPU in order to do the work
+
+52
+00:03:08,330 --> 00:03:11,399
+that the CPU is orchestrating.
+
+53
+00:03:12,554 --> 00:03:15,161
+The other accelerators that are out there
+most of the time.
+
+54
+00:03:15,161 --> 00:03:16,382
+Right.
+
+55
+00:03:16,382 --> 00:03:20,705
+And the idea here
+is that all these external, devices
+
+56
+00:03:20,705 --> 00:03:24,236
+that I have have
+some kind of controller in the middle,
+
+57
+00:03:24,269 --> 00:03:28,031
+even the graphics, adapter is in there,
+but they're all
+
+58
+00:03:28,295 --> 00:03:32,057
+they they're all talking to the CPU,
+which is orchestrating everything.
+
+59
+00:03:33,278 --> 00:03:35,489
+All right,
+let's talk about operating systems.
+
+60
+00:03:35,489 --> 00:03:41,396
+So when a program gets,
+put into a computer, it really is sitting
+
+61
+00:03:41,396 --> 00:03:43,871
+in some kind of,
+
+62
+00:03:43,871 --> 00:03:47,633
+a storage, at first,
+and then it gets put into memory,
+
+63
+00:03:48,227 --> 00:03:50,966
+then that, the CPU is notified.
+
+64
+00:03:50,966 --> 00:03:52,517
+Hey, there's a program that wants to run.
+
+65
+00:03:52,517 --> 00:03:55,322
+Here's its memory location with the data.
+
+66
+00:03:55,322 --> 00:03:58,325
+It may have pointers back into, storage,
+
+67
+00:03:58,325 --> 00:04:01,295
+which we'll talk about virtual memory
+and things like that.
+
+68
+00:04:01,394 --> 00:04:03,935
+But the idea here is that the program
+
+69
+00:04:03,935 --> 00:04:07,400
+acts as an intermediary
+between the user and the computer.
+
+70
+00:04:07,895 --> 00:04:09,974
+Right. Those are all your instructions.
+
+71
+00:04:09,974 --> 00:04:13,538
+And the goal of the operating system
+is to execute
+
+72
+00:04:13,538 --> 00:04:17,531
+those user programs and,
+and solve the problems for the users
+
+73
+00:04:18,488 --> 00:04:21,491
+and handle all of the,
+
+74
+00:04:21,590 --> 00:04:25,121
+device management
+and orchestrate moving data
+
+75
+00:04:26,111 --> 00:04:29,378
+to memory
+or from devices and back and forth.
+
+76
+00:04:29,378 --> 00:04:31,589
+The operating system handles
+all that for you.
+
+77
+00:04:31,589 --> 00:04:34,988
+Before we had operating systems,
+programmers would have to do all of that,
+
+78
+00:04:35,516 --> 00:04:38,255
+which means the programs
+are really fast, right?
+
+79
+00:04:38,255 --> 00:04:41,753
+Because they weren't doing anything
+except what the user specified.
+
+80
+00:04:42,083 --> 00:04:43,832
+However, it took a long time.
+
+81
+00:04:43,832 --> 00:04:47,594
+You had to know a lot about a lot
+of the different devices and all that.
+
+82
+00:04:47,594 --> 00:04:51,983
+So the operating system orchestrates
+all of that, and many times
+
+83
+00:04:51,983 --> 00:04:55,085
+most operating systems are dealing
+with several different,
+
+84
+00:04:55,844 --> 00:04:57,329
+programs running at the same time.
+
+85
+00:04:57,329 --> 00:05:01,289
+So it's handling conflicts between,
+oh, someone needs the disk now.
+
+86
+00:05:01,289 --> 00:05:03,005
+Someone needs a monitor now.
+
+87
+00:05:03,005 --> 00:05:03,500
+Sony.
+
+88
+00:05:03,500 --> 00:05:07,295
+Oh, I need oh, someone interrupted me
+with a keyboard there.
+
+89
+00:05:07,295 --> 00:05:09,473
+The operating system
+handles all that for you.
+
+90
+00:05:11,783 --> 00:05:13,895
+So as I mentioned,
+
+91
+00:05:13,895 --> 00:05:16,502
+the operating system is a resource
+allocator.
+
+92
+00:05:16,502 --> 00:05:19,175
+It manages
+all the resources on the computer.
+
+93
+00:05:19,175 --> 00:05:22,145
+It decides, between conflicting results.
+
+94
+00:05:22,739 --> 00:05:25,148
+And it is a control program.
+
+95
+00:05:25,148 --> 00:05:28,448
+If you're on a Linux box
+and we'll see this, it has a process
+
+96
+00:05:28,448 --> 00:05:31,879
+ID of one is typically what you find.
+
+97
+00:05:31,879 --> 00:05:34,948
+That's the init script
+that kicks things off.
+
+98
+00:05:35,146 --> 00:05:38,281
+And there's other helper processes
+in the operating system.
+
+99
+00:05:38,446 --> 00:05:42,901
+But the idea here is that it controls
+execution of programs and prevents
+
+100
+00:05:43,363 --> 00:05:46,366
+errors and prevents conflicts.
+
+101
+00:05:46,729 --> 00:05:49,105
+Between multiple programs
+running at the same time.
+
+102
+00:05:49,105 --> 00:05:51,679
+And it gives you proper
+use of the computer.
+
+103
+00:05:51,679 --> 00:05:54,946
+And operating systems
+today are pretty robust.
+
+104
+00:05:55,705 --> 00:05:59,368
+And, and we're seeing some new changes
+in operating systems,
+
+105
+00:05:59,368 --> 00:06:02,437
+but they're pretty stable,
+for, for the most part.
+
+106
+00:06:04,978 --> 00:06:05,374
+All right.
+
+107
+00:06:05,374 --> 00:06:07,915
+Let's talk about interrupt.
+
+108
+00:06:07,915 --> 00:06:11,974
+So an interrupt is, when I get an event,
+
+109
+00:06:13,261 --> 00:06:17,617
+that is happening in the CPU that stops
+what's currently happening
+
+110
+00:06:18,211 --> 00:06:22,138
+and then, makes a decision
+on what to do next.
+
+111
+00:06:22,336 --> 00:06:24,316
+So an interrupt could be a keystroke.
+
+112
+00:06:24,316 --> 00:06:26,395
+It could be,
+
+113
+00:06:26,395 --> 00:06:27,451
+Yeah, several.
+
+114
+00:06:27,451 --> 00:06:29,200
+It could be a page fault.
+
+115
+00:06:29,200 --> 00:06:32,830
+There's so many things
+it could be an IO event that comes in.
+
+116
+00:06:33,358 --> 00:06:36,856
+The idea here is that incoming interrupts,
+
+117
+00:06:37,648 --> 00:06:41,344
+can be disabled
+when another interrupt is being processed.
+
+118
+00:06:41,707 --> 00:06:44,710
+And this prevents, interrupts
+from being lost.
+
+119
+00:06:45,073 --> 00:06:49,693
+All right, so a trap is a software
+generated interrupt
+
+120
+00:06:50,089 --> 00:06:52,267
+that I can do in in code.
+
+121
+00:06:52,267 --> 00:06:54,511
+And it's used.
+
+122
+00:06:54,511 --> 00:06:57,514
+It's it's typically there,
+
+123
+00:06:58,141 --> 00:07:00,583
+to designate
+an error happened or something like that,
+
+124
+00:07:00,583 --> 00:07:04,312
+or have a user request or something
+like that, a software trap.
+
+125
+00:07:04,576 --> 00:07:05,401
+Okay.
+
+126
+00:07:05,401 --> 00:07:08,173
+The operating system can be,
+
+127
+00:07:08,173 --> 00:07:12,001
+interrupted through traps
+or hardware interrupts.
+
+128
+00:07:12,001 --> 00:07:14,971
+There's lots of different interrupts
+that are in the system.
+
+129
+00:07:14,971 --> 00:07:18,733
+Great example of a type of interrupt
+is I plug in a USB key
+
+130
+00:07:19,195 --> 00:07:23,617
+or a new, keyboard into, a computer.
+
+131
+00:07:24,046 --> 00:07:24,937
+I get an interrupt.
+
+132
+00:07:24,937 --> 00:07:27,907
+Hey, a new device has
+been added, or I add a new,
+
+133
+00:07:29,623 --> 00:07:30,910
+monitor.
+
+134
+00:07:30,910 --> 00:07:33,385
+Anything. Right.
+That's a hardware type of interrupt.
+
+135
+00:07:33,385 --> 00:07:35,497
+But I can also have IR interrupts.
+
+136
+00:07:35,497 --> 00:07:37,972
+Where, maybe I've got,
+
+137
+00:07:37,972 --> 00:07:40,744
+I want to go request some memory,
+and it just wasn't there.
+
+138
+00:07:40,744 --> 00:07:41,437
+Right.
+
+139
+00:07:41,437 --> 00:07:43,450
+A memory fault, type of thing.
+
+140
+00:07:43,450 --> 00:07:46,024
+So lots of different interrupts.
+
+141
+00:07:46,024 --> 00:07:47,905
+And they're important
+in the operating system.
+
+142
+00:07:47,905 --> 00:07:51,502
+Has to understand what to do
+with those interrupts and act appropriate.

@@ -7,6 +7,8 @@ theme: default
 
   # Internet Architecture
 
+Video: [https://youtu.be/KUW2ZneyRaw](https://youtu.be/KUW2ZneyRaw)
+
 ---
 
 ## What's The Internet: A Service View

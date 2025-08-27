@@ -1,0 +1,1567 @@
+﻿1
+00:00:01,352 --> 00:00:01,682
+All right.
+
+2
+00:00:01,682 --> 00:00:04,355
+Let's talk about memory management
+in the operating system.
+
+3
+00:00:04,355 --> 00:00:07,325
+This is an important aspect
+because if you can't get
+
+4
+00:00:07,424 --> 00:00:09,899
+data into the CPU, it won't do anything.
+
+5
+00:00:09,899 --> 00:00:12,275
+So that's what it basically comes down to.
+
+6
+00:00:12,275 --> 00:00:17,753
+So all data goes into the memory before
+and after processing.
+
+7
+00:00:17,918 --> 00:00:20,195
+So that memory becomes very important.
+
+8
+00:00:20,195 --> 00:00:20,558
+Right.
+
+9
+00:00:20,558 --> 00:00:24,683
+And remember memory is storing bits
+and bytes
+
+10
+00:00:25,310 --> 00:00:29,897
+in, in some kind of fashion,
+which basically on and off switches.
+
+11
+00:00:29,930 --> 00:00:32,735
+Think of that,
+that I'm sending into the CPU
+
+12
+00:00:32,735 --> 00:00:35,870
+so it knows what to do
+and what data to operate on.
+
+13
+00:00:35,870 --> 00:00:38,543
+So that memory becomes
+extremely important.
+
+14
+00:00:38,543 --> 00:00:41,546
+All instructions are in memory
+before they execute.
+
+15
+00:00:41,579 --> 00:00:44,582
+Memory management determines,
+
+16
+00:00:44,648 --> 00:00:46,859
+what is in memory.
+
+17
+00:00:46,859 --> 00:00:51,083
+When I'm optimizing the CPU
+and computer responds
+
+18
+00:00:51,083 --> 00:00:54,845
+to users, main memory management
+activities are extremely important.
+
+19
+00:00:54,845 --> 00:00:56,297
+So this is what they are
+
+20
+00:00:56,297 --> 00:00:59,795
+keeping track of which parts of memory
+are currently being used and by whom.
+
+21
+00:01:00,488 --> 00:01:04,877
+Deciding which processes or parts
+of those processes and data, and move in
+
+22
+00:01:04,877 --> 00:01:09,893
+and out of memory, and then allocating
+and allocating memory spaces as needed.
+
+23
+00:01:09,893 --> 00:01:13,820
+Now there was a big movement
+about ten years ago
+
+24
+00:01:14,711 --> 00:01:17,681
+in, of the mid 20 teens
+
+25
+00:01:17,681 --> 00:01:21,410
+for, nonvolatile persistent memory.
+
+26
+00:01:21,740 --> 00:01:25,007
+Well, this is this is very interesting
+because it was throwing the von Neumann
+
+27
+00:01:25,007 --> 00:01:28,934
+model kind of on its ear
+a little bit where,
+
+28
+00:01:29,660 --> 00:01:34,511
+memory was becoming so large
+that I had enough memory,
+
+29
+00:01:34,907 --> 00:01:36,293
+that I didn't need,
+
+30
+00:01:36,293 --> 00:01:39,956
+virtual memory and things like that,
+which we'll talk about a little bit about.
+
+31
+00:01:40,253 --> 00:01:43,685
+So it was, changing
+kind of things on their ear
+
+32
+00:01:43,685 --> 00:01:45,929
+where processes now float around.
+
+33
+00:01:45,929 --> 00:01:49,295
+Memory and processes are allocated
+to memory locations
+
+34
+00:01:49,295 --> 00:01:51,077
+instead of the other way around.
+
+35
+00:01:51,077 --> 00:01:55,037
+That has gone a little sideways,
+
+36
+00:01:55,037 --> 00:01:58,931
+with CXL, and so take a look.
+
+37
+00:01:58,931 --> 00:02:00,053
+Take a look at that.
+
+38
+00:02:00,053 --> 00:02:03,221
+There could be some interesting
+new changes to operating systems
+
+39
+00:02:03,221 --> 00:02:06,224
+and the traditional computing model
+in the future around memory.
+
+40
+00:02:06,455 --> 00:02:09,458
+Specifically,
+which I think is very exciting.
+
+41
+00:02:09,986 --> 00:02:10,448
+All right.
+
+42
+00:02:10,448 --> 00:02:13,880
+Let's take a look at the difference
+between logical and physical memory.
+
+43
+00:02:14,210 --> 00:02:15,827
+Physical memory
+
+44
+00:02:15,827 --> 00:02:19,622
+that's a physical storage
+device is typically divided into fixed
+
+45
+00:02:19,622 --> 00:02:23,417
+size blocks called frames,
+always in the power of two
+
+46
+00:02:23,417 --> 00:02:26,915
+between 5 and 12 bytes and eight by ten.
+
+47
+00:02:27,245 --> 00:02:28,499
+In some cases larger.
+
+48
+00:02:28,499 --> 00:02:31,502
+Now and then, logical memory
+
+49
+00:02:31,733 --> 00:02:34,505
+is divided
+into physical blocks called pages.
+
+50
+00:02:34,505 --> 00:02:37,343
+So in a physical they're called frames.
+
+51
+00:02:37,343 --> 00:02:40,577
+In the logical
+we call them pages and pages
+
+52
+00:02:40,577 --> 00:02:43,580
+divided into two parts user memory
+and kernel memory.
+
+53
+00:02:43,976 --> 00:02:47,540
+User memory for the user program
+and kernel memory contains
+
+54
+00:02:47,540 --> 00:02:51,302
+kernel programs and data for things
+in the operating system.
+
+55
+00:02:51,632 --> 00:02:54,635
+Right user
+memory is divided into two parts.
+
+56
+00:02:54,734 --> 00:02:57,737
+The text that contains instructions
+for the user
+
+57
+00:02:57,737 --> 00:03:01,004
+and the other
+the other memory that you'll see in there.
+
+58
+00:03:01,004 --> 00:03:01,631
+But the user.
+
+59
+00:03:01,631 --> 00:03:04,238
+You'll
+what we'll show you in a little bit.
+
+60
+00:03:04,238 --> 00:03:05,129
+All right.
+
+61
+00:03:05,129 --> 00:03:08,000
+There's something in, memory management
+
+62
+00:03:08,000 --> 00:03:11,003
+called the memory management
+Unit or the MMU.
+
+63
+00:03:11,102 --> 00:03:15,953
+It's a hardware device that translates
+logical addresses to physical addresses.
+
+64
+00:03:16,250 --> 00:03:18,065
+So there's an abstraction there
+
+65
+00:03:18,065 --> 00:03:21,992
+so that I'm not connected
+directly to physical addresses.
+
+66
+00:03:22,157 --> 00:03:24,500
+It's all through the MMU, right.
+
+67
+00:03:24,500 --> 00:03:28,988
+So that logical maps pages to frames.
+
+68
+00:03:29,450 --> 00:03:29,945
+All right.
+
+69
+00:03:29,945 --> 00:03:31,826
+There's three types of minimum use.
+
+70
+00:03:31,826 --> 00:03:34,829
+There's segmented pages and TLB.
+
+71
+00:03:34,928 --> 00:03:39,218
+User programs deal with logical addresses
+not physical addresses.
+
+72
+00:03:39,548 --> 00:03:43,244
+The IMU translate
+the logical addresses to the physical
+
+73
+00:03:43,805 --> 00:03:46,742
+and then translates
+the physical addresses to frames.
+
+74
+00:03:47,864 --> 00:03:48,425
+And then
+
+75
+00:03:48,425 --> 00:03:53,441
+those frames get translated to pages
+and translates pages back to user memory.
+
+76
+00:03:54,167 --> 00:03:57,269
+So it sounds a little complicated.
+
+77
+00:03:57,269 --> 00:04:00,635
+And and and it can be
+memory management can be very complicated.
+
+78
+00:04:00,998 --> 00:04:03,770
+But the idea here
+is that the program itself
+
+79
+00:04:03,770 --> 00:04:06,773
+knows about logical addresses.
+
+80
+00:04:06,839 --> 00:04:11,426
+The IMU is translating the logical pages
+to frames.
+
+81
+00:04:11,855 --> 00:04:14,825
+That's that's the key behind us
+
+82
+00:04:15,485 --> 00:04:16,706
+okay. Paging.
+
+83
+00:04:16,706 --> 00:04:21,227
+So because I'm translating frames to page
+we call it paging right.
+
+84
+00:04:21,491 --> 00:04:25,715
+That's where a local address
+space of a process can be noncontiguous
+
+85
+00:04:26,243 --> 00:04:27,431
+in the physical memory.
+
+86
+00:04:27,431 --> 00:04:29,906
+It doesn't have to all be laid out.
+
+87
+00:04:29,906 --> 00:04:33,437
+You know, in this cell inside
+the cell can.
+
+88
+00:04:33,470 --> 00:04:34,328
+Right?
+
+89
+00:04:34,328 --> 00:04:37,628
+It can be split across, multiple frames.
+
+90
+00:04:38,156 --> 00:04:41,159
+It divides
+the physical in into multiple chains.
+
+91
+00:04:41,159 --> 00:04:44,327
+Remember
+we have the five, 12 and eight K frames.
+
+92
+00:04:45,218 --> 00:04:45,812
+Right.
+
+93
+00:04:45,812 --> 00:04:49,640
+And the idea is that, I'm allocating
+those frames that those frames get,
+
+94
+00:04:49,970 --> 00:04:54,821
+fixed size, 
+based off of the type of operating system
+
+95
+00:04:54,821 --> 00:04:57,824
+I have or the type of machine
+that I'm running on.
+
+96
+00:04:57,824 --> 00:05:02,048
+That can make a big difference
+in, how many,
+
+97
+00:05:02,048 --> 00:05:05,282
+frames I'm pulling in when I'm
+pulling programs in.
+
+98
+00:05:05,876 --> 00:05:06,767
+Okay.
+
+99
+00:05:06,767 --> 00:05:11,717
+The idea is that the IMU is keeping
+track of all the free frames,
+
+100
+00:05:11,948 --> 00:05:15,182
+so it knows where in memory
+I can put things.
+
+101
+00:05:15,578 --> 00:05:20,825
+And, it handles, 
+making sure that I can fit my program
+
+102
+00:05:21,221 --> 00:05:25,841
+in a certain number of, pages,
+that I have that map to those frames.
+
+103
+00:05:26,105 --> 00:05:26,699
+Right.
+
+104
+00:05:26,699 --> 00:05:30,394
+So it sets up this page table
+to translate the,
+
+105
+00:05:30,394 --> 00:05:32,110
+the logical the physical addresses.
+
+106
+00:05:33,166 --> 00:05:36,268
+As you can see, I can have what we call
+
+107
+00:05:36,268 --> 00:05:40,624
+fragmentation, where let's say
+that I've got a logical memory.
+
+108
+00:05:40,624 --> 00:05:43,495
+Page 0123.
+
+109
+00:05:43,495 --> 00:05:48,082
+My page table sits there and says, well,
+that's one, four, three and seven frames.
+
+110
+00:05:48,445 --> 00:05:51,184
+And they're scattered throughout. Memory.
+
+111
+00:05:51,184 --> 00:05:55,870
+Now, if I have multiple memory chips,
+which most program, most, big computers
+
+112
+00:05:55,903 --> 00:05:58,906
+in your data centers and cloud have,
+
+113
+00:05:59,434 --> 00:06:02,437
+then I can actually,
+get better throughput,
+
+114
+00:06:02,932 --> 00:06:07,321
+by spreading my, logical addresses
+
+115
+00:06:07,321 --> 00:06:11,545
+across multiple, memory, chips.
+
+116
+00:06:11,875 --> 00:06:15,010
+If the chip is the problem, a lot of times
+your bus is the problem.
+
+117
+00:06:15,802 --> 00:06:18,805
+But there's lots of different,
+strategies around this.
+
+118
+00:06:18,970 --> 00:06:21,247
+And the great thing is, is
+you don't have to worry about that.
+
+119
+00:06:21,247 --> 00:06:24,481
+The IMU is doing that for you
+to optimize performance.
+
+120
+00:06:25,075 --> 00:06:27,484
+It's built into the algorithm. So the IMU
+
+121
+00:06:29,167 --> 00:06:29,959
+all right
+
+122
+00:06:29,959 --> 00:06:32,995
+I can have shared pages shared page.
+
+123
+00:06:33,721 --> 00:06:37,714
+Typically it's it's read
+only type of code.
+
+124
+00:06:37,714 --> 00:06:41,509
+So if I, if I'm loading
+code up into memory,
+
+125
+00:06:41,509 --> 00:06:46,393
+it'll typically be put into a shared,
+shared page.
+
+126
+00:06:46,987 --> 00:06:53,455
+Because I want, multiple processes
+maybe to use that same,
+
+127
+00:06:53,455 --> 00:06:57,745
+memory space, especially if I'm launching
+a children processes.
+
+128
+00:06:57,745 --> 00:07:01,276
+There's a lot of shared pages and children
+in parent processes.
+
+129
+00:07:01,474 --> 00:07:02,431
+So think of it that way.
+
+130
+00:07:02,431 --> 00:07:06,127
+So I'm sharing the same location
+in logical address space
+
+131
+00:07:06,259 --> 00:07:09,262
+with multiple processes.
+
+132
+00:07:09,889 --> 00:07:14,542
+I can have private, 
+not shared pages, private code.
+
+133
+00:07:14,542 --> 00:07:17,149
+Each process keeps its own separate copy.
+
+134
+00:07:17,149 --> 00:07:19,591
+Those I don't
+I don't want to share it back and forth.
+
+135
+00:07:19,591 --> 00:07:19,888
+Right.
+
+136
+00:07:19,888 --> 00:07:24,079
+So but realize if I can have shared pages,
+which is kind of nice
+
+137
+00:07:24,079 --> 00:07:28,369
+because I'm not allocating as much memory
+in the physical memory to do that,
+
+138
+00:07:28,897 --> 00:07:34,639
+which means I can run a lot of programs
+that maybe have shared libraries and are.
+
+139
+00:07:34,639 --> 00:07:38,467
+The advent of shared
+libraries was so awesome back in the 90s
+
+140
+00:07:38,896 --> 00:07:41,305
+when we first had those shared libraries.
+
+141
+00:07:41,305 --> 00:07:42,361
+It meant that
+
+142
+00:07:42,361 --> 00:07:45,826
+when I have multiple programs,
+it's using maybe the same math library.
+
+143
+00:07:46,057 --> 00:07:49,027
+I don't have to load that math library
+into memory.
+
+144
+00:07:49,291 --> 00:07:50,743
+For every single program,
+
+145
+00:07:51,931 --> 00:07:52,987
+it's just I load it
+
+146
+00:07:52,987 --> 00:07:55,957
+once and everyone gets to use it,
+which is kind of nice.
+
+147
+00:07:56,056 --> 00:08:00,181
+So that that's one of the reasons
+why I can run so many programs
+
+148
+00:08:00,511 --> 00:08:05,692
+on an operating system
+that have far more, resources
+
+149
+00:08:05,692 --> 00:08:09,949
+that are required to run that program,
+because there's a lot of shared, memory
+
+150
+00:08:09,949 --> 00:08:12,952
+that are going
+on, through these shared pages.
+
+151
+00:08:14,470 --> 00:08:14,767
+All right.
+
+152
+00:08:14,767 --> 00:08:16,120
+Virtual memory, here's another way
+
+153
+00:08:16,120 --> 00:08:19,684
+that you can get more memory on your box
+than you have Ram.
+
+154
+00:08:20,047 --> 00:08:22,621
+It's through
+something called virtual memory.
+
+155
+00:08:22,621 --> 00:08:26,779
+Now, virtual memory separates the user
+logical memory from the physical memory,
+
+156
+00:08:27,340 --> 00:08:30,475
+which we've already talked about,
+but only a part of the program
+
+157
+00:08:30,475 --> 00:08:34,237
+gets put into, the physical memory.
+
+158
+00:08:34,237 --> 00:08:37,603
+And I can have, that virtual memory
+
+159
+00:08:37,834 --> 00:08:40,870
+that is another layer with another table
+
+160
+00:08:41,101 --> 00:08:45,358
+that says, here's
+where all of the, information lies.
+
+161
+00:08:45,358 --> 00:08:48,361
+But instead of lying in Ram,
+which is expensive,
+
+162
+00:08:48,625 --> 00:08:52,651
+I can put it on to, cheaper storage,
+
+163
+00:08:53,542 --> 00:08:58,888
+like a solid state drive or an NVMe drive,
+whatever, whatever the case may be.
+
+164
+00:08:59,251 --> 00:09:02,815
+And we were seeing something
+with virtual memory, with,
+
+165
+00:09:04,234 --> 00:09:05,917
+technology like Optane from
+
+166
+00:09:05,917 --> 00:09:10,702
+Intel or CXL,
+where now I've got a lot cheaper memory
+
+167
+00:09:10,933 --> 00:09:15,355
+and there's several stages,
+of memory tiers that I can put things,
+
+168
+00:09:15,982 --> 00:09:20,206
+but believe me, programmers
+always have a way of expanding
+
+169
+00:09:20,206 --> 00:09:23,209
+their programs larger
+than the amount of Ram that they have.
+
+170
+00:09:23,308 --> 00:09:24,496
+Their box.
+
+171
+00:09:24,496 --> 00:09:27,895
+I was programing,
+when Optane first came out.
+
+172
+00:09:28,258 --> 00:09:31,888
+I got, my hands on about six
+terabytes of,
+
+173
+00:09:31,987 --> 00:09:35,980
+nonvolatile memory,
+and I thought, there's no way I'll.
+
+174
+00:09:35,980 --> 00:09:37,465
+I'll use all that memory I did.
+
+175
+00:09:37,465 --> 00:09:39,247
+I found a way to use it all.
+
+176
+00:09:39,247 --> 00:09:42,019
+So as programmers,
+we have a way of, writing
+
+177
+00:09:42,019 --> 00:09:45,022
+highly inefficient code
+that requires virtual memory.
+
+178
+00:09:45,022 --> 00:09:47,860
+So as much memory as you got,
+we'll we'll take it all up.
+
+179
+00:09:47,860 --> 00:09:51,457
+So the idea here is that virtual memory
+can expand, right?
+
+180
+00:09:51,688 --> 00:09:54,691
+How much memory
+I have by storing things on other medium.
+
+181
+00:09:54,889 --> 00:09:59,443
+And it allows the address spaces
+to be shared across multiple processes
+
+182
+00:09:59,740 --> 00:10:04,261
+and across, much larger than the address
+space that I actually have.
+
+183
+00:10:04,657 --> 00:10:06,142
+But there's overhead to it,
+
+184
+00:10:07,264 --> 00:10:07,792
+right?
+
+185
+00:10:07,792 --> 00:10:11,059
+I add another memory map that I have.
+
+186
+00:10:11,620 --> 00:10:11,983
+Right.
+
+187
+00:10:11,983 --> 00:10:14,986
+So the MMU, I have my virtual memory,
+
+188
+00:10:15,217 --> 00:10:19,441
+in it, it's very similar,
+but it's, it's yet another map.
+
+189
+00:10:19,441 --> 00:10:19,606
+Right.
+
+190
+00:10:19,606 --> 00:10:24,919
+So I've got my, my virtual memory there,
+which with pages I've got memory maps
+
+191
+00:10:25,315 --> 00:10:28,285
+that go into, my,
+
+192
+00:10:28,285 --> 00:10:32,377
+in my, logical maps
+that then go into the physical map.
+
+193
+00:10:32,377 --> 00:10:36,337
+So and I'm moving data
+between the storage and the memory,
+
+194
+00:10:36,733 --> 00:10:40,165
+constantly with this,
+which means IO hits.
+
+195
+00:10:40,495 --> 00:10:43,498
+Oh, no, I'm hitting my IO bus.
+
+196
+00:10:43,564 --> 00:10:46,138
+So, if you're in real time
+
+197
+00:10:46,138 --> 00:10:49,141
+systems, this
+this will slow some things down.
+
+198
+00:10:49,339 --> 00:10:49,636
+All right?
+
+199
+00:10:49,636 --> 00:10:51,418
+So be mindful.
+
+200
+00:10:51,418 --> 00:10:54,421
+Mindful of this,
+on those real time systems.
+
+201
+00:10:54,586 --> 00:10:55,081
+All right.
+
+202
+00:10:55,081 --> 00:10:58,942
+Virtual address
+space means that my program can grow
+
+203
+00:10:58,942 --> 00:11:02,109
+much, bigger than the memory space.
+
+204
+00:11:02,109 --> 00:11:02,901
+It's there.
+
+205
+00:11:02,901 --> 00:11:06,333
+So when we talked about, the, the program
+
+206
+00:11:06,333 --> 00:11:09,534
+or the process space
+and all the memory in the process space,
+
+207
+00:11:10,095 --> 00:11:14,187
+it includes that virtual address
+space now, which is in between the stack
+
+208
+00:11:14,187 --> 00:11:18,378
+and the heap, which was that blue area
+that we talked about in previous lecture.
+
+209
+00:11:18,972 --> 00:11:22,404
+This area here, it allows me to grow
+
+210
+00:11:22,404 --> 00:11:26,034
+much larger than the than the actual
+a space that I have available.
+
+211
+00:11:26,265 --> 00:11:30,687
+But remember I'm using
+virtual address space which can be slower.
+
+212
+00:11:30,687 --> 00:11:35,472
+So ideally you want your programs
+to not chew up too much memory
+
+213
+00:11:35,769 --> 00:11:38,772
+because you are going to thrash
+and the IO bus,
+
+214
+00:11:38,772 --> 00:11:42,798
+for, for having all that
+most the time today.
+
+215
+00:11:43,029 --> 00:11:48,177
+You may you may see that happen
+the most time to the operating systems
+
+216
+00:11:48,177 --> 00:11:51,378
+do a pretty good job at, 
+handling this, for you.
+
+217
+00:11:51,972 --> 00:11:55,206
+But a lot of them allocate, disk, space
+
+218
+00:11:55,206 --> 00:11:57,252
+for virtual memory right upfront
+when they install.
+
+219
+00:11:57,252 --> 00:11:58,638
+And you don't even know,
+
+220
+00:11:58,638 --> 00:12:03,324
+you may have a terabyte drive
+and there may be 100 gig, or more,
+
+221
+00:12:03,621 --> 00:12:07,911
+sitting there in the virtual address
+space used to be, more
+
+222
+00:12:07,911 --> 00:12:11,376
+visible, but, mostly operating systems
+are hidden out away from, you know.
+
+223
+00:12:13,620 --> 00:12:13,851
+All right.
+
+224
+00:12:13,851 --> 00:12:15,138
+Let's talk about demand paging.
+
+225
+00:12:15,138 --> 00:12:17,910
+So this is
+when I bring a page into memory.
+
+226
+00:12:17,910 --> 00:12:20,913
+And I want to make sure
+that I'm only bringing pages into memory
+
+227
+00:12:21,276 --> 00:12:23,487
+at the appropriate time. Right.
+
+228
+00:12:23,487 --> 00:12:27,909
+Because I don't
+I have limited resources there.
+
+229
+00:12:27,909 --> 00:12:31,803
+So these schedulers have to know
+the, the right time to bring stuff in.
+
+230
+00:12:32,397 --> 00:12:36,555
+So I want to bring memory
+only when it's needed.
+
+231
+00:12:37,611 --> 00:12:40,614
+Because there's less IO that needs to come
+in, there's less memory
+
+232
+00:12:40,614 --> 00:12:44,640
+needed, a faster response,
+and I can handle more users.
+
+233
+00:12:44,640 --> 00:12:48,666
+So shared pages are going to take
+priority, obviously,
+
+234
+00:12:48,666 --> 00:12:51,504
+because I have a bunch of processes
+running. Right.
+
+235
+00:12:51,504 --> 00:12:54,804
+When a page is needed, typically,
+
+236
+00:12:54,903 --> 00:12:58,632
+a program will throw an alert or abort.
+
+237
+00:12:58,632 --> 00:13:01,536
+Hey, I tried to access something
+that's not in memory.
+
+238
+00:13:01,536 --> 00:13:03,219
+Oh, it's in virtual memory.
+
+239
+00:13:03,219 --> 00:13:07,377
+So I'll actually get an interrupt
+that will then tell the IMU.
+
+240
+00:13:07,377 --> 00:13:10,380
+Hey, you got to go fetch this page
+and bring it into memory.
+
+241
+00:13:10,611 --> 00:13:12,360
+Okay? That's how it works.
+
+242
+00:13:12,360 --> 00:13:16,089
+There's also a lazy swapper, technique,
+
+243
+00:13:16,089 --> 00:13:19,620
+which I'll never swap pages out
+until I do get a fault.
+
+244
+00:13:19,620 --> 00:13:24,603
+And then there's more on demand or,
+not on demand, but preemptive,
+
+245
+00:13:25,164 --> 00:13:27,672
+where The swapper will try and add pages
+
+246
+00:13:27,672 --> 00:13:30,906
+preemptively, predicting what's needed.
+
+247
+00:13:33,579 --> 00:13:34,206
+Okay.
+
+248
+00:13:34,206 --> 00:13:37,770
+As I already mentioned before,
+when I'm paging memory, I'm
+
+249
+00:13:37,770 --> 00:13:42,225
+bringing it from the drive, the,
+the slower memory into main memory.
+
+250
+00:13:42,786 --> 00:13:43,050
+Right.
+
+251
+00:13:43,050 --> 00:13:47,868
+Which, remember,
+I still have the page and the frames.
+
+252
+00:13:47,868 --> 00:13:48,132
+Right?
+
+253
+00:13:48,132 --> 00:13:51,960
+So it's got to go through the IMU
+to handle that so I can swap.
+
+254
+00:13:52,521 --> 00:13:56,250
+If I need more room, I can swap
+a whole program out where I'm going to go
+
+255
+00:13:56,283 --> 00:14:01,563
+store that into the virtual memory
+and then swap in on the program.
+
+256
+00:14:01,563 --> 00:14:04,566
+So you can see I'm hitting the IO
+bus twice to do this.
+
+257
+00:14:04,896 --> 00:14:08,526
+So page swaps can be, very expensive.
+
+258
+00:14:09,087 --> 00:14:13,872
+But when we're talking at the speeds,
+we're talking at five and six gigahertz,
+
+259
+00:14:14,598 --> 00:14:17,931
+you're not going to notice that
+unless you're doing it a lot.
+
+260
+00:14:20,175 --> 00:14:21,363
+I mentioned page fault.
+
+261
+00:14:21,363 --> 00:14:22,056
+Page faults
+
+262
+00:14:22,056 --> 00:14:26,016
+means that I'm trying to access memory
+that's not in the physical memory,
+
+263
+00:14:26,313 --> 00:14:29,910
+which means it's going to go and,
+tell the operating system
+
+264
+00:14:29,910 --> 00:14:34,530
+this program now goes into a well,
+you guessed it right, a state.
+
+265
+00:14:34,992 --> 00:14:35,322
+Right.
+
+266
+00:14:35,322 --> 00:14:39,909
+So that process, if it gets a page file,
+the memory goes into the wait state, it's
+
+267
+00:14:39,909 --> 00:14:43,704
+going to go do some IO things,
+put it back into the ready state, and then
+
+268
+00:14:44,595 --> 00:14:47,664
+once the memory is loaded, it
+will then say,
+
+269
+00:14:47,664 --> 00:14:50,106
+hey, you're actually ready to do
+do this work.
+
+270
+00:14:50,106 --> 00:14:52,416
+And it goes back into the scheduler.
+
+271
+00:14:52,416 --> 00:14:55,584
+The have to have things happen, right?
+
+272
+00:14:56,013 --> 00:14:59,346
+So that process so you really don't
+
+273
+00:14:59,346 --> 00:15:02,481
+want something that's hitting
+virtual memory a lot, right?
+
+274
+00:15:02,514 --> 00:15:04,725
+It will it will slow down right.
+
+275
+00:15:06,705 --> 00:15:07,431
+Okay.
+
+276
+00:15:07,431 --> 00:15:09,246
+Copy on right.
+
+277
+00:15:09,246 --> 00:15:10,368
+This allows both the parent
+
+278
+00:15:10,368 --> 00:15:14,559
+and the child process to initially share
+the pages in memory.
+
+279
+00:15:14,823 --> 00:15:18,948
+If the process modifies the shared page
+then only a copy is saved.
+
+280
+00:15:19,245 --> 00:15:20,466
+So this is it.
+
+281
+00:15:20,466 --> 00:15:24,756
+This saves on memory quite a bit
+because maybe I'm reading memory
+
+282
+00:15:25,020 --> 00:15:28,122
+and I'm just reading the values there,
+but I'm not changing anything
+
+283
+00:15:28,122 --> 00:15:29,739
+in that block of memory.
+
+284
+00:15:29,739 --> 00:15:33,567
+Then, I don't need to make a full copy.
+
+285
+00:15:33,963 --> 00:15:37,362
+I only need to make,
+changes to the memory.
+
+286
+00:15:37,560 --> 00:15:43,203
+This frees up a lot of memory, and,
+it frees up, a lot of that,
+
+287
+00:15:43,368 --> 00:15:46,404
+thrashing that you get from bringing
+in, virtual pages.
+
+288
+00:15:50,430 --> 00:15:52,047
+Here's a here's a big problem.
+
+289
+00:15:52,047 --> 00:15:52,575
+Right?
+
+290
+00:15:52,575 --> 00:15:55,578
+What if there is no free memory?
+
+291
+00:15:56,172 --> 00:15:57,360
+I can't bring anything in.
+
+292
+00:15:59,175 --> 00:16:02,178
+Well, what's going to happen?
+
+293
+00:16:03,795 --> 00:16:04,125
+Well,
+
+294
+00:16:04,125 --> 00:16:07,656
+I've got to swap something out,
+so I have to make a decision.
+
+295
+00:16:07,788 --> 00:16:09,471
+Who am I going to interrupt?
+
+296
+00:16:09,471 --> 00:16:10,890
+Am I going to interrupt someone else?
+
+297
+00:16:10,890 --> 00:16:12,936
+And am I at a higher priority?
+
+298
+00:16:12,936 --> 00:16:15,609
+This is where the scheduler
+and the algorithms
+
+299
+00:16:15,609 --> 00:16:18,942
+that are in the schedulers do their magic,
+their black magic here.
+
+300
+00:16:18,942 --> 00:16:19,899
+Right?
+
+301
+00:16:19,899 --> 00:16:23,991
+They have to make decisions on, well,
+whose memory am I going to swap out?
+
+302
+00:16:23,991 --> 00:16:26,136
+Maybe I've got a process sitting there.
+
+303
+00:16:26,136 --> 00:16:28,578
+I've got memory
+that hasn't really been used in a while.
+
+304
+00:16:28,578 --> 00:16:30,095
+No one's read it, no one's.
+
+305
+00:16:30,095 --> 00:16:32,240
+So maybe I'm going to get rid of that.
+
+306
+00:16:32,240 --> 00:16:35,540
+But who knows,
+maybe the next process needed.
+
+307
+00:16:35,540 --> 00:16:38,543
+All that memory
+now is going to swap back in.
+
+308
+00:16:38,609 --> 00:16:41,381
+There's lots of different algorithms
+that are out there to to make this,
+
+309
+00:16:41,381 --> 00:16:43,460
+more effective. So,
+
+310
+00:16:44,417 --> 00:16:46,793
+but you can see a page
+
+311
+00:16:46,793 --> 00:16:50,687
+going in and out
+of, in and out of, virtual memory a lot.
+
+312
+00:16:50,687 --> 00:16:54,713
+So these are things
+that some of the more modern,
+
+313
+00:16:56,264 --> 00:16:57,551
+modern schedulers are doing.
+
+314
+00:16:57,551 --> 00:17:01,445
+And there's been some great research
+and there's some really cool new AI stuff
+
+315
+00:17:01,445 --> 00:17:03,392
+that is handling, memory,
+
+316
+00:17:03,392 --> 00:17:07,121
+more effectively,
+especially in programs like Java
+
+317
+00:17:07,121 --> 00:17:09,860
+that are running because they do their own
+garbage collection.
+
+318
+00:17:09,860 --> 00:17:14,876
+So understanding,
+how their freeing memory can actually,
+
+319
+00:17:14,876 --> 00:17:16,559
+help me, quite a bit.
+
+320
+00:17:16,559 --> 00:17:21,080
+In fact, some of these new schedulers
+are sitting beside the current scheduler
+
+321
+00:17:21,080 --> 00:17:25,469
+and making the schedulers more,
+more predictive
+
+322
+00:17:25,832 --> 00:17:29,825
+on, when memory needs to come in and not,
+which,
+
+323
+00:17:29,924 --> 00:17:33,356
+we're seeing some vast improvements,
+like 70% performance improvement.
+
+324
+00:17:33,356 --> 00:17:34,940
+That's huge.
+
+325
+00:17:34,940 --> 00:17:35,534
+That's huge.
+
+326
+00:17:35,534 --> 00:17:39,362
+So, this is
+this is a hot area of research
+
+327
+00:17:39,362 --> 00:17:42,860
+and, some good areas,
+that people may want to, work in,
+
+328
+00:17:44,279 --> 00:17:45,962
+patch replacement.
+
+329
+00:17:45,962 --> 00:17:47,579
+We've talked a little bit about this.
+
+330
+00:17:47,579 --> 00:17:50,582
+I want to prevent
+overall allocation of memory.
+
+331
+00:17:50,978 --> 00:17:54,509
+By modifying page file routines.
+
+332
+00:17:54,509 --> 00:17:58,832
+And so I want to make sure that I'm doing
+the right things at the right time,
+
+333
+00:17:59,129 --> 00:18:02,132
+that I'm replacing the right pages.
+
+334
+00:18:02,594 --> 00:18:04,970
+So that I
+
+335
+00:18:04,970 --> 00:18:08,699
+in optimizing for everyone
+running on a machine or maybe,
+
+336
+00:18:08,831 --> 00:18:13,946
+maybe into individual, applications
+that maybe have a higher priority, right?
+
+337
+00:18:14,573 --> 00:18:17,840
+Large virtual memory
+can provide a smaller physical memory.
+
+338
+00:18:17,840 --> 00:18:22,229
+As we've already talked, I can
+maybe only have 16 gig of Ram on my box,
+
+339
+00:18:22,559 --> 00:18:25,628
+but I can have an address
+space of a terabyte.
+
+340
+00:18:26,387 --> 00:18:30,479
+Now, that would mean a lot of swapping, 
+which could slow me down.
+
+341
+00:18:30,644 --> 00:18:30,974
+Right.
+
+342
+00:18:30,974 --> 00:18:33,977
+So you gotta find the
+right balance for, the work.

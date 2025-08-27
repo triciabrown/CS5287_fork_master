@@ -1,0 +1,536 @@
+﻿1
+00:00:00,890 --> 00:00:01,385
+All right.
+
+2
+00:00:01,385 --> 00:00:04,652
+Quickly, we're going to talk about, 
+the nuts and bolts of the internet.
+
+3
+00:00:04,949 --> 00:00:07,952
+This is going to be a acronym soup.
+
+4
+00:00:08,084 --> 00:00:11,582
+Today, because, we got to understand
+
+5
+00:00:11,582 --> 00:00:14,849
+a little bit of the, networks
+and the internet architecture.
+
+6
+00:00:15,410 --> 00:00:18,545
+To understand distributed systems,
+especially in cloud.
+
+7
+00:00:18,842 --> 00:00:22,010
+After all, clouds are all networked
+together, how we interact with them.
+
+8
+00:00:22,010 --> 00:00:25,970
+So it might it's not might
+it is important that we understand,
+
+9
+00:00:26,399 --> 00:00:29,633
+kind of, the verbiage,
+the words that are used
+
+10
+00:00:29,963 --> 00:00:32,801
+when we talk about internet
+and how it came about.
+
+11
+00:00:32,801 --> 00:00:37,223
+And, and remember,
+the internet's all about communicating
+
+12
+00:00:37,223 --> 00:00:41,348
+it across, a network of machines
+that can be all over the world.
+
+13
+00:00:41,909 --> 00:00:45,572
+So this when you think about it, it's
+pretty darn cool when you think about,
+
+14
+00:00:45,572 --> 00:00:49,565
+the internet right
+there, using machines all over the world.
+
+15
+00:00:49,928 --> 00:00:52,931
+So let's talk about some of the background
+and where it came from.
+
+16
+00:00:53,195 --> 00:00:55,505
+What is the internet?
+
+17
+00:00:56,660 --> 00:00:58,409
+It's not a bunch of tubes.
+
+18
+00:00:58,409 --> 00:01:01,445
+No, as someone famous said,
+
+19
+00:01:01,775 --> 00:01:04,646
+no, it's
+a network of interconnected devices
+
+20
+00:01:04,646 --> 00:01:09,563
+which can be your PC servers,
+mobile devices,
+
+21
+00:01:09,992 --> 00:01:14,876
+all running applications and services,
+all sharing information between each other
+
+22
+00:01:15,173 --> 00:01:17,681
+through, connected infrastructure
+
+23
+00:01:17,681 --> 00:01:19,595
+and understanding
+all that connected infrastructure.
+
+24
+00:01:19,595 --> 00:01:22,598
+That's what we're going to talk about
+in the next couple lectures, right?
+
+25
+00:01:22,598 --> 00:01:25,040
+So first off, communication links.
+
+26
+00:01:25,040 --> 00:01:29,363
+How are things connected
+that physical media.
+
+27
+00:01:29,363 --> 00:01:33,290
+There's lots of different ways fiber
+I wish I had fiber in my house.
+
+28
+00:01:33,290 --> 00:01:34,445
+That would be so cool.
+
+29
+00:01:34,445 --> 00:01:39,065
+Copper is probably the most, prevalent.
+
+30
+00:01:39,626 --> 00:01:42,266
+And well, at least in, in some countries.
+
+31
+00:01:42,266 --> 00:01:45,434
+Believe it or not, most pavilion over
+the world is radio waves.
+
+32
+00:01:47,183 --> 00:01:48,635
+Wow. Radio waves. Right.
+
+33
+00:01:48,635 --> 00:01:49,460
+And satellites.
+
+34
+00:01:49,460 --> 00:01:53,387
+We're starting to see a big amount
+of satellite usage for internet,
+
+35
+00:01:53,882 --> 00:01:56,918
+but they're all characterized
+by something called bandwidth.
+
+36
+00:01:57,809 --> 00:02:02,132
+Bandwidth is how much data can I push
+through every second?
+
+37
+00:02:02,759 --> 00:02:04,607
+That's your data transmission rate.
+
+38
+00:02:04,607 --> 00:02:07,115
+That's your bandwidth, right?
+
+39
+00:02:07,115 --> 00:02:09,392
+I want as much bandwidth as I can get.
+
+40
+00:02:09,392 --> 00:02:09,656
+Right.
+
+41
+00:02:09,656 --> 00:02:13,055
+Because I can move data in and out faster
+
+42
+00:02:13,055 --> 00:02:16,685
+in between my machine and another machine
+somewhere else in the world.
+
+43
+00:02:17,345 --> 00:02:21,965
+What connects all these, together
+are network switches and routers.
+
+44
+00:02:22,163 --> 00:02:23,252
+So we're going to talk a little bit
+
+45
+00:02:23,252 --> 00:02:25,958
+about the difference between these
+and what they do
+
+46
+00:02:25,958 --> 00:02:27,674
+and how they connect to each other.
+
+47
+00:02:27,674 --> 00:02:30,611
+But the idea is this
+is that these networks, which is in
+
+48
+00:02:30,611 --> 00:02:34,670
+routers, they forward packets
+between connected devices.
+
+49
+00:02:34,670 --> 00:02:39,026
+So if I say, hey,
+I want some information from
+
+50
+00:02:39,026 --> 00:02:42,755
+my cloud instance
+that's running in, India,
+
+51
+00:02:44,306 --> 00:02:48,398
+I've got I send out a request to 
+my router.
+
+52
+00:02:48,398 --> 00:02:50,774
+Here it goes. Oh, you're asking for this?
+
+53
+00:02:50,774 --> 00:02:54,503
+I know another router
+that knows how to get access to that.
+
+54
+00:02:55,295 --> 00:02:58,760
+So it sends that information
+out to that router.
+
+55
+00:02:58,760 --> 00:03:01,334
+That router goes I gotcha.
+
+56
+00:03:01,334 --> 00:03:03,875
+It sends it to another router
+which sends it
+
+57
+00:03:03,875 --> 00:03:06,845
+to a computer somewhere else.
+
+58
+00:03:07,043 --> 00:03:12,422
+And that gives me the information,
+then sends it back to set of routers.
+
+59
+00:03:12,422 --> 00:03:14,831
+Could be the same routers
+or different routers.
+
+60
+00:03:14,831 --> 00:03:16,811
+Back to to to give me the information.
+
+61
+00:03:16,811 --> 00:03:18,461
+It's really incredible.
+
+62
+00:03:18,461 --> 00:03:21,860
+Oh, it's amazingly incredible
+right how this all works.
+
+63
+00:03:22,190 --> 00:03:25,193
+But that enables data flow
+between different
+
+64
+00:03:25,193 --> 00:03:28,196
+computers and different devices out there.
+
+65
+00:03:28,361 --> 00:03:30,374
+There's something called internet service
+providers.
+
+66
+00:03:30,374 --> 00:03:31,397
+These are the people that are
+
+67
+00:03:31,397 --> 00:03:34,400
+providing the internet
+to individuals and businesses.
+
+68
+00:03:34,895 --> 00:03:39,086
+When, the internet first kicked off,
+it wasn't it was Arpanet.
+
+69
+00:03:39,251 --> 00:03:42,650
+When it first kicked off, there weren't
+any internet service providers.
+
+70
+00:03:43,145 --> 00:03:44,960
+There were network providers. Right.
+
+71
+00:03:44,960 --> 00:03:48,656
+And these,
+these big, government and financial,
+
+72
+00:03:48,920 --> 00:03:52,385
+government
+and academia institutions connected their
+
+73
+00:03:52,484 --> 00:03:56,708
+networks
+together, connected their machines
+
+74
+00:03:56,708 --> 00:04:01,196
+together across long distances,
+which, started this whole thing.
+
+75
+00:04:01,526 --> 00:04:04,463
+And now, it's pervasive. It's everywhere.
+
+76
+00:04:04,463 --> 00:04:06,245
+You can get the internet.
+
+77
+00:04:06,245 --> 00:04:08,555
+I've been traveling a lot lately,
+
+78
+00:04:08,555 --> 00:04:10,832
+and I can get the internet anywhere,
+even on the airplane.
+
+79
+00:04:10,832 --> 00:04:13,637
+I can get the the internet,
+which is, really incredible.
+
+80
+00:04:15,815 --> 00:04:17,564
+Okay, think of the internet
+
+81
+00:04:17,564 --> 00:04:21,755
+as as it's grown up,
+as a network of networks,
+
+82
+00:04:21,755 --> 00:04:25,484
+it's interconnected internet service
+providers and institutions.
+
+83
+00:04:25,979 --> 00:04:26,540
+Right.
+
+84
+00:04:26,540 --> 00:04:30,599
+In order to make this work,
+we had to have some standardization
+
+85
+00:04:30,599 --> 00:04:33,635
+or protocols
+for sending and receiving messages.
+
+86
+00:04:34,196 --> 00:04:39,773
+Some of these you may recognize TCP,
+IP, http.
+
+87
+00:04:39,971 --> 00:04:42,974
+Skype was a protocol around 211.
+
+88
+00:04:43,865 --> 00:04:45,218
+These are all different standards.
+
+89
+00:04:45,218 --> 00:04:48,221
+You should look them
+up, learn more about them.
+
+90
+00:04:48,287 --> 00:04:50,498
+Internet standards that are out.
+Those are protocols.
+
+91
+00:04:50,498 --> 00:04:51,917
+Internet standards that are out
+
+92
+00:04:51,917 --> 00:04:55,910
+there come primarily
+through two major organizations.
+
+93
+00:04:55,910 --> 00:05:00,926
+To RFC request for comments on the IETF,
+
+94
+00:05:01,322 --> 00:05:03,863
+which is the Internet Engineering Task
+Force.
+
+95
+00:05:03,863 --> 00:05:05,183
+It's been around a long time.
+
+96
+00:05:05,183 --> 00:05:09,605
+They come up with many of the internet, 
+standards that are out there today.
+
+97
+00:05:10,496 --> 00:05:13,169
+Here are some other, I said acronym soup.
+
+98
+00:05:13,169 --> 00:05:13,664
+Here you go.
+
+99
+00:05:13,664 --> 00:05:17,195
+Here's some acronym soup for you,
+domain Name service DNS.
+
+100
+00:05:17,525 --> 00:05:20,231
+This is as you notice,
+
+101
+00:05:20,231 --> 00:05:23,234
+humans like names, computers like numbers.
+
+102
+00:05:23,366 --> 00:05:26,369
+DNS is a name to number mapping.
+
+103
+00:05:26,369 --> 00:05:30,823
+So if I want to go to google.com,
+which I know is 8.8.8.8,
+
+104
+00:05:30,889 --> 00:05:36,037
+look, I'm a, domain name, so, service
+Tony if I'm on that,
+
+105
+00:05:36,829 --> 00:05:40,987
+because I knew that
+google.com maps to 8.8.8.
+
+106
+00:05:42,208 --> 00:05:43,957
+So that's
+
+107
+00:05:43,957 --> 00:05:46,960
+an IP address and internet
+protocol address.
+
+108
+00:05:46,993 --> 00:05:47,620
+Right.
+
+109
+00:05:47,620 --> 00:05:51,976
+Which is IP stands for not intellectual
+property by Internet Protocol.
+
+110
+00:05:52,339 --> 00:05:56,695
+And then Http Hypertext Transfer
+Protocol,
+
+111
+00:05:57,289 --> 00:06:01,777
+SNMp, SMTp,
+which is a mail transfer protocol.
+
+112
+00:06:01,777 --> 00:06:02,437
+Simple.
+
+113
+00:06:02,437 --> 00:06:06,298
+And then FTP has been around a long time
+feel file transfer protocol.
+
+114
+00:06:06,826 --> 00:06:09,598
+So anything that ends in TP,
+
+115
+00:06:09,598 --> 00:06:12,568
+you're going to be it's
+probably transfer protocol something.
+
+116
+00:06:12,568 --> 00:06:13,327
+Right.
+
+117
+00:06:13,327 --> 00:06:15,835
+So keep that in mind
+when you're talking about the internet.

@@ -1,6 +1,9 @@
 # Apache Kafka Primer
+
 Apache Kafka is a high-throughput, distributed event streaming platform. It implements a **distributed log** design pattern: producers append immutable records to a partitioned, replicated log; consumers read at their own pace by maintaining offsets.
+
 ## 1. Design Pattern
+
 - **Distributed Commit Log**
   – Topics are divided into partitions (ordered, immutable sequence of records).
   – Producers append records to partitions; Kafka guarantees ordering within a partition.
@@ -12,6 +15,7 @@ Apache Kafka is a high-throughput, distributed event streaming platform. It impl
   – Offsets are kept in Kafka (or external stores): consumers can rewind/replay from an earlier offset.
 
 ## 2. Kafka Architecture
+
 ![architecture.png](architecture.png)
 
 - **Brokers**
@@ -26,12 +30,16 @@ Apache Kafka is a high-throughput, distributed event streaming platform. It impl
   – **Admin**: create/delete topics, manage ACLs, quotas.
 
 ## 3. Manual (VM) Deployment
+
 ### Prerequisites
+
 - 3+ Linux VMs (2 vCPU, 4 GB RAM)
 - Java 11+ installed
 
 ### Steps
+
 1. **Install ZooKeeper (if using legacy mode)**
+
 ``` bash
    wget https://downloads.apache.org/zookeeper/zookeeper-3.8.1/apache-zookeeper-3.8.1-bin.tar.gz
    tar xzf apache-zookeeper-3.8.1-bin.tar.gz
@@ -40,24 +48,32 @@ Apache Kafka is a high-throughput, distributed event streaming platform. It impl
    # Edit dataDir & clientPort in conf/zoo.cfg
    bin/zkServer.sh start
 ```
-1. **Install Kafka Broker**
+
+-  **Install Kafka Broker**
+
 ``` bash
    wget https://downloads.apache.org/kafka/3.5.0/kafka_2.13-3.5.0.tgz
    tar xzf kafka_2.13-3.5.0.tgz
    cd kafka_2.13-3.5.0
 ```
+
 - Edit `config/server.properties`:
+
 ``` properties
      broker.id=1
      listeners=PLAINTEXT://:9092
      log.dirs=/var/lib/kafka-logs
      zookeeper.connect=<zk_host>:2181
 ```
+
 - Start Broker:
+
 ``` bash
      bin/kafka-server-start.sh config/server.properties
 ```
-1. **Create Topics & Test**
+
+- **Create Topics & Test**
+
 ``` bash
    bin/kafka-topics.sh --create --topic my-topic \
      --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
@@ -70,8 +86,11 @@ Apache Kafka is a high-throughput, distributed event streaming platform. It impl
    bin/kafka-console-consumer.sh \
      --topic my-topic --bootstrap-server localhost:9092 --from-beginning
 ```
+
 ## 4. Docker Deployment
+
 ### Kafka + ZooKeeper (Single-node)
+
 ``` yaml
 # docker-compose.yml
 version: '3.8'
@@ -95,9 +114,13 @@ services:
 ``` bash
 docker-compose up -d
 ```
+
 ## 5. Kubernetes Deployment (StatefulSet + KRaft)
+
 ### Example Manifests
-1. **Namespace & StorageClass**
+
+* **Namespace & StorageClass**
+
 ``` yaml
    apiVersion: v1
    kind: Namespace
@@ -106,7 +129,9 @@ docker-compose up -d
    ---
    # Ensure a StorageClass is available for PVCs
 ```
-1. **Kafka StatefulSet** (KRaft mode, no ZooKeeper)
+
+* **Kafka StatefulSet** (KRaft mode, no ZooKeeper)
+
 ``` yaml
    apiVersion: apps/v1
    kind: StatefulSet
@@ -154,7 +179,7 @@ docker-compose up -d
              requests:
                storage: 10Gi
 ```
-1. **Headless Service**
+* **Headless Service**
 ``` yaml
    apiVersion: v1
    kind: Service
@@ -168,13 +193,17 @@ docker-compose up -d
      ports:
        - port: 9092
 ```
+
 ### Deploy
+
 ``` bash
 kubectl apply -f namespace.yaml
 kubectl apply -f kafka-headless-svc.yaml
 kubectl apply -f kafka-statefulset.yaml
 ```
+
 ## 6. Summary
+
 - Kafka uses a **distributed log** pattern with pub/sub semantics and replayable offsets.
 - **Architecture** comprises brokers, (ZooKeeper or KRaft) controllers, producers, and consumers.
 - **Manual install** requires JVM, ZooKeeper, broker configs, topic creation, and CLI clients.

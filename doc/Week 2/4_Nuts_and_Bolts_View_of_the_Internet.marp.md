@@ -5,7 +5,9 @@ paginate: true
 theme: default
 ---
 
-  # Nuts and Bolts View of the Internet
+# Nuts and Bolts View of the Internet
+
+Video: [https://youtu.be/geFoSPvQ9jQ](https://youtu.be/geFoSPvQ9jQ)
 
 ---
 

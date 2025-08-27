@@ -9,10 +9,14 @@ description: Asynchronous messaging, patterns, deployment & cloud management
 
 # Message Brokers Overview
 
-Middleware for reliable, decoupled, asynchronous communication  
-Producers → Broker → Consumers  
-Features: durability, routing, load balancing, traffic shaping
 ![messagebroker-Generalized_Message_Broker_Architecture.png](messagebroker-Generalized_Message_Broker_Architecture.png)
+
+Middleware for reliable, decoupled, asynchronous communication  
+
+* Producers → Broker → Consumers  
+* Features: durability, routing, load balancing, traffic shaping
+
+
 ---
 
 ## Why Use a Message Broker?
@@ -49,32 +53,42 @@ Features: durability, routing, load balancing, traffic shaping
 
 ## Pattern: Point-to-Point
 
-Producer → Queue → Single consumer  
-Use case: background jobs, task offload
 ![point-tp-point-Point_to_Point_Messaging_Pattern.png](point-tp-point-Point_to_Point_Messaging_Pattern.png)
+
+Producer → Queue → Single consumer  
+
+Use case: background jobs, task offload
+
 ---
 
 ## Pattern: Publish/Subscribe
 
-Producer → Exchange/Topic → Multiple queues → Multiple consumers  
-Use case: broadcasting events, notifications
 ![pubsub-Publish_Subscribe_Messaging_Pattern.png](pubsub-Publish_Subscribe_Messaging_Pattern.png)
+
+Producer → Exchange/Topic → Multiple queues → Multiple consumers  
+
+Use case: broadcasting events, notifications
+
 ---
 
 ## Pattern: Routing / Topics
 
+![topic_based_messaging_pattern-Routing___Topic_Based_Messaging_Pattern.png](topic_based_messaging_pattern-Routing___Topic_Based_Messaging_Pattern.png)
+
 - Messages carry routing keys
 - Consumers subscribe with patterns (e.g. `order.*`)
 - Selective delivery of events
-![topic_based_messaging_pattern-Routing___Topic_Based_Messaging_Pattern.png](topic_based_messaging_pattern-Routing___Topic_Based_Messaging_Pattern.png)
+
 ---
 
 ## Pattern: Request/Reply
 
+![request_reply_messaging_pattern-Request_Reply_Messaging_Pattern.png](request_reply_messaging_pattern-Request_Reply_Messaging_Pattern.png)
+
 1. Producer sends request + `reply-to`
 2. Consumer processes & replies  
    Use case: RPC between microservices
-![request_reply_messaging_pattern-Request_Reply_Messaging_Pattern.png](request_reply_messaging_pattern-Request_Reply_Messaging_Pattern.png)
+
 ---
 
 ## Deployment Models

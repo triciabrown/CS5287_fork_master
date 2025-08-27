@@ -1,0 +1,768 @@
+﻿1
+00:00:01,385 --> 00:00:03,629
+All right, let's talk about internet
+architecture.
+
+2
+00:00:03,629 --> 00:00:04,751
+We talk about nuts and bolts.
+
+3
+00:00:04,751 --> 00:00:08,777
+In a previous, lecture,
+just kind of acronym soup.
+
+4
+00:00:09,206 --> 00:00:11,747
+Let's talk
+about the actual architecture now.
+
+5
+00:00:11,747 --> 00:00:14,651
+So first off, let's take, a view
+
+6
+00:00:14,651 --> 00:00:17,654
+of the internet from a service view.
+
+7
+00:00:17,654 --> 00:00:18,743
+All right.
+
+8
+00:00:18,743 --> 00:00:21,977
+What does the internet really provide
+for me?
+
+9
+00:00:22,340 --> 00:00:23,891
+What services?
+
+10
+00:00:23,891 --> 00:00:27,719
+Does it provide for me as an individual
+and also to applications?
+
+11
+00:00:28,445 --> 00:00:30,293
+Well, provides a lot, right?
+
+12
+00:00:30,293 --> 00:00:35,144
+It provides, 
+the world Wide Web, voice over IP, email,
+
+13
+00:00:35,507 --> 00:00:39,533
+games, e-commerce, social networks,
+the list goes on and on,
+
+14
+00:00:39,533 --> 00:00:43,691
+especially for an application where maybe
+I want to tap into all that information.
+
+15
+00:00:44,318 --> 00:00:48,080
+It provides an, programable,
+
+16
+00:00:48,080 --> 00:00:51,149
+interface to all those applications
+that are out there.
+
+17
+00:00:51,413 --> 00:00:55,373
+So it's not just the network
+and the physical stuff.
+
+18
+00:00:55,373 --> 00:00:59,564
+There's also, the concept
+and we talked about the rest interface
+
+19
+00:00:59,564 --> 00:01:01,049
+in previous lectures.
+
+20
+00:01:01,049 --> 00:01:04,052
+There's also this concept of providing
+an API,
+
+21
+00:01:04,250 --> 00:01:07,682
+and ways that I can connect
+
+22
+00:01:07,682 --> 00:01:10,982
+to the internet and the services
+on the internet that are out there.
+
+23
+00:01:11,576 --> 00:01:13,985
+It's very analogous to the Postal Service,
+
+24
+00:01:13,985 --> 00:01:17,615
+in that I don't know how my mail gets from
+
+25
+00:01:17,615 --> 00:01:21,608
+one place to another, or a message
+gets from one place to another.
+
+26
+00:01:21,608 --> 00:01:22,961
+I just know that it happens.
+
+27
+00:01:24,116 --> 00:01:24,314
+All right.
+
+28
+00:01:24,314 --> 00:01:26,525
+So it's becomes ubiquitous.
+
+29
+00:01:26,525 --> 00:01:30,353
+It's pretty prevailing everywhere
+and easy to use for anyone.
+
+30
+00:01:31,607 --> 00:01:31,871
+All right.
+
+31
+00:01:31,871 --> 00:01:35,270
+So let's take a closer look
+at the network structure a little bit.
+
+32
+00:01:35,963 --> 00:01:40,286
+We can break the network, down
+into, three major groups,
+
+33
+00:01:40,616 --> 00:01:44,147
+the network edge,
+which most of you are dealing in the edge.
+
+34
+00:01:44,147 --> 00:01:49,328
+These are host machines and client servers
+and in data centers, things like that.
+
+35
+00:01:49,328 --> 00:01:51,374
+That's what they call the network edge.
+
+36
+00:01:51,374 --> 00:01:55,367
+At my house,
+it can be a whole bunch of smart, devices
+
+37
+00:01:55,367 --> 00:01:57,611
+that I have,
+like the lock on my front door
+
+38
+00:01:57,611 --> 00:02:01,703
+or the lights in the house
+or cameras, all that stuff.
+
+39
+00:02:01,703 --> 00:02:04,706
+That's that network edge
+all connected to the internet.
+
+40
+00:02:04,838 --> 00:02:08,468
+That's the extreme, dynamic
+or the extreme edge out there.
+
+41
+00:02:08,468 --> 00:02:11,405
+There's some dynamic edge,
+which could be your cell phone.
+
+42
+00:02:11,405 --> 00:02:14,243
+You're moving around
+connecting to different networks
+
+43
+00:02:14,243 --> 00:02:16,421
+dynamically all the time.
+
+44
+00:02:16,421 --> 00:02:18,566
+Kind of crazy
+when you think about it. Right.
+
+45
+00:02:18,566 --> 00:02:20,183
+Then there's access networks.
+
+46
+00:02:20,183 --> 00:02:22,064
+This is physical media.
+
+47
+00:02:22,064 --> 00:02:24,704
+These are wireless communications
+
+48
+00:02:24,704 --> 00:02:27,740
+and wired communications
+separate from the network edge.
+
+49
+00:02:27,740 --> 00:02:32,294
+Because, as I mentioned, my cell phone
+can connect to a tower in California
+
+50
+00:02:32,294 --> 00:02:35,330
+where I live, or in Saudi Arabia
+where I just was.
+
+51
+00:02:36,122 --> 00:02:37,541
+My device is the same,
+
+52
+00:02:38,531 --> 00:02:42,095
+but it's connecting to different access
+networks, throughout.
+
+53
+00:02:42,095 --> 00:02:44,372
+So that's
+how I'm connecting into the internet.
+
+54
+00:02:44,372 --> 00:02:47,705
+And then the network core
+is the interconnected routers
+
+55
+00:02:47,705 --> 00:02:50,906
+that make up this network of networks
+that are out there.
+
+56
+00:02:53,942 --> 00:02:55,526
+Access networks and,
+
+57
+00:02:55,526 --> 00:02:59,387
+how do I connect to systems
+through an edge router?
+
+58
+00:02:59,387 --> 00:03:01,697
+That's that's, critical.
+
+59
+00:03:01,697 --> 00:03:01,961
+Right.
+
+60
+00:03:01,961 --> 00:03:07,208
+If I'm at home, I could have, a Wi-Fi.
+
+61
+00:03:08,000 --> 00:03:10,673
+That's that's, access
+
+62
+00:03:10,673 --> 00:03:13,709
+to a physical to the internet,
+through my Wi-Fi.
+
+63
+00:03:14,105 --> 00:03:17,042
+Institutional access could be, plugging
+
+64
+00:03:17,042 --> 00:03:20,045
+in at work or at school.
+
+65
+00:03:20,078 --> 00:03:23,081
+And then also when I'm out and about,
+
+66
+00:03:23,444 --> 00:03:25,985
+just connecting to a mobile network
+
+67
+00:03:25,985 --> 00:03:31,067
+now connects me through maybe, 5G
+or, LTE.
+
+68
+00:03:31,067 --> 00:03:32,981
+Heaven forbid it's still LTE for you.
+
+69
+00:03:32,981 --> 00:03:36,182
+It's a little bit slower
+because of bandwidth, right?
+
+70
+00:03:36,182 --> 00:03:38,855
+I want as much bandwidth
+as I possibly can,
+
+71
+00:03:38,855 --> 00:03:42,023
+which are the bits
+per second of access to a network.
+
+72
+00:03:42,419 --> 00:03:45,026
+And, do I have a dedicated line
+
+73
+00:03:45,026 --> 00:03:48,029
+or, physical or shared line?
+
+74
+00:03:48,095 --> 00:03:51,989
+At my house, I have both a dedicated line
+and a shared line.
+
+75
+00:03:52,847 --> 00:03:53,342
+Shared line.
+
+76
+00:03:53,342 --> 00:03:57,566
+I get more bandwidth, but I'm sharing it
+with a bunch of other people
+
+77
+00:03:57,566 --> 00:03:59,183
+right in my neighborhood.
+
+78
+00:03:59,183 --> 00:04:01,295
+My dedicated line.
+
+79
+00:04:01,295 --> 00:04:04,067
+I'm guaranteed a certain amount
+of bandwidth because I'm on the only.
+
+80
+00:04:04,067 --> 00:04:05,156
+I'm the only one on that one.
+
+81
+00:04:05,156 --> 00:04:08,390
+But it's not as much bandwidth,
+but it's more reliable.
+
+82
+00:04:08,588 --> 00:04:13,340
+So there's lots of there's lots to go
+on in in this internet thing.
+
+83
+00:04:14,891 --> 00:04:15,155
+All right.
+
+84
+00:04:15,155 --> 00:04:17,168
+Let's talk about the network core.
+
+85
+00:04:17,168 --> 00:04:17,828
+Right.
+
+86
+00:04:17,828 --> 00:04:21,029
+This is a mess of interconnected routers.
+
+87
+00:04:21,524 --> 00:04:26,012
+And the idea here
+is that these routers know
+
+88
+00:04:26,012 --> 00:04:30,335
+where to direct packets,
+a packet, it's just like, Postal service.
+
+89
+00:04:30,335 --> 00:04:35,285
+I've got a package that I'm sending
+from my house to maybe my parents house.
+
+90
+00:04:35,978 --> 00:04:36,605
+Right.
+
+91
+00:04:36,605 --> 00:04:39,905
+How many post offices doesn't
+need to go through to get there?
+
+92
+00:04:40,961 --> 00:04:43,634
+That's the same sort of thing
+with the network core.
+
+93
+00:04:43,634 --> 00:04:46,637
+Each router can be considered
+a post office.
+
+94
+00:04:46,835 --> 00:04:51,521
+And, 
+there's a little a number attached to,
+
+95
+00:04:51,521 --> 00:04:54,986
+where you're trying to get to
+or send the package to.
+
+96
+00:04:55,316 --> 00:05:00,431
+And, these, routers know where to send it
+because I don't know how to handle this.
+
+97
+00:05:00,431 --> 00:05:04,622
+I'm going to send it to my pal over here
+because I think he knows how to handle it.
+
+98
+00:05:04,622 --> 00:05:07,031
+And then maybe he
+he knows how to handle it.
+
+99
+00:05:07,031 --> 00:05:09,935
+And he he goes
+on. Now, remember, it's a hierarchy.
+
+100
+00:05:09,935 --> 00:05:12,542
+So it's it's going to, hit
+
+101
+00:05:12,542 --> 00:05:15,875
+probably more than two routers
+when you're routing across the world.
+
+102
+00:05:16,271 --> 00:05:21,089
+But each packet is transmitted,
+at a four link capacity.
+
+103
+00:05:21,419 --> 00:05:26,897
+It's going to try and forward that package
+or that packet to the next router
+
+104
+00:05:26,897 --> 00:05:30,889
+until it finds the right router
+that it belongs to.
+
+105
+00:05:31,318 --> 00:05:34,321
+And then once it hits that post office,
+it will deliver it to the network
+
+106
+00:05:34,684 --> 00:05:38,083
+edge, to the device that says, hey, here
+I am.
+
+107
+00:05:38,908 --> 00:05:39,238
+Right.
+
+108
+00:05:39,238 --> 00:05:41,680
+And so that's the
+idea behind the network core.
+
+109
+00:05:43,990 --> 00:05:45,772
+The idea that it's a
+
+110
+00:05:45,772 --> 00:05:48,775
+network of networks is really important.
+
+111
+00:05:48,874 --> 00:05:52,306
+Because these are all independent
+networks,
+
+112
+00:05:53,164 --> 00:05:56,992
+which is really crazy that we've been able
+to do, create something.
+
+113
+00:05:56,992 --> 00:06:00,787
+So, attached
+
+114
+00:06:00,787 --> 00:06:04,054
+and so, I what's your right word?
+
+115
+00:06:04,516 --> 00:06:08,014
+This, this world that we have
+with all these political beliefs
+
+116
+00:06:08,014 --> 00:06:09,334
+and all these different things
+
+117
+00:06:09,334 --> 00:06:12,337
+that we can connect a bunch of routers
+together and we can all agree
+
+118
+00:06:13,096 --> 00:06:16,099
+that, hey, we're going to move things,
+move things along.
+
+119
+00:06:16,594 --> 00:06:16,990
+Right?
+
+120
+00:06:16,990 --> 00:06:20,323
+So these internet service providers,
+they're all connected together.
+
+121
+00:06:20,653 --> 00:06:23,491
+Residential company universities
+
+122
+00:06:23,491 --> 00:06:26,527
+are all they're all connected
+in this network of networks.
+
+123
+00:06:26,890 --> 00:06:32,071
+Like I mentioned before, these packets
+are being routed between these routers,
+
+124
+00:06:32,434 --> 00:06:36,757
+which are owned by lots of different,
+companies, which is amazing as well.
+
+125
+00:06:37,285 --> 00:06:40,354
+And, it's, it's resulted
+
+126
+00:06:40,354 --> 00:06:43,357
+in, a vast, complex network
+
+127
+00:06:43,423 --> 00:06:46,657
+that, sometimes gets, sensor.
+
+128
+00:06:47,218 --> 00:06:49,759
+I don't want all packets
+coming into my country.
+
+129
+00:06:49,759 --> 00:06:51,211
+Someone might say,
+
+130
+00:06:51,211 --> 00:06:55,699
+but overall it's it's really incredible
+that we've been able to do this.
+
+131
+00:06:57,943 --> 00:06:58,339
+All right.
+
+132
+00:06:58,339 --> 00:07:02,233
+Let's take a look at a couple pictures
+on how this how this really works.
+
+133
+00:07:02,233 --> 00:07:03,091
+Right.
+
+134
+00:07:03,091 --> 00:07:05,698
+It would be interesting
+
+135
+00:07:05,698 --> 00:07:08,932
+if there was a global internet
+service provider.
+
+136
+00:07:09,592 --> 00:07:13,750
+But, the ramifications of that,
+as I've already said,
+
+137
+00:07:13,783 --> 00:07:15,334
+would be really, really hard, right?
+
+138
+00:07:15,334 --> 00:07:19,063
+Because who's going to control
+the whole internet and who wants someone
+
+139
+00:07:19,063 --> 00:07:20,977
+to have that much control? Instead?
+
+140
+00:07:20,977 --> 00:07:24,442
+It's a federation
+of a bunch of regional networks
+
+141
+00:07:24,442 --> 00:07:29,722
+or a network of network, system
+where I'm I'm sharing.
+
+142
+00:07:29,722 --> 00:07:31,867
+Hey, I've got routing information here.
+
+143
+00:07:31,867 --> 00:07:34,210
+I'll take your packets type of thing.
+
+144
+00:07:34,210 --> 00:07:37,939
+This still gives governments
+the ability to monitor
+
+145
+00:07:38,335 --> 00:07:43,285
+and, censor the information
+coming into their countries, people,
+
+146
+00:07:43,648 --> 00:07:47,839
+that are all about
+freedom of of information don't like that.
+
+147
+00:07:48,202 --> 00:07:50,347
+But without that capability,
+
+148
+00:07:50,347 --> 00:07:53,350
+I don't think the internet
+would have spread as quickly as it has.
+
+149
+00:07:53,614 --> 00:07:57,970
+And we're seeing more and more,
+techniques
+
+150
+00:07:58,333 --> 00:08:02,689
+to share information across,
+this vast internet that we have.
+
+151
+00:08:02,689 --> 00:08:04,207
+It's still amazing that it exists.
+
+152
+00:08:05,659 --> 00:08:06,418
+Right.
+
+153
+00:08:06,418 --> 00:08:09,685
+I'm sitting
+on top of this network of networks.
+
+154
+00:08:09,685 --> 00:08:12,721
+We're seeing things like content provider
+networks.
+
+155
+00:08:13,018 --> 00:08:16,813
+This is where I'm providing actual content
+across the network.
+
+156
+00:08:17,110 --> 00:08:19,255
+Google, Microsoft.
+
+157
+00:08:19,255 --> 00:08:20,377
+Akamai.
+
+158
+00:08:20,377 --> 00:08:22,324
+Tencent.
+
+159
+00:08:22,324 --> 00:08:25,327
+These are these are big content providers,
+
+160
+00:08:25,525 --> 00:08:28,528
+that are providing information
+across this whole network.
+
+161
+00:08:28,759 --> 00:08:32,191
+And it's it's really amazing
+that they can all work together
+
+162
+00:08:32,587 --> 00:08:35,953
+in this, kind of weird.
+
+163
+00:08:36,580 --> 00:08:39,451
+It's but,
+you know, maybe someone should sit back
+
+164
+00:08:39,451 --> 00:08:43,807
+and do a poli sci,
+a dissertation on the growth of,
+
+165
+00:08:43,807 --> 00:08:46,810
+the internet,
+because it's really, truly amazing.
+
+166
+00:08:46,843 --> 00:08:49,846
+How much information is being shared
+across the world?
+
+167
+00:08:50,044 --> 00:08:53,773
+In this, technical, technically,
+
+168
+00:08:54,004 --> 00:08:59,152
+very viable, politically amazing
+that had happened type of,

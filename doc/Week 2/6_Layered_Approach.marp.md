@@ -5,7 +5,10 @@ paginate: true
 theme: default
 ---
 
-  # Layered Approach
+# Layered Approach
+
+Video: [https://youtu.be/SUREWoSzack](https://youtu.be/SUREWoSzack)
+
 ---
 ## Layered Approach
 Networks are complex, with many “ pieces”:

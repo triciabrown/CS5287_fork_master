@@ -1,0 +1,1388 @@
+﻿1
+00:00:01,385 --> 00:00:01,682
+All right.
+
+2
+00:00:01,682 --> 00:00:05,576
+Let's talk about process management
+and how the operating system works
+
+3
+00:00:05,774 --> 00:00:06,797
+with processes.
+
+4
+00:00:06,797 --> 00:00:09,965
+This is one of the most important things
+that a operating system
+
+5
+00:00:09,965 --> 00:00:13,826
+does is work with these programs,
+which are put into processes.
+
+6
+00:00:14,156 --> 00:00:17,489
+There's a variety of different types
+of programs that are out there.
+
+7
+00:00:17,720 --> 00:00:21,680
+Batch systems which primarily are your big
+mainframe types of things?
+
+8
+00:00:22,307 --> 00:00:24,815
+They call the term jobs
+
+9
+00:00:24,815 --> 00:00:27,719
+on timecard systems, which all of us have.
+
+10
+00:00:27,719 --> 00:00:30,722
+It's typically user programs or tasks
+that are working on,
+
+11
+00:00:31,085 --> 00:00:33,791
+a lot of textbooks use the terms
+
+12
+00:00:33,791 --> 00:00:36,068
+job and process interchangeably.
+
+13
+00:00:36,068 --> 00:00:38,015
+That's that's perfectly fine. Right?
+
+14
+00:00:38,015 --> 00:00:41,150
+Because for what we're working with, right
+now, that's,
+
+15
+00:00:41,315 --> 00:00:43,097
+probably the best way to think about it.
+
+16
+00:00:43,097 --> 00:00:46,364
+A process,
+though, is a program of execution
+
+17
+00:00:46,958 --> 00:00:50,489
+and a process must process
+in sequential fashion.
+
+18
+00:00:51,215 --> 00:00:54,218
+A process includes a program counter,
+
+19
+00:00:54,218 --> 00:00:57,650
+stack, data section for processing,
+concepts.
+
+20
+00:00:57,650 --> 00:01:00,488
+People say, yeah,
+but I just wrote a program that does,
+
+21
+00:01:01,709 --> 00:01:02,897
+that's multithreaded.
+
+22
+00:01:02,897 --> 00:01:05,768
+And those are considered processes.
+
+23
+00:01:05,768 --> 00:01:06,824
+When you look at the process
+
+24
+00:01:06,824 --> 00:01:10,718
+queue, you'll, you'll see that
+there's micro or some processes
+
+25
+00:01:10,718 --> 00:01:13,721
+that are, that are running off of that
+to handle all the different threads.
+
+26
+00:01:14,777 --> 00:01:15,701
+All right.
+
+27
+00:01:15,701 --> 00:01:18,506
+So let's talk about process in memory
+first off.
+
+28
+00:01:18,506 --> 00:01:22,829
+So a process itself
+when I look at the memory for a program
+
+29
+00:01:23,192 --> 00:01:27,218
+it has these four key elements.
+
+30
+00:01:27,680 --> 00:01:28,241
+Right.
+
+31
+00:01:28,241 --> 00:01:29,891
+There's actually a fifth one user data.
+
+32
+00:01:29,891 --> 00:01:32,696
+But we can talk about that.
+First is the stack.
+
+33
+00:01:32,696 --> 00:01:36,425
+This is a region containing the function
+call stack and local variables
+
+34
+00:01:36,425 --> 00:01:42,035
+and temporary data so that your stack,
+the heap is dynamic memory allocated
+
+35
+00:01:43,058 --> 00:01:46,127
+allocation region
+for objects in data structures.
+
+36
+00:01:46,391 --> 00:01:50,747
+So your heap is
+where most of your, memory is going.
+
+37
+00:01:51,242 --> 00:01:54,179
+That is, beyond just the local variables
+
+38
+00:01:54,179 --> 00:01:57,809
+or registers and temporary data
+and things like things like that.
+
+39
+00:01:58,205 --> 00:01:58,997
+Your data,
+
+40
+00:01:59,954 --> 00:02:00,845
+this is containing
+
+41
+00:02:00,845 --> 00:02:04,145
+global variables and static data
+initialized by the program.
+
+42
+00:02:04,640 --> 00:02:07,313
+And then text is the program instructions.
+
+43
+00:02:07,313 --> 00:02:11,735
+Write your stack
+which has the call functions.
+
+44
+00:02:11,735 --> 00:02:14,903
+And the
+it knows how to reach into your text
+
+45
+00:02:14,903 --> 00:02:18,764
+where your program instructions
+are, and pull from that and put them,
+
+46
+00:02:19,424 --> 00:02:22,427
+into the proper order in the call stack.
+
+47
+00:02:23,450 --> 00:02:25,364
+Right. Basics of of memory.
+
+48
+00:02:25,364 --> 00:02:28,367
+There
+you see a region in the middle there.
+
+49
+00:02:28,499 --> 00:02:31,238
+And we'll talk about that,
+that region here in a little bit.
+
+50
+00:02:31,238 --> 00:02:33,185
+But let's take a look at process state.
+
+51
+00:02:33,185 --> 00:02:36,386
+Because all processes have state
+very simple.
+
+52
+00:02:36,551 --> 00:02:39,719
+They may be a little bit different
+from operating system to operating system.
+
+53
+00:02:39,719 --> 00:02:41,963
+But the core concepts are the same.
+
+54
+00:02:41,963 --> 00:02:44,702
+When a process gets created,
+it's in the new state.
+
+55
+00:02:45,659 --> 00:02:48,662
+It gets admitted to
+
+56
+00:02:49,058 --> 00:02:52,655
+to, it
+gets admitted to be put into the CPU.
+
+57
+00:02:53,513 --> 00:02:57,110
+It moves to a ready state
+until it actually gets,
+
+58
+00:02:57,704 --> 00:02:59,783
+dispatched, for the scheduler.
+
+59
+00:02:59,783 --> 00:03:03,182
+And now it's running and instructions
+are being executed when it's running,
+
+60
+00:03:03,776 --> 00:03:08,495
+then a process, if it gets interrupted,
+the process can move to a waiting state.
+
+61
+00:03:09,848 --> 00:03:11,630
+Maybe another process comes in
+
+62
+00:03:11,630 --> 00:03:14,633
+and needs something, or it's waiting on,
+
+63
+00:03:14,897 --> 00:03:17,141
+IO input output.
+
+64
+00:03:17,141 --> 00:03:20,144
+Whatever the case may be, it moves into,
+
+65
+00:03:21,728 --> 00:03:23,939
+a waiting state,
+
+66
+00:03:23,939 --> 00:03:26,216
+and then it's
+sitting there in the waiting state
+
+67
+00:03:26,216 --> 00:03:29,219
+until it gets scheduled,
+for dispatch again.
+
+68
+00:03:29,417 --> 00:03:31,958
+And then it's running again
+until it terminates.
+
+69
+00:03:31,958 --> 00:03:34,136
+So it's pretty straightforward.
+
+70
+00:03:34,136 --> 00:03:38,195
+What you'll find it, though, is
+that process is constantly moved between
+
+71
+00:03:38,525 --> 00:03:41,957
+the running and the, waiting.
+
+72
+00:03:43,112 --> 00:03:45,554
+And then ready state that running.
+
+73
+00:03:45,554 --> 00:03:46,841
+Waiting. Ready.
+
+74
+00:03:46,841 --> 00:03:47,732
+State it.
+
+75
+00:03:47,732 --> 00:03:51,131
+It spins in that quite a bit,
+especially if you have a program
+
+76
+00:03:51,395 --> 00:03:54,959
+that's highly reliant on IO,
+which you will find.
+
+77
+00:03:54,959 --> 00:03:58,094
+Maybe you say, well,
+I don't hit the disk or but you'll find
+
+78
+00:03:58,094 --> 00:04:02,054
+that even waiting for memory
+sometimes, can be something that,
+
+79
+00:04:03,077 --> 00:04:06,971
+you get interrupted and maybe you need io,
+right?
+
+80
+00:04:07,037 --> 00:04:07,367
+Right.
+
+81
+00:04:07,367 --> 00:04:10,601
+That's memory outside of, just the memory.
+
+82
+00:04:10,865 --> 00:04:13,835
+That's, in in the CPU at the time.
+
+83
+00:04:13,868 --> 00:04:17,333
+So that state there
+ready, running, waiting.
+
+84
+00:04:17,333 --> 00:04:20,336
+That's, very common
+that you'll see your process in.
+
+85
+00:04:22,415 --> 00:04:22,712
+All right.
+
+86
+00:04:22,712 --> 00:04:24,197
+A process control block.
+
+87
+00:04:24,197 --> 00:04:27,563
+So this is information
+associated with each process.
+
+88
+00:04:28,025 --> 00:04:31,787
+This is kind of in the in
+while it's in the process control block.
+
+89
+00:04:31,787 --> 00:04:32,546
+There you go.
+
+90
+00:04:32,546 --> 00:04:34,295
+It's almost like a header there.
+
+91
+00:04:34,295 --> 00:04:36,176
+You've got the process state.
+
+92
+00:04:36,176 --> 00:04:39,179
+Every process has an ID or number.
+
+93
+00:04:39,575 --> 00:04:43,469
+A program counter
+where I am in my program, registers.
+
+94
+00:04:43,469 --> 00:04:45,647
+So these are the CPU registers.
+
+95
+00:04:45,647 --> 00:04:48,221
+Remember the process control block?
+
+96
+00:04:48,221 --> 00:04:49,508
+I've got to store all this stuff.
+
+97
+00:04:49,508 --> 00:04:53,435
+So when I go back into the ready state,
+I can continue where I left off.
+
+98
+00:04:53,435 --> 00:04:56,405
+So I gotta store
+all my registers in there.
+
+99
+00:04:56,471 --> 00:04:59,210
+Any memory limits that I might have?
+
+100
+00:04:59,210 --> 00:05:00,167
+List of open file.
+
+101
+00:05:00,167 --> 00:05:02,510
+So any state that I need.
+
+102
+00:05:02,510 --> 00:05:04,457
+Right, in order to come back from,
+
+103
+00:05:06,569 --> 00:05:08,417
+ready to running.
+
+104
+00:05:08,417 --> 00:05:13,994
+So when I go into waiting, I capture
+the state from the CPU stored in memory.
+
+105
+00:05:13,994 --> 00:05:17,525
+In this process control block,
+move in to waiting,
+
+106
+00:05:17,954 --> 00:05:20,627
+and then, and already.
+
+107
+00:05:20,627 --> 00:05:25,082
+And then from there, it's going to reload
+all this stuff back into, the CPU.
+
+108
+00:05:26,303 --> 00:05:26,963
+Okay.
+
+109
+00:05:26,963 --> 00:05:28,448
+So process creation.
+
+110
+00:05:28,448 --> 00:05:32,605
+So there is a process process number one
+
+111
+00:05:33,067 --> 00:05:36,169
+that is the parent process
+of all the other processes.
+
+112
+00:05:36,697 --> 00:05:39,040
+This is your init script.
+
+113
+00:05:39,040 --> 00:05:43,264
+And it will create children processes
+which in turn can create children
+
+114
+00:05:43,264 --> 00:05:46,894
+or grandchildren or great grandchildren
+processes that form a process tree.
+
+115
+00:05:47,521 --> 00:05:49,930
+Generally, processes are identified
+
+116
+00:05:49,930 --> 00:05:54,286
+and managed via
+something called a PID or a process ID,
+
+117
+00:05:54,979 --> 00:05:58,114
+and you'll see this
+especially in Linux and Unix systems,
+
+118
+00:05:58,906 --> 00:06:02,998
+where
+if you run PPS, which stands for process,
+
+119
+00:06:04,450 --> 00:06:05,572
+you can see all the
+
+120
+00:06:05,572 --> 00:06:08,575
+PIDs have all your processes
+that are running,
+
+121
+00:06:08,641 --> 00:06:12,568
+and there's other information
+you can find, with, with PPS as well.
+
+122
+00:06:12,799 --> 00:06:16,297
+Another program that a lot of people
+use is Top, which continually updates.
+
+123
+00:06:16,297 --> 00:06:19,366
+And you can see your processes
+that are in the, ready
+
+124
+00:06:19,366 --> 00:06:22,369
+queue or running or waiting queues.
+
+125
+00:06:22,798 --> 00:06:24,679
+You can see all that,
+which is kind of cool.
+
+126
+00:06:24,679 --> 00:06:29,596
+You can look and see what your, operating
+system is doing with all your processes.
+
+127
+00:06:30,289 --> 00:06:32,896
+Remember that, processes,
+
+128
+00:06:32,896 --> 00:06:36,427
+can actually share resources,
+between parent and children.
+
+129
+00:06:36,427 --> 00:06:40,915
+They can share all, all the resources
+that the parent has, the child
+
+130
+00:06:40,915 --> 00:06:44,611
+has. And, children can share a subset
+
+131
+00:06:44,611 --> 00:06:47,614
+of the parent's resources
+and parent and children,
+
+132
+00:06:48,604 --> 00:06:49,000
+share.
+
+133
+00:06:49,000 --> 00:06:52,003
+No, no resources.
+
+134
+00:06:52,663 --> 00:06:54,478
+Those are three different, options
+
+135
+00:06:54,478 --> 00:06:57,910
+that you have when you're spinning out
+a, some process.
+
+136
+00:06:58,306 --> 00:07:00,781
+Okay, execution.
+
+137
+00:07:00,781 --> 00:07:04,246
+When the parent and children
+execute, concurrently,
+
+138
+00:07:04,510 --> 00:07:07,150
+the parent can wait for children
+to terminate.
+
+139
+00:07:07,150 --> 00:07:11,275
+But for, until,
+children terminate for process creation,
+
+140
+00:07:11,506 --> 00:07:14,839
+there's a whole bunch of different options
+there that you can, set up
+
+141
+00:07:15,235 --> 00:07:17,644
+in the operating system. So.
+
+142
+00:07:17,644 --> 00:07:22,726
+But the idea here is that the parent
+process, spins out or creates the children
+
+143
+00:07:22,726 --> 00:07:26,587
+processes, and there is a relationship
+there that you need to understand.
+
+144
+00:07:27,346 --> 00:07:30,481
+And how they share resources
+and their execution paths.
+
+145
+00:07:31,570 --> 00:07:31,900
+If you
+
+146
+00:07:31,900 --> 00:07:34,903
+do care,
+depending on how you haven't set up,
+
+147
+00:07:34,903 --> 00:07:38,038
+if you kill the parent process,
+it will kill the children process.
+
+148
+00:07:38,665 --> 00:07:41,272
+So you don't have zombie processes
+sitting out there.
+
+149
+00:07:41,272 --> 00:07:43,945
+That's an OS thing
+and also a program thing.
+
+150
+00:07:43,945 --> 00:07:47,872
+If you're programing in lower
+level languages like C and C plus plus,
+
+151
+00:07:47,872 --> 00:07:50,875
+you can actually specify,
+that kind of relationship.
+
+152
+00:07:53,185 --> 00:07:53,812
+All right.
+
+153
+00:07:53,812 --> 00:07:56,749
+Here's an example process tree on Linux.
+
+154
+00:07:56,749 --> 00:08:02,491
+Here I run a piece and with some options
+there to show you, more what's going on.
+
+155
+00:08:02,722 --> 00:08:06,913
+You can see here
+that the root user has process ID one.
+
+156
+00:08:07,507 --> 00:08:10,477
+And then there's a whole bunch of other,
+
+157
+00:08:11,005 --> 00:08:14,569
+things that are running there
+that are all underneath that,
+
+158
+00:08:15,691 --> 00:08:16,714
+that process.
+
+159
+00:08:16,714 --> 00:08:20,212
+Process one,
+all those are launched by the init script.
+
+160
+00:08:20,773 --> 00:08:21,004
+Right?
+
+161
+00:08:21,004 --> 00:08:25,558
+And those are operating system processes
+that are keeping track of what's going on.
+
+162
+00:08:27,274 --> 00:08:28,066
+They do have some
+
+163
+00:08:28,066 --> 00:08:31,069
+operating systems
+that are even pared down even further.
+
+164
+00:08:31,432 --> 00:08:34,435
+And these are really great
+for like real time operating systems
+
+165
+00:08:34,666 --> 00:08:38,296
+where you want a minimal amount of,
+context switching
+
+166
+00:08:38,296 --> 00:08:41,299
+or a process,
+
+167
+00:08:41,299 --> 00:08:42,883
+conflicts, running.
+
+168
+00:08:42,883 --> 00:08:46,975
+So they, they pare things down
+really tight because I want to do,
+
+169
+00:08:46,975 --> 00:08:49,978
+do something very specific.
+
+170
+00:08:50,737 --> 00:08:51,232
+Okay.
+
+171
+00:08:51,232 --> 00:08:56,017
+When I launch, let's talk about process
+creation some more on the address space.
+
+172
+00:08:56,380 --> 00:09:02,881
+So depending on how I launch the process,
+again through a programing language,
+
+173
+00:09:03,112 --> 00:09:06,313
+I can get a full duplication of the parent
+
+174
+00:09:06,313 --> 00:09:09,316
+address space.
+
+175
+00:09:09,448 --> 00:09:10,966
+That it's loaded in.
+
+176
+00:09:10,966 --> 00:09:11,263
+Right.
+
+177
+00:09:11,263 --> 00:09:15,025
+So I can do that with a fork
+where it creates a new process or.
+
+178
+00:09:15,025 --> 00:09:16,510
+Exactly.
+
+179
+00:09:16,510 --> 00:09:20,008
+Which is used after fork
+to replace memory space
+
+180
+00:09:20,371 --> 00:09:23,572
+with a new program, program
+process creation.
+
+181
+00:09:24,430 --> 00:09:28,159
+So it's important here
+to understand the differences.
+
+182
+00:09:28,159 --> 00:09:31,624
+You either copy the whole address space,
+from the parent
+
+183
+00:09:31,624 --> 00:09:36,211
+into the child or,
+or it creates its own head.
+
+184
+00:09:36,277 --> 00:09:38,224
+So understanding
+the difference can be very important,
+
+185
+00:09:38,224 --> 00:09:42,184
+especially if you have a really
+large program and maybe you're firing off
+
+186
+00:09:42,514 --> 00:09:46,111
+a bunch of smaller, you're forking off
+a bunch of smaller programs
+
+187
+00:09:46,111 --> 00:09:46,837
+to do something.
+
+188
+00:09:46,837 --> 00:09:50,236
+Remember that you're taking
+that address space, with you.
+
+189
+00:09:52,810 --> 00:09:53,701
+All right.
+
+190
+00:09:53,701 --> 00:09:56,704
+Let's talk about single
+threaded and multithreaded processes.
+
+191
+00:09:56,968 --> 00:09:59,971
+There is a difference
+in running a subprocess.
+
+192
+00:10:00,796 --> 00:10:02,875
+Then a thread,
+
+193
+00:10:02,875 --> 00:10:05,878
+and most of it has to do with the,
+
+194
+00:10:06,076 --> 00:10:09,904
+the code, a data and file information
+
+195
+00:10:10,135 --> 00:10:13,435
+in that, in that process, control block.
+
+196
+00:10:13,864 --> 00:10:14,062
+Right.
+
+197
+00:10:14,062 --> 00:10:17,065
+So for single threaded, single threaded,
+
+198
+00:10:17,329 --> 00:10:21,388
+there's one set of code,
+one set of data, one set of files,
+
+199
+00:10:21,388 --> 00:10:25,447
+the register,
+the stack, all that is single threaded.
+
+200
+00:10:25,447 --> 00:10:28,747
+And I'm running on one thread
+in the processor.
+
+201
+00:10:28,747 --> 00:10:30,892
+Just that. That's it.
+
+202
+00:10:30,892 --> 00:10:33,466
+With multi-threaded what happens is
+
+203
+00:10:33,466 --> 00:10:37,096
+I split and I create multiple threads.
+
+204
+00:10:37,360 --> 00:10:40,231
+The code data and files are the same,
+
+205
+00:10:40,231 --> 00:10:43,894
+but registers
+and stack are separate from each other.
+
+206
+00:10:43,894 --> 00:10:47,821
+So these processes can run in.
+
+207
+00:10:48,481 --> 00:10:53,167
+They appear to be running in parallel and
+on multicore and multi-threaded machines.
+
+208
+00:10:53,398 --> 00:10:57,853
+They do a really good job at,
+allocating the resources appropriately
+
+209
+00:10:57,952 --> 00:11:03,000
+so they are running in parallel
+so you can get a lot faster.
+
+210
+00:11:04,386 --> 00:11:04,716
+By going
+
+211
+00:11:04,716 --> 00:11:07,719
+multi-threaded, you
+can get a lot more performance out of it,
+
+212
+00:11:07,752 --> 00:11:11,250
+but your bottleneck can still be the code
+and data and files.
+
+213
+00:11:11,514 --> 00:11:14,319
+If I'm doing a subprocess, then
+
+214
+00:11:14,319 --> 00:11:18,972
+I'm copying the code data and files,
+which means I'm not sharing those anymore.
+
+215
+00:11:19,962 --> 00:11:22,602
+But there are fewer conflicts. So.
+
+216
+00:11:22,602 --> 00:11:26,991
+But if you need to share information
+between two processes like that
+
+217
+00:11:27,288 --> 00:11:30,126
+multi-threaded handles
+most of that for you.
+
+218
+00:11:30,126 --> 00:11:33,657
+There are techniques to share information
+through shared memory,
+
+219
+00:11:33,657 --> 00:11:37,254
+or moving data back and forth
+between processes that we can talk about,
+
+220
+00:11:37,551 --> 00:11:40,554
+but that is slower.
+
+221
+00:11:41,412 --> 00:11:41,676
+All right.
+
+222
+00:11:41,676 --> 00:11:44,679
+Let's talk about the scheduler here
+real quick.
+
+223
+00:11:45,009 --> 00:11:47,649
+The CPU scheduler is the thing
+that's selecting
+
+224
+00:11:47,649 --> 00:11:51,906
+when processes get to run or threads
+you know
+
+225
+00:11:52,203 --> 00:11:55,272
+get get deployed inside the CPU,
+
+226
+00:11:55,866 --> 00:11:59,364
+CPU scheduling decisions, may take place
+
+227
+00:11:59,364 --> 00:12:02,367
+when a process switches from running to,
+
+228
+00:12:03,126 --> 00:12:07,515
+waiting state
+and from running to ready state
+
+229
+00:12:07,911 --> 00:12:11,343
+or switches from,
+waiting to ready or terminate.
+
+230
+00:12:11,343 --> 00:12:15,996
+So scheduling decisions are happening
+all the time in that tight little circle
+
+231
+00:12:15,996 --> 00:12:20,781
+of that running, waiting, ready, running,
+reading, ready to terminate.
+
+232
+00:12:20,781 --> 00:12:21,705
+Right? If it terminates.
+
+233
+00:12:21,705 --> 00:12:24,477
+And I don't
+I don't need to put that in there anymore.
+
+234
+00:12:26,226 --> 00:12:29,196
+What's critical here is in,
+
+235
+00:12:29,295 --> 00:12:30,120
+in the running
+
+236
+00:12:30,120 --> 00:12:33,981
+to waiting state and the terminate state,
+they're non pre preemptive.
+
+237
+00:12:33,981 --> 00:12:37,413
+So I can't preempt something
+as I'm moving from the running
+
+238
+00:12:37,446 --> 00:12:40,614
+to the waiting state
+I need to capture that that
+
+239
+00:12:41,340 --> 00:12:44,904
+process control block and then terminate
+I can't preempt the terminate.
+
+240
+00:12:45,696 --> 00:12:46,818
+Okay.
+
+241
+00:12:46,818 --> 00:12:49,326
+All the other scheduling in the CPU
+
+242
+00:12:49,326 --> 00:12:52,131
+is, preemptive.
+
+243
+00:12:52,131 --> 00:12:52,428
+All right.
+
+244
+00:12:52,428 --> 00:12:54,177
+I mentioned the word context switch.
+
+245
+00:12:54,177 --> 00:12:56,850
+Let's understand what it means. Right?
+
+246
+00:12:56,850 --> 00:13:00,249
+When a CPU switches
+from one process to another,
+
+247
+00:13:00,546 --> 00:13:03,516
+the system has to save that state.
+
+248
+00:13:03,516 --> 00:13:06,156
+And that process control block,
+which saves the state,
+
+249
+00:13:06,156 --> 00:13:09,126
+the registers, open files, all that stuff
+
+250
+00:13:09,225 --> 00:13:12,327
+and saves that state, and then introduces
+
+251
+00:13:12,327 --> 00:13:15,363
+another process and loads
+that state into the CPU.
+
+252
+00:13:16,551 --> 00:13:20,676
+If I have a, CPU,
+that's context switching a lot,
+
+253
+00:13:22,293 --> 00:13:25,296
+it will slow things down.
+
+254
+00:13:25,362 --> 00:13:26,748
+Right. And that's an overhead.
+
+255
+00:13:26,748 --> 00:13:30,279
+So you want to decrease context switching
+as much as possible.
+
+256
+00:13:30,939 --> 00:13:34,206
+What you find, especially in cloud
+computing, because you are doing
+
+257
+00:13:34,206 --> 00:13:38,166
+a shared resource with other, programs
+that are out there.
+
+258
+00:13:38,331 --> 00:13:39,816
+You don't know what they're running.
+
+259
+00:13:39,816 --> 00:13:44,106
+And context switching can really cause
+a lot of problems for you, right?
+
+260
+00:13:44,568 --> 00:13:49,650
+Whether it's IO that's blocking and oh,
+now this other program gets get
+
+261
+00:13:49,683 --> 00:13:53,016
+gets in there
+if you if you context switch a lot,
+
+262
+00:13:53,643 --> 00:13:56,646
+you can actually, overwhelm the CPU.
+
+263
+00:13:56,745 --> 00:13:59,451
+Great news is, is the operating systems
+handle that pretty well.
+
+264
+00:13:59,451 --> 00:14:02,322
+Now nowadays
+if you're running in real time
+
+265
+00:14:02,322 --> 00:14:05,325
+operating systems,
+you can absolutely see the lag
+
+266
+00:14:05,424 --> 00:14:08,757
+when you have too many, programs
+running at the same time.
+
+267
+00:14:09,120 --> 00:14:11,760
+And that context switch is overhead.
+
+268
+00:14:11,760 --> 00:14:12,024
+All right.
+
+269
+00:14:12,024 --> 00:14:16,380
+So, be mindful of that when you're
+programing in, in these systems.
+
+270
+00:14:17,139 --> 00:14:20,142
+Also be mindful of context switching
+when you're working too.
+
+271
+00:14:20,406 --> 00:14:23,970
+If you're context switching a lot
+changing state and things like that,
+
+272
+00:14:23,970 --> 00:14:26,346
+it can be hard to keep track of things
+as humans,
+
+273
+00:14:26,346 --> 00:14:28,326
+sometimes
+have a hard time with context switching.
+
+274
+00:14:30,075 --> 00:14:30,669
+All right.
+
+275
+00:14:30,669 --> 00:14:33,870
+The dispatcher module controls the CPU.
+
+276
+00:14:35,025 --> 00:14:37,764
+And, it's a short term scheduler.
+
+277
+00:14:37,764 --> 00:14:40,965
+For switching contexts,
+switching the user mode,
+
+278
+00:14:41,262 --> 00:14:43,737
+jumping to the proper location
+in the user program
+
+279
+00:14:43,737 --> 00:14:46,278
+when things get started,
+that's the dispatcher.
+
+280
+00:14:46,278 --> 00:14:50,766
+When I move from that,
+ready state into the process state,
+
+281
+00:14:50,766 --> 00:14:51,657
+there's some things
+
+282
+00:14:51,657 --> 00:14:55,386
+that have to happen in in there,
+and there's some dispatch latency.
+
+283
+00:14:55,815 --> 00:14:56,937
+You're not going to see.
+
+284
+00:14:56,937 --> 00:15:00,666
+I did so fast in the CPUs today.
+
+285
+00:15:00,963 --> 00:15:03,306
+You're not going to see that, very often.
+
+286
+00:15:03,306 --> 00:15:06,309
+But it's good to know
+that it exists in there.
+
+287
+00:15:08,025 --> 00:15:10,500
+All right, CPU, scheduling criteria.
+
+288
+00:15:10,500 --> 00:15:12,876
+There are lots of different,
+
+289
+00:15:12,876 --> 00:15:16,407
+criteria out there in the operating
+system, in the schedule scheduler.
+
+290
+00:15:16,638 --> 00:15:19,674
+And some of it depends
+on the operating system that you're using.
+
+291
+00:15:20,400 --> 00:15:25,284
+But most of them, for general purpose,
+I use, pretty standard.
+
+292
+00:15:25,845 --> 00:15:26,967
+Scheduling algorithms
+
+293
+00:15:26,967 --> 00:15:30,993
+that are out there today with the goal
+of keeping the CPU as busy as possible.
+
+294
+00:15:31,224 --> 00:15:34,227
+If there are a bunch of programs
+sitting out there that are waiting.
+
+295
+00:15:34,854 --> 00:15:36,108
+I don't want that. Right?
+
+296
+00:15:36,108 --> 00:15:41,289
+I want to I want, to, service
+as many processes as I can.
+
+297
+00:15:41,685 --> 00:15:45,678
+Throughput is, possible criteria
+that I'm looking at
+
+298
+00:15:45,678 --> 00:15:49,935
+or turnaround
+time, waiting time and response.
+
+299
+00:15:49,935 --> 00:15:52,674
+And all these things
+have have a role in these schedulers.
+
+300
+00:15:53,631 --> 00:15:55,842
+Scheduling
+algorithms are pretty well known
+
+301
+00:15:55,842 --> 00:16:00,033
+and but we do see some, modern, CPU,
+
+302
+00:16:01,551 --> 00:16:04,686
+architectures
+that, can change some of the scheduling
+
+303
+00:16:04,686 --> 00:16:07,689
+and make, the schedulers even more,
+
+304
+00:16:08,976 --> 00:16:12,540
+optimized through, feedback
+loops from the CPU.
+
+305
+00:16:12,540 --> 00:16:15,279
+So those are some interesting
+things to understand.

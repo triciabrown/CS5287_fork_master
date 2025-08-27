@@ -1,0 +1,443 @@
+﻿1
+00:00:01,385 --> 00:00:01,715
+All right.
+
+2
+00:00:01,715 --> 00:00:02,375
+Let's talk about a
+
+3
+00:00:02,375 --> 00:00:06,038
+layered approach to the internet
+and how how it works, how it works.
+
+4
+00:00:06,599 --> 00:00:09,008
+Let's go back to the Postal Service.
+
+5
+00:00:09,008 --> 00:00:10,097
+We talked about it before.
+
+6
+00:00:10,097 --> 00:00:14,684
+If I want to send a letter or a package
+from my house to my parents house,
+
+7
+00:00:15,245 --> 00:00:18,545
+there's certain things
+that I need to put on that package
+
+8
+00:00:18,545 --> 00:00:21,515
+in order for it to get to the destination.
+
+9
+00:00:21,515 --> 00:00:21,779
+Right.
+
+10
+00:00:21,779 --> 00:00:25,838
+And that's the whole idea,
+is that if I have a standard way
+
+11
+00:00:25,838 --> 00:00:29,864
+of doing that,
+I can address an envelope that it goes in.
+
+12
+00:00:29,897 --> 00:00:32,900
+The message is inside the envelope
+or inside the box,
+
+13
+00:00:33,065 --> 00:00:36,167
+that it's a standard size, that it's
+
+14
+00:00:36,365 --> 00:00:41,579
+that I don't just hand over, 
+a handful of stuff to the postal worker
+
+15
+00:00:41,579 --> 00:00:42,437
+and say, hey, deliver
+
+16
+00:00:42,437 --> 00:00:47,057
+this to, you know, my parents,
+if I can be crazy, if you do that.
+
+17
+00:00:47,057 --> 00:00:50,390
+So there are some common
+things that we need to do,
+
+18
+00:00:50,390 --> 00:00:51,743
+in order to make this work.
+
+19
+00:00:51,743 --> 00:00:56,462
+So we use a layered approach where
+I can talk about, how all this stuff
+
+20
+00:00:56,462 --> 00:01:01,742
+fits together, and we need to organize it
+so that, we can at least,
+
+21
+00:01:01,907 --> 00:01:07,187
+get packets from point
+A, host A to host B and back.
+
+22
+00:01:07,814 --> 00:01:10,487
+So let's talk
+let's talk about the different layers.
+
+23
+00:01:10,487 --> 00:01:13,589
+So there's, there's lots of different
+people are going to go there.
+
+24
+00:01:13,589 --> 00:01:16,262
+And there are seven layers to the IP
+stack. Yes.
+
+25
+00:01:16,262 --> 00:01:19,067
+Theoretical layers. Let's talk about that.
+
+26
+00:01:19,067 --> 00:01:22,037
+Let's talk about what's what's real
+and happening out there together.
+
+27
+00:01:22,037 --> 00:01:26,525
+There's really four with the fifth
+one that I call physical bits on the wire.
+
+28
+00:01:27,680 --> 00:01:30,749
+All right
+I'm physically moving bits at the wire.
+
+29
+00:01:30,980 --> 00:01:32,861
+But let's start at the top of the stack.
+
+30
+00:01:32,861 --> 00:01:34,841
+The top of the stack
+is the application layer.
+
+31
+00:01:34,841 --> 00:01:38,108
+So here I'm
+supporting network applications.
+
+32
+00:01:38,108 --> 00:01:43,421
+So here are my transfer protocols
+FTP, SMTp, Http.
+
+33
+00:01:44,015 --> 00:01:45,236
+Those are those are those.
+
+34
+00:01:45,236 --> 00:01:48,239
+That means there's a common envelope.
+
+35
+00:01:48,701 --> 00:01:54,212
+As my envelope there's a common
+set of packages that are out there.
+
+36
+00:01:55,037 --> 00:01:58,535
+That I'm going to put my, information in.
+
+37
+00:01:58,997 --> 00:02:01,967
+So there's your envelope,
+there's the transport.
+
+38
+00:02:01,967 --> 00:02:05,564
+How is it going to get there,
+whether it's TCP or UDP.
+
+39
+00:02:05,564 --> 00:02:10,844
+Those are the big, data
+transfer protocols, that are out there.
+
+40
+00:02:11,042 --> 00:02:13,055
+That's process to process protocol.
+
+41
+00:02:13,055 --> 00:02:18,599
+This would be, analogous to, what's the
+
+42
+00:02:18,731 --> 00:02:22,922
+oh that everything
+is going to, go in a,
+
+43
+00:02:24,803 --> 00:02:27,806
+Postal service, track.
+
+44
+00:02:28,103 --> 00:02:28,499
+There you go.
+
+45
+00:02:28,499 --> 00:02:29,291
+That's how I'm transferring
+
+46
+00:02:29,291 --> 00:02:32,294
+information in that Postal Service truck
+or on an airplane.
+
+47
+00:02:32,393 --> 00:02:35,396
+There's common ways of getting
+the information from point A to point B
+
+48
+00:02:36,122 --> 00:02:37,805
+network IP routing.
+
+49
+00:02:37,805 --> 00:02:43,844
+This is, 
+how I'm, getting from point A to point B.
+
+50
+00:02:43,844 --> 00:02:46,385
+This would be addresses.
+
+51
+00:02:46,385 --> 00:02:48,431
+Right. So a street address.
+
+52
+00:02:48,431 --> 00:02:51,599
+And if you look, it's,
+
+53
+00:02:51,599 --> 00:02:56,087
+a number on your street,
+your street name, your city,
+
+54
+00:02:56,615 --> 00:02:59,618
+your providence for state, your country.
+
+55
+00:03:00,047 --> 00:03:01,367
+We have the same things.
+
+56
+00:03:01,367 --> 00:03:03,875
+We are in network protocols.
+
+57
+00:03:03,875 --> 00:03:08,594
+There's I IPv4 and IPv6,
+
+58
+00:03:09,023 --> 00:03:12,455
+one that has,
+we started running out of addresses.
+
+59
+00:03:12,455 --> 00:03:13,577
+Those are those four numbers.
+
+60
+00:03:13,577 --> 00:03:16,415
+8.8.8 for Google, you know.
+
+61
+00:03:16,415 --> 00:03:22,355
+128 101 87 I can I still remember
+I still remember my old,
+
+62
+00:03:22,355 --> 00:03:26,975
+IP addresses for when I was in college,
+like, last millennium.
+
+63
+00:03:27,272 --> 00:03:28,295
+It's amazing. Right?
+
+64
+00:03:29,978 --> 00:03:31,826
+But those
+
+65
+00:03:31,826 --> 00:03:35,225
+addresses there are,
+is that network routing diagrams, right.
+
+66
+00:03:35,225 --> 00:03:38,690
+That tells me where it is. Right?
+
+67
+00:03:38,690 --> 00:03:41,693
+It tells me, which general area
+
+68
+00:03:42,089 --> 00:03:46,082
+and then, more specific, more specific
+to how you get to the last number.
+
+69
+00:03:46,577 --> 00:03:51,296
+The,
+the new IP, versions give us trillions
+
+70
+00:03:51,296 --> 00:03:54,167
+quadrillion, different addresses.
+
+71
+00:03:54,167 --> 00:03:57,005
+We ran out of the,
+the old the old way of doing it,
+
+72
+00:03:57,005 --> 00:04:01,163
+which was for, for a bit numbers.
+
+73
+00:04:01,394 --> 00:04:03,506
+Now it's it's much larger than that.
+
+74
+00:04:03,506 --> 00:04:05,189
+So we're in good shape.
+
+75
+00:04:05,189 --> 00:04:08,621
+Then the next one is the data transfer
+between neighboring networks.
+
+76
+00:04:09,083 --> 00:04:10,370
+What?
+
+77
+00:04:10,370 --> 00:04:13,274
+How am I, connected together?
+
+78
+00:04:13,274 --> 00:04:13,835
+Right.
+
+79
+00:04:13,835 --> 00:04:18,389
+Between the different networks,
+that would be Ethernet 802
+
+80
+00:04:18,389 --> 00:04:21,986
+11, which is Wi-Fi, PGP
+and things like that.
+
+81
+00:04:22,316 --> 00:04:23,966
+And that's that's really it.
+
+82
+00:04:23,966 --> 00:04:28,751
+So because these are standardized,
+I have an easy way
+
+83
+00:04:28,751 --> 00:04:32,546
+that I can move data from one host
+to another across multiple networks,
+
+84
+00:04:33,635 --> 00:04:34,592
+and that that
+
+85
+00:04:34,592 --> 00:04:37,595
+routing number in the network
+is, is highly critical,
+
+86
+00:04:37,892 --> 00:04:41,126
+because that's how I know where to start
+routing things.
+
+87
+00:04:41,126 --> 00:04:45,845
+I could say, hey, I'm on the 128,
+network.
+
+88
+00:04:45,845 --> 00:04:48,914
+Oh, I, I got 128 over here.
+Send that to me.
+
+89
+00:04:49,343 --> 00:04:51,851
+And then it it boils down that way.
+
+90
+00:04:51,851 --> 00:04:54,458
+It's actually pretty cool.
+
+91
+00:04:54,458 --> 00:04:54,689
+All right.
+
+92
+00:04:54,689 --> 00:05:00,002
+There's some cloud protocols
+that are all based on Http or Https.
+
+93
+00:05:00,530 --> 00:05:01,784
+Web protocols.
+
+94
+00:05:01,784 --> 00:05:06,338
+That's how most of the cloud APIs
+are built on, including our Rest interface
+
+95
+00:05:06,338 --> 00:05:11,255
+that we've talked about in
+previous lectures and new protocols like,
+
+96
+00:05:11,288 --> 00:05:16,106
+MCP model context protocol
+that we're seeing happen with a genetic
+
+97
+00:05:16,139 --> 00:05:21,914
+I they're all still built
+on top of a RESTful, interface,
+
+98
+00:05:21,914 --> 00:05:26,006
+which is built on top of Http,
+which is the application layer.

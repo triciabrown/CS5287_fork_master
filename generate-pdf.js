@@ -21,18 +21,19 @@ async function traverseAndConvert(dir) {
     }
     else if (entry.isFile() && entry.name.endsWith('.marp.md')) {
       const outPdf = path.resolve('.output', fullPath.replace(/\.marp\.md$/, '.pptx'));
-      console.log(`⏳  Generating PDF for ${fullPath}`);
-        const result = spawnSync(
-            'npx marp --pptx --theme ./doc/default.scss --allow-local-files ' +
-            `-o "${outPdf}" "${fullPath}"`,
-            { stdio: 'inherit', shell: true }
-        );
+      if(!fs.existsSync(outPdf)) {
+          console.log(`⏳  Generating PDF for ${fullPath}`);
+          const result = spawnSync(
+              'npx marp --pptx --theme ./doc/default.scss --allow-local-files ' +
+              `-o "${outPdf}" "${fullPath}"`,
+              {stdio: 'inherit', shell: true}
+          );
 
-      if (result.error) {
-        console.error(`❌  Error processing ${fullPath}:`, result.error);
-      }
-      else {
-        console.log(`✅  ${outPdf} created.`);
+          if (result.error) {
+              console.error(`❌  Error processing ${fullPath}:`, result.error);
+          } else {
+              console.log(`✅  ${outPdf} created.`);
+          }
       }
     }
   }

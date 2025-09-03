@@ -9,6 +9,9 @@ description: Declarative infrastructure provisioning with Terraform
 
 # Terraform Overview
 
+Video: [https://youtu.be/KpMgxOFoY0A](https://youtu.be/KpMgxOFoY0A)
+
+
 HashiCorp Terraform is a leading open-source tool for provisioning, changing, and versioning infrastructure safely and efficiently. It lets you define your data center resources (cloud services, network, DNS, load balancers, etc.) in human-readable configuration files and manages the lifecycle of these resources via a declarative workflow.
 
 ---
@@ -21,6 +24,9 @@ HashiCorp Terraform is a leading open-source tool for provisioning, changing, an
 - **Providers & Resources**
     - **Provider**: plugin that knows how to manage a given platform (AWS, Azure, GCP, VMware, Kubernetes, etc.)
     - **Resource**: a concrete infrastructure object (EC2 instance, S3 bucket, VPC, DNS record).
+
+--- 
+## 1. Key Concepts (cont.)
 
 - **State Management**  
   Terraform maintains a state file (by default `terraform.tfstate`) that tracks metadata and IDs of created resources, enabling differential updates (planned changes vs. actual).
@@ -54,6 +60,9 @@ provider "aws" {
     }
 ```
 
+---
+
+## 2. Configuration Language: HCL (cont.)
 
 - **Variables & Outputs**
     - **Variables** (`variable "foo" { … }`) allow parameterization
@@ -79,6 +88,10 @@ provider "aws" {
 3. **Plan**  
    `terraform plan`
     - Creates an execution plan showing proposed changes
+   
+---
+
+## 3. Workflow (cont.)
 
 4. **Apply**  
    `terraform apply`
@@ -139,4 +152,13 @@ provider "aws" {
 
 # Summary
 
-Terraform empowers teams to treat infrastructure as code—declaratively defining, provisioning, and managing resources across clouds and services. Its rich ecosystem, mature state management, and straightforward workflows make it the de facto standard for multi-cloud infrastructure automation.
+* Infrastructure as Code: Terraform enables declarative infrastructure definition, provisioning, and management across
+multiple clouds and services
+
+* Rich Ecosystem: Extensive collection of providers and integrations for diverse infrastructure needs
+
+* Mature State Management: Reliable tracking and management of infrastructure state for consistent deployments
+
+* Straightforward Workflows: Clear, predictable processes for infrastructure lifecycle management
+
+* Industry Standard: De facto tool for multi-cloud infrastructure automation

@@ -1,0 +1,783 @@
+﻿1
+00:00:01,550 --> 00:00:04,883
+One of the key elements of IaaS
+or infrastructure as a service,
+
+2
+00:00:04,883 --> 00:00:09,668
+is the ability to quickly and program
+programmability.
+
+3
+00:00:10,955 --> 00:00:12,935
+Launch, whole infrastructure
+
+4
+00:00:12,935 --> 00:00:17,555
+of compute, storage,
+network security and accelerators.
+
+5
+00:00:18,017 --> 00:00:21,548
+One of the key elements of
+that is infrastructure as code.
+
+6
+00:00:22,076 --> 00:00:25,079
+So I want to go over the key
+elements of infrastructures code.
+
+7
+00:00:25,277 --> 00:00:28,148
+And then we'll talk about
+in other lectures
+
+8
+00:00:28,148 --> 00:00:31,118
+about, different tools
+
+9
+00:00:31,118 --> 00:00:34,385
+that enable infrastructures
+code like Ansible and Terraform.
+
+10
+00:00:34,748 --> 00:00:35,309
+Right.
+
+11
+00:00:35,309 --> 00:00:39,533
+So the idea here is that we can treat
+infrastructure as versioned code.
+
+12
+00:00:39,632 --> 00:00:43,625
+This is really important
+if you want, continuous
+
+13
+00:00:43,955 --> 00:00:48,179
+deployment
+and, reliability on your deployment.
+
+14
+00:00:48,443 --> 00:00:51,809
+And the ability to scale
+is very important with this too.
+
+15
+00:00:52,139 --> 00:00:57,221
+So what it means now is that a software
+developer can put in conjunction with,
+
+16
+00:00:58,442 --> 00:01:01,445
+their sysadmin,
+they can work together to say
+
+17
+00:01:02,039 --> 00:01:06,395
+this piece of code or this microservice
+or this application
+
+18
+00:01:06,659 --> 00:01:10,355
+requires this infrastructure,
+and it can be checked in together
+
+19
+00:01:10,355 --> 00:01:15,503
+into GitHub or into subversion or heaven
+forbid, people are so using clear case.
+
+20
+00:01:16,130 --> 00:01:18,341
+But I was a clear case.
+I have been for years.
+
+21
+00:01:18,341 --> 00:01:20,123
+You should look that up
+if you don't know what it is.
+
+22
+00:01:20,123 --> 00:01:23,819
+Very cool system,
+but that I can check this all in together.
+
+23
+00:01:23,819 --> 00:01:28,076
+So the application, the infrastructure,
+everything is version together.
+
+24
+00:01:28,109 --> 00:01:28,835
+This allows me
+
+25
+00:01:28,835 --> 00:01:32,729
+to do automatic provisioning,
+configuration and tear down very easily.
+
+26
+00:01:33,125 --> 00:01:35,996
+It gives me that repeatability
+and consistency
+
+27
+00:01:35,996 --> 00:01:38,834
+that I need
+in these highly complex systems,
+
+28
+00:01:38,834 --> 00:01:42,200
+because there's nothing worse in the world
+than deploying your system
+
+29
+00:01:42,200 --> 00:01:42,728
+and finding out,
+
+30
+00:01:42,728 --> 00:01:46,589
+oh, someone forgot they didn't follow
+the install the structure instructions.
+
+31
+00:01:47,348 --> 00:01:51,011
+They forgot to flip this one little bit
+in order to make everything work.
+
+32
+00:01:51,869 --> 00:01:54,212
+Infrastructure's code
+gives me that capability
+
+33
+00:01:54,212 --> 00:01:57,776
+of defining everything,
+and I can version control it as well.
+
+34
+00:01:57,776 --> 00:01:58,139
+Together.
+
+35
+00:01:59,162 --> 00:02:01,967
+So why it matters
+
+36
+00:02:01,967 --> 00:02:04,475
+safe reruns and produce the same state
+
+37
+00:02:04,475 --> 00:02:07,676
+that into potency is extremely important.
+
+38
+00:02:07,940 --> 00:02:10,778
+The version controls we talked about,
+I can look and see
+
+39
+00:02:10,778 --> 00:02:14,243
+what the differences are between version
+two and version one.
+
+40
+00:02:14,441 --> 00:02:18,665
+Both of the application code
+and the infrastructure it's running on.
+
+41
+00:02:19,193 --> 00:02:19,457
+Right.
+
+42
+00:02:19,457 --> 00:02:22,823
+And then I can also share very easily.
+
+43
+00:02:23,615 --> 00:02:26,486
+This infrastructure is code.
+
+44
+00:02:26,486 --> 00:02:29,885
+I can share this
+between different projects very easily
+
+45
+00:02:30,545 --> 00:02:31,733
+if I have a standard way
+
+46
+00:02:31,733 --> 00:02:35,561
+of doing things that includes auditability
+and security aspects.
+
+47
+00:02:35,990 --> 00:02:38,993
+Those can all fit into these,
+
+48
+00:02:39,785 --> 00:02:42,458
+modules or cookbooks or blue books.
+
+49
+00:02:42,458 --> 00:02:46,055
+There's lots of different names for them
+that I can use over and over again
+
+50
+00:02:46,055 --> 00:02:49,058
+for, different,
+
+51
+00:02:49,124 --> 00:02:50,015
+projects.
+
+52
+00:02:50,015 --> 00:02:53,315
+I can also inject these into my CI
+CD pipeline,
+
+53
+00:02:53,579 --> 00:02:57,770
+my continuous integration and continuous
+deployment pipelines for rapid deployment.
+
+54
+00:02:58,199 --> 00:03:02,192
+And it serves as a way of documenting what
+
+55
+00:03:02,192 --> 00:03:06,515
+the infrastructure requirements are for,
+you guessed it, your applications.
+
+56
+00:03:08,231 --> 00:03:08,825
+All right.
+
+57
+00:03:08,825 --> 00:03:12,884
+Let's talk about the different,
+declarative and imperative, Iirc.
+
+58
+00:03:13,445 --> 00:03:17,735
+So declarative says describe
+what the final state should be.
+
+59
+00:03:18,428 --> 00:03:21,431
+And the tool figures out
+how to get to that final state.
+
+60
+00:03:21,563 --> 00:03:27,503
+Examples of this are Terraform
+cloud formation arm bicep saltstack.
+
+61
+00:03:27,503 --> 00:03:29,582
+There's lots of them out there. Right?
+
+62
+00:03:29,582 --> 00:03:32,915
+Imperatives says
+here are the step by step commands.
+
+63
+00:03:32,915 --> 00:03:35,060
+It need to run.
+
+64
+00:03:35,060 --> 00:03:36,644
+So one is declarative.
+
+65
+00:03:36,644 --> 00:03:38,954
+This is what the end state
+should look like.
+
+66
+00:03:38,954 --> 00:03:42,122
+And the other one is take these steps.
+
+67
+00:03:42,749 --> 00:03:45,356
+Ansible, chef and puppet are the step
+
+68
+00:03:45,356 --> 00:03:48,557
+by step run this command and this command
+and this command.
+
+69
+00:03:48,623 --> 00:03:49,316
+Right.
+
+70
+00:03:49,316 --> 00:03:53,342
+You have greater control
+over the execution flow in imperative
+
+71
+00:03:53,804 --> 00:03:54,662
+but declarative.
+
+72
+00:03:54,662 --> 00:03:57,632
+Make sure
+that you get to a specific end state.
+
+73
+00:03:57,632 --> 00:04:01,097
+So we're going to talk
+we're going to talk in these lectures
+
+74
+00:04:01,097 --> 00:04:02,945
+about Ansible which is imperative.
+
+75
+00:04:02,945 --> 00:04:05,882
+And Terraform which is declarative.
+
+76
+00:04:05,882 --> 00:04:07,598
+So you get to see both.
+
+77
+00:04:09,380 --> 00:04:09,809
+All right.
+
+78
+00:04:09,809 --> 00:04:13,241
+There's different categories
+of these tools we're going to go over.
+
+79
+00:04:13,241 --> 00:04:16,541
+There's like five of these categories
+real quickly provisionals.
+
+80
+00:04:16,805 --> 00:04:19,280
+These are
+the things that are actually provisioning,
+
+81
+00:04:19,280 --> 00:04:22,283
+taking the éac
+and actually doing the provisioning,
+
+82
+00:04:23,240 --> 00:04:26,144
+setting up the machines, the networks,
+
+83
+00:04:26,144 --> 00:04:28,817
+the storage
+and configuring all that stuff.
+
+84
+00:04:28,817 --> 00:04:30,005
+Okay.
+
+85
+00:04:30,005 --> 00:04:31,490
+That's what a provisioner is.
+
+86
+00:04:31,490 --> 00:04:33,173
+Configuration management.
+
+87
+00:04:33,173 --> 00:04:36,275
+They're installing software,
+configuring OS services and,
+
+88
+00:04:37,265 --> 00:04:38,915
+on servers and things like that.
+
+89
+00:04:38,915 --> 00:04:42,215
+So they're not just
+provisioning the hardware.
+
+90
+00:04:42,413 --> 00:04:45,416
+There are also installing software
+and things like that.
+
+91
+00:04:46,472 --> 00:04:47,099
+Okay.
+
+92
+00:04:47,099 --> 00:04:49,673
+Then there's orchestrating and templating.
+
+93
+00:04:49,673 --> 00:04:52,676
+These are for multi-tiered application.
+
+94
+00:04:52,907 --> 00:04:57,065
+And templates
+examples of these are cloud formations.
+
+95
+00:04:57,626 --> 00:04:58,484
+Azure.
+
+96
+00:04:58,484 --> 00:05:01,223
+Google the deployment manager.
+
+97
+00:05:01,223 --> 00:05:03,731
+The cool thing about this is I can set up
+
+98
+00:05:03,731 --> 00:05:06,800
+not just individual machines,
+but now I'm setting up
+
+99
+00:05:08,087 --> 00:05:09,407
+lots of machines.
+
+100
+00:05:09,407 --> 00:05:11,981
+Right. Multi-tiered architectures.
+
+101
+00:05:11,981 --> 00:05:16,733
+So I've got maybe a lamp stack
+or I've got, a three tiered architecture,
+
+102
+00:05:17,096 --> 00:05:20,000
+or maybe I'm doing a message broker,
+
+103
+00:05:20,000 --> 00:05:22,838
+with consumers and producers
+and things like that.
+
+104
+00:05:22,838 --> 00:05:25,841
+That orchestrator
+and template is important there.
+
+105
+00:05:25,841 --> 00:05:30,196
+And then we've got containerization and
+containers and Kubernetes and operators.
+
+106
+00:05:31,285 --> 00:05:33,892
+They're managing the infrastructure via,
+
+107
+00:05:33,892 --> 00:05:36,895
+Kubernetes, creds and controllers.
+
+108
+00:05:36,928 --> 00:05:40,030
+And examples of this are helm
+charts, flux, Argo CD,
+
+109
+00:05:40,228 --> 00:05:43,231
+Terraform operators, things like that.
+
+110
+00:05:43,297 --> 00:05:43,990
+All right.
+
+111
+00:05:43,990 --> 00:05:47,356
+Here are some of the most popular AI tools
+that are out there.
+
+112
+00:05:47,587 --> 00:05:51,712
+We are going to in the lectures
+cover Terraform in Ansible.
+
+113
+00:05:52,042 --> 00:05:54,682
+Terraform came from HashiCorp.
+
+114
+00:05:54,682 --> 00:05:57,454
+It's got a declarative SQL, language.
+
+115
+00:05:57,454 --> 00:06:00,457
+They call it the HashiCorp
+configuration language.
+
+116
+00:06:00,655 --> 00:06:05,077
+It has multi-cloud support
+and a large, very large, community.
+
+117
+00:06:05,572 --> 00:06:08,575
+So there's a lot of tools
+I can just lift and start using.
+
+118
+00:06:09,070 --> 00:06:11,644
+Plumie is an interesting one
+
+119
+00:06:11,644 --> 00:06:15,472
+in that I can do code first
+so I can use, the language.
+
+120
+00:06:15,472 --> 00:06:18,475
+Maybe I'm writing stuff in JavaScript
+or Python.
+
+121
+00:06:18,970 --> 00:06:22,567
+My application,
+I can use that same, language,
+
+122
+00:06:23,062 --> 00:06:26,065
+to now do infrastructure, coding as well.
+
+123
+00:06:26,659 --> 00:06:28,837
+Ansible is agent lists.
+
+124
+00:06:28,837 --> 00:06:31,675
+It uses Yaml as its primary, playbook.
+
+125
+00:06:32,632 --> 00:06:36,361
+And it's to, in its imperative.
+
+126
+00:06:36,658 --> 00:06:39,826
+And so I'm telling it, the individual
+steps that I want it to make.
+
+127
+00:06:40,387 --> 00:06:40,915
+Right.
+
+128
+00:06:40,915 --> 00:06:43,918
+Chef and puppet are Ruby based.
+
+129
+00:06:44,116 --> 00:06:45,964
+Which is a language
+if you don't know Ruby.
+
+130
+00:06:45,964 --> 00:06:47,779
+It's a pretty cool language.
+
+131
+00:06:47,779 --> 00:06:51,013
+But Ruby base
+that is declaring the desired states,
+
+132
+00:06:51,442 --> 00:06:55,072
+configuration, cloud
+formation is another great one.
+
+133
+00:06:55,072 --> 00:07:00,154
+It's native to AWS,
+but it will run on Azure and G and GCP.
+
+134
+00:07:01,441 --> 00:07:04,708
+And it can detect, drift detection.
+
+135
+00:07:05,236 --> 00:07:08,140
+As, as I'm deploying things,
+which is nice.
+
+136
+00:07:08,140 --> 00:07:10,912
+And then cross plane is a Kubernetes
+native
+
+137
+00:07:10,912 --> 00:07:13,915
+control plane
+for provisioning cloud resources.
+
+138
+00:07:14,509 --> 00:07:15,334
+All right.
+
+139
+00:07:15,334 --> 00:07:18,535
+I act workflow real quickly. Very simple.
+
+140
+00:07:18,535 --> 00:07:21,406
+It's it should be very similar
+to your software.
+
+141
+00:07:21,406 --> 00:07:24,343
+Define your software
+development. Workflow.
+
+142
+00:07:24,343 --> 00:07:26,983
+I write the code I stored in git.
+
+143
+00:07:26,983 --> 00:07:30,052
+I do peer reviews, I execute a plan,
+
+144
+00:07:30,745 --> 00:07:33,088
+which is basically,
+
+145
+00:07:33,088 --> 00:07:35,926
+running the running the code
+
+146
+00:07:35,926 --> 00:07:40,051
+and it will go out
+and, do the provisioning
+
+147
+00:07:40,051 --> 00:07:43,813
+and then I can apply it, the changes
+that I need to make
+
+148
+00:07:44,341 --> 00:07:46,948
+and it will make updates
+to my infrastructure,
+
+149
+00:07:46,948 --> 00:07:51,436
+and then I can monitor any drift
+that I have and reapply code as I need to.
+
+150
+00:07:51,733 --> 00:07:53,614
+And then don't forget the last step.
+
+151
+00:07:53,614 --> 00:07:56,386
+Make sure you destroy resources
+when they're no longer needed,
+
+152
+00:07:56,386 --> 00:07:59,455
+especially in the public cloud,
+as you'll be paying for those resources.
+
+153
+00:08:00,016 --> 00:08:03,646
+All right, key takeaways IAC shifts
+
+154
+00:08:03,646 --> 00:08:07,111
+infrastructure from manually doing it in
+or even via the,
+
+155
+00:08:07,705 --> 00:08:10,708
+the web interface to choosing
+
+156
+00:08:10,774 --> 00:08:13,645
+to doing it more automatic and repeatable.
+
+157
+00:08:13,645 --> 00:08:16,648
+You need to choose whether you're
+going to use a declarative or imperative,
+
+158
+00:08:18,727 --> 00:08:19,552
+tool.
+
+159
+00:08:19,552 --> 00:08:21,631
+And that should be based off
+the use case that you have.
+
+160
+00:08:21,631 --> 00:08:24,931
+If you need high control over
+configuration,
+
+161
+00:08:24,931 --> 00:08:28,033
+then you'll want to do more imperative
+than declarative, right?
+
+162
+00:08:28,495 --> 00:08:31,795
+If you want something,
+where you want to know what the in state
+
+163
+00:08:31,795 --> 00:08:35,425
+is quickly without a lot of steps,
+declarative is a better way to go.
+
+164
+00:08:36,250 --> 00:08:40,078
+Make sure that you are leveraging,
+version control, just like you would do
+
+165
+00:08:40,078 --> 00:08:43,807
+with your software,
+and include it into your CI, CD pipeline.
+
+166
+00:08:44,434 --> 00:08:47,965
+It will make your life so much easier
+when you go off and, start,
+
+167
+00:08:48,757 --> 00:08:51,001
+scaling this to the massive,
+
+168
+00:08:51,001 --> 00:08:54,136
+massive, startup that you're going
+to start make billions of dollars with,
+
+169
+00:08:54,697 --> 00:08:58,657
+make sure that you are selecting a tool
+that handles multi-cloud
+
+170
+00:08:59,020 --> 00:09:03,475
+so that you have that ability
+to, move between cloud service providers
+
+171
+00:09:03,475 --> 00:09:07,468
+and even move back to on prem
+with private cloud is you need to.

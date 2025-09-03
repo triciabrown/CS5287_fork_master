@@ -1,5 +1,7 @@
 # Primer on Ansible
 
+Video: [https://youtu.be/6jz0adB6I0c](https://youtu.be/6jz0adB6I0c)
+
 Ansible is an open-source automation tool for configuration management, application deployment, and orchestration. It uses an agentless, push-based model over SSH (or WinRM) and YAML “playbooks” to define desired state.
 
 ---
@@ -23,6 +25,10 @@ Ansible is an open-source automation tool for configuration management, applicat
   db1.example.com
   ```
 
+---
+
+## 1. Key Concepts (cont.)
+
 - **Modules**  
   Reusable units of work (package installation, file copy, user management). E.g., `yum`, `apt`, `copy`, `template`.
 
@@ -37,6 +43,9 @@ Ansible is an open-source automation tool for configuration management, applicat
           name: nginx
           state: present
   ```
+--- 
+
+## 1. Key Concepts (cont.)
 
 - **Roles**  
   Structured collection of tasks, handlers, files, templates, defaults, and metadata—promote reuse and organization.
@@ -65,10 +74,14 @@ Ansible is an open-source automation tool for configuration management, applicat
    ```bash
    ansible-playbook -i inventory.ini site.yml
    ```
-5. **Ansible Engine**
-    - Connects via SSH to each host.
-    - Transfers a small Python module (the “Ansible module”) and executes.
-    - Gathers results, reuses connections, reports success/failure.
+   
+--- 
+
+## Ansible Engine
+
+- Connects via SSH to each host.
+- Transfers a small Python module (the “Ansible module”) and executes.
+- Gathers results, reuses connections, reports success/failure.
 
 ---
 
@@ -84,6 +97,11 @@ app2.example.com ansible_user=ubuntu
 [db_servers]
 db1.example.com ansible_user=ec2-user
 ```
+
+---
+
+## 3. Inventory Examples (cont.)
+
 **YAML Syntax**:
 ```
 yaml
@@ -97,6 +115,7 @@ all:
       hosts:
         db1.example.com:
 ```
+
 ---
 
 ## 4. Playbook Structure

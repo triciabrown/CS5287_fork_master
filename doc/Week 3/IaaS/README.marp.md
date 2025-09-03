@@ -8,6 +8,8 @@ title: Primer on Infrastructure as a Service (IaaS)
 
 # What Is IaaS?
 
+Video: [https://youtu.be/2VTYv2-I3Lc](https://youtu.be/2VTYv2-I3Lc)
+
 - On-demand virtualized compute, storage, network, and security  
 - Self-service provisioning via APIs or console  
 - Avoid capital expense; pay only for resources used  

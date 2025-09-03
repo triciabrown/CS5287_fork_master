@@ -1,0 +1,830 @@
+﻿1
+00:00:02,045 --> 00:00:02,606
+Okay.
+
+2
+00:00:02,606 --> 00:00:05,972
+Let's talk about Ansible in this lecture.
+
+3
+00:00:06,005 --> 00:00:09,899
+So Ansible is in éaC
+and infrastructure as coding tool.
+
+4
+00:00:10,724 --> 00:00:14,057
+And we're going to go over it
+and see how I can use it.
+
+5
+00:00:14,486 --> 00:00:16,136
+I would say it's you.
+
+6
+00:00:16,136 --> 00:00:18,083
+It's very useful.
+
+7
+00:00:18,083 --> 00:00:19,997
+But it's not the only tool out there.
+
+8
+00:00:19,997 --> 00:00:24,386
+So understanding its pluses and minuses,
+would be very important for understanding,
+
+9
+00:00:24,518 --> 00:00:26,201
+the best use cases for you.
+
+10
+00:00:26,201 --> 00:00:29,237
+So it's an open source, automation tool
+
+11
+00:00:29,237 --> 00:00:32,900
+for configuration management,
+as I already talked about for Isac.
+
+12
+00:00:33,527 --> 00:00:36,431
+It utilizes an agent, lists,
+
+13
+00:00:36,431 --> 00:00:38,774
+push model based over SSH.
+
+14
+00:00:38,774 --> 00:00:41,975
+So I don't need an agent running
+on the end in order to do things.
+
+15
+00:00:42,305 --> 00:00:46,859
+And it has the concept of playbooks,
+which are all Yaml based.
+
+16
+00:00:46,859 --> 00:00:51,512
+So this is all defining
+the desired end state.
+
+17
+00:00:51,512 --> 00:00:53,624
+So it's imperative, not declarative.
+
+18
+00:00:53,624 --> 00:00:55,604
+I don't declare the individual steps,
+
+19
+00:00:55,604 --> 00:00:59,267
+I just define the desired end
+state that I want to get to.
+
+20
+00:01:00,983 --> 00:01:01,709
+Okay.
+
+21
+00:01:01,709 --> 00:01:03,953
+Key concepts that we need to understand.
+
+22
+00:01:03,953 --> 00:01:05,075
+Control node.
+
+23
+00:01:05,075 --> 00:01:08,540
+That's where the machine
+where you install and running Ansible.
+
+24
+00:01:08,738 --> 00:01:10,289
+This is the machine that you're
+
+25
+00:01:10,289 --> 00:01:14,018
+going to use to control
+all the other nodes in your cluster.
+
+26
+00:01:14,018 --> 00:01:16,922
+Right. Those are the managed nodes
+that are out there.
+
+27
+00:01:16,922 --> 00:01:19,925
+These are the target servers
+where you want to install
+
+28
+00:01:20,090 --> 00:01:23,093
+or spin up VMs or,
+
+29
+00:01:23,357 --> 00:01:25,568
+you know, whatever,
+whatever the case may be.
+
+30
+00:01:25,568 --> 00:01:26,525
+Okay.
+
+31
+00:01:26,525 --> 00:01:28,340
+All right. Inventory.
+
+32
+00:01:28,340 --> 00:01:29,561
+Inventory is a file.
+
+33
+00:01:29,561 --> 00:01:35,897
+It's an Ini file or Yaml file,
+that lists the managed hosts or groups.
+
+34
+00:01:36,161 --> 00:01:41,342
+So I can I can target a whole group
+saying, hey, I need you to update all of,
+
+35
+00:01:41,606 --> 00:01:45,731
+your configurations in web, for example.
+
+36
+00:01:45,731 --> 00:01:49,328
+Then it'll hit all the hosts
+in that group or in DB in this case,
+
+37
+00:01:50,516 --> 00:01:53,519
+just the one, host that's there.
+
+38
+00:01:54,146 --> 00:01:57,017
+All right
+then, I've got the concept of modules.
+
+39
+00:01:57,017 --> 00:02:00,020
+Modules are reusable units of work,
+
+40
+00:02:00,416 --> 00:02:03,320
+or of n states for example.
+
+41
+00:02:03,320 --> 00:02:05,597
+Yum apt copy template.
+
+42
+00:02:05,597 --> 00:02:08,468
+These are all, reusable units.
+
+43
+00:02:08,468 --> 00:02:11,207
+So I can have a module
+that I'm doing all that with.
+
+44
+00:02:11,207 --> 00:02:13,616
+And then the next one is playbooks.
+
+45
+00:02:13,616 --> 00:02:16,586
+So a playbook is a Yaml file
+that describes
+
+46
+00:02:16,586 --> 00:02:20,348
+the orchestration tasks
+in the place that I have.
+
+47
+00:02:20,348 --> 00:02:23,945
+So I can say
+here are the tasks that I need in order
+
+48
+00:02:23,945 --> 00:02:27,377
+to get to this specific, state
+that I'm looking for.
+
+49
+00:02:28,796 --> 00:02:30,248
+Yeah. Right.
+
+50
+00:02:30,248 --> 00:02:30,545
+All right.
+
+51
+00:02:30,545 --> 00:02:33,482
+And then we talk about, arbok and roles.
+
+52
+00:02:33,482 --> 00:02:37,178
+So I have roles in, in Ansible as well.
+
+53
+00:02:37,178 --> 00:02:40,940
+And these are a structured, collection
+of tasks, file handlers,
+
+54
+00:02:40,940 --> 00:02:44,702
+templates, defaults, whatever the case may
+be, I can bundle those into roles.
+
+55
+00:02:45,098 --> 00:02:48,167
+I want to parameterize
+my Ansible playbooks,
+
+56
+00:02:48,431 --> 00:02:52,523
+so I so I can reuse them
+for lots of different things just by
+
+57
+00:02:52,523 --> 00:02:57,671
+having different variables or parameters
+that I'm passing into different inventory.
+
+58
+00:02:57,671 --> 00:03:01,004
+And it increases, reusability,
+dramatically.
+
+59
+00:03:01,499 --> 00:03:03,446
+And then I also have handlers in here.
+
+60
+00:03:03,446 --> 00:03:05,624
+So we have something is happening.
+
+61
+00:03:05,624 --> 00:03:08,000
+A notification, is sent.
+
+62
+00:03:08,000 --> 00:03:11,993
+I know what to do in case of those,
+different events that are being,
+
+63
+00:03:13,808 --> 00:03:16,184
+sent out, like, I need to restart a server
+
+64
+00:03:16,184 --> 00:03:19,187
+after configuration change
+and things like that.
+
+65
+00:03:19,946 --> 00:03:20,903
+Okay.
+
+66
+00:03:20,903 --> 00:03:23,906
+Next architecture and workflow. So,
+
+67
+00:03:24,731 --> 00:03:27,074
+first thing, the way that I work through
+this is I write
+
+68
+00:03:27,074 --> 00:03:30,473
+an inventory targeting the different hosts
+or groups that I need.
+
+69
+00:03:30,803 --> 00:03:32,915
+Then I write a playbook.
+
+70
+00:03:32,915 --> 00:03:36,545
+Then I can define roles
+if I need to for a modular structure.
+
+71
+00:03:36,809 --> 00:03:41,264
+And then I go ahead and I run that Ansible
+playbook against that inventory.
+
+72
+00:03:41,825 --> 00:03:43,376
+So I take that playbook and say,
+
+73
+00:03:43,376 --> 00:03:47,567
+apply this playbook to the
+this inventory that I have here.
+
+74
+00:03:47,567 --> 00:03:51,956
+And you can specify, what,
+what machines in your inventory
+
+75
+00:03:51,956 --> 00:03:54,959
+that you're targeting in your playbook.
+
+76
+00:03:56,345 --> 00:04:00,041
+So, the ansible engine is what connects,
+
+77
+00:04:01,130 --> 00:04:03,968
+ssh to each of the hosts
+that are out there,
+
+78
+00:04:03,968 --> 00:04:06,542
+and it transfers a small Python module,
+
+79
+00:04:08,060 --> 00:04:11,162
+and executes it on, on the other side.
+
+80
+00:04:11,525 --> 00:04:13,043
+Right. So that's what's actually doing.
+
+81
+00:04:13,043 --> 00:04:18,125
+So I'm ssh ING in a Python module
+goes over there and installs and starts,
+
+82
+00:04:19,148 --> 00:04:21,854
+gathering the current, state of things.
+
+83
+00:04:21,854 --> 00:04:24,923
+And then it also gathers
+results and reuses connections,
+
+84
+00:04:24,923 --> 00:04:28,157
+and it supports success and failure
+and things like that.
+
+85
+00:04:28,157 --> 00:04:31,985
+So it's kind of sneaky in that,
+we see it's agent lists,
+
+86
+00:04:31,985 --> 00:04:35,186
+but it's actually putting
+a little agent out there
+
+87
+00:04:35,318 --> 00:04:38,453
+to handle all the communication
+while it's doing the work.
+
+88
+00:04:38,585 --> 00:04:41,126
+So it's not just a push and forget.
+
+89
+00:04:41,126 --> 00:04:44,195
+It is a push and reply, type of,
+
+90
+00:04:45,416 --> 00:04:47,000
+for all right.
+
+91
+00:04:47,000 --> 00:04:49,871
+Some inventory examples here.
+So it's typically in in AI.
+
+92
+00:04:49,871 --> 00:04:52,577
+And I feel that it can be in a Yaml file
+as well.
+
+93
+00:04:52,577 --> 00:04:56,141
+In this case I've got application servers
+and a database server.
+
+94
+00:04:56,405 --> 00:05:00,035
+And I can specify
+the user that I want it to run under.
+
+95
+00:05:00,695 --> 00:05:03,335
+On those
+when I'm installing, things in there.
+
+96
+00:05:05,150 --> 00:05:05,480
+All right.
+
+97
+00:05:05,480 --> 00:05:09,572
+Here's a Yaml example of the same thing
+where I've got,
+
+98
+00:05:11,090 --> 00:05:13,631
+a web hosts and DB host.
+
+99
+00:05:13,631 --> 00:05:16,337
+I can say give me everyone.
+
+100
+00:05:16,337 --> 00:05:19,835
+So there's, there's an example
+of the same thing for inventory.
+
+101
+00:05:20,396 --> 00:05:23,828
+Let's take a high level
+look at a playbook structure.
+
+102
+00:05:24,125 --> 00:05:27,557
+Again, as I said before,
+it is all in Yaml.
+
+103
+00:05:27,557 --> 00:05:31,318
+So in this case the name of the playbook
+is configure web Servers.
+
+104
+00:05:32,044 --> 00:05:33,892
+I'm going to run it on the web host.
+
+105
+00:05:33,892 --> 00:05:38,017
+As you notice here, I did not specify
+the individual host but the host group.
+
+106
+00:05:38,314 --> 00:05:41,284
+This gives me the ability
+to put different,
+
+107
+00:05:41,944 --> 00:05:44,584
+inventory against it, as long as it has
+
+108
+00:05:44,584 --> 00:05:47,983
+the groups in there that I need,
+I can target different machines.
+
+109
+00:05:48,379 --> 00:05:49,105
+Right.
+
+110
+00:05:49,105 --> 00:05:51,778
+And then I've got variables coming in.
+
+111
+00:05:51,778 --> 00:05:54,154
+I've got tasks that need to be performed.
+
+112
+00:05:54,154 --> 00:05:57,058
+Install nginx or.
+
+113
+00:05:57,058 --> 00:06:01,117
+And then the second task
+there's deploy configuration template
+
+114
+00:06:02,239 --> 00:06:03,592
+for nginx.
+
+115
+00:06:03,592 --> 00:06:07,948
+And then I've got handlers in here
+like I've got a restart engine jinx.
+
+116
+00:06:09,466 --> 00:06:12,667
+If I get a restart
+then I know exactly how to restart it.
+
+117
+00:06:13,162 --> 00:06:16,165
+Simple simple playbook.
+
+118
+00:06:16,957 --> 00:06:17,617
+All right.
+
+119
+00:06:17,617 --> 00:06:20,620
+If I'm defining roles, I can define roles.
+
+120
+00:06:20,785 --> 00:06:24,217
+And based off of the different roles,
+I can have different playbooks
+
+121
+00:06:24,217 --> 00:06:25,867
+for those roles. Right.
+
+122
+00:06:25,867 --> 00:06:31,444
+So in this case, I've got a web server,
+I've got the defaults in, in my main,
+
+123
+00:06:31,675 --> 00:06:35,800
+I've got my handlers in in there,
+I've got metadata, I've got tasks
+
+124
+00:06:35,800 --> 00:06:37,054
+that need to run.
+
+125
+00:06:37,054 --> 00:06:40,321
+And so I would have one for a web server,
+
+126
+00:06:40,486 --> 00:06:44,347
+I would have one for, a database server
+
+127
+00:06:44,611 --> 00:06:47,350
+or maybe my,
+
+128
+00:06:47,350 --> 00:06:51,112
+oh, let's call it port forwarder,
+whatever the case may be.
+
+129
+00:06:51,112 --> 00:06:51,871
+Right?
+
+130
+00:06:51,871 --> 00:06:56,227
+Or maybe my message broker or whatever
+the case may be, so I can establish
+
+131
+00:06:56,227 --> 00:07:01,012
+it gives me a way of hierarchically
+establishing, my playbooks.
+
+132
+00:07:03,520 --> 00:07:03,850
+Okay.
+
+133
+00:07:03,850 --> 00:07:09,097
+Some common commands that will help me
+when I'm working with Ansible is,
+
+134
+00:07:09,625 --> 00:07:12,628
+if I want to ping all the hosts,
+make sure that I can talk to each other,
+
+135
+00:07:12,892 --> 00:07:17,380
+I can easily do that with a ping command
+against the whole inventory.
+
+136
+00:07:17,908 --> 00:07:20,911
+I can add, ad hoc module.
+
+137
+00:07:20,911 --> 00:07:22,264
+I can run like, uptime.
+
+138
+00:07:22,264 --> 00:07:23,551
+Tell me what your uptime is.
+
+139
+00:07:23,551 --> 00:07:25,465
+By running a shell command,
+
+140
+00:07:25,465 --> 00:07:30,019
+I can check syntax of a Yaml file
+to make sure I have the right syntax for.
+
+141
+00:07:30,019 --> 00:07:32,032
+I go off and try and run it.
+
+142
+00:07:32,032 --> 00:07:34,771
+I can do a dry run,
+which will make sure that
+
+143
+00:07:34,771 --> 00:07:38,038
+I have everything in order,
+especially when I'm passing in variables.
+
+144
+00:07:38,038 --> 00:07:41,767
+It all spit out what everything would be
+if it were to actually run.
+
+145
+00:07:42,064 --> 00:07:45,067
+I can list the tasks
+that are in a playbook,
+
+146
+00:07:45,133 --> 00:07:48,631
+and then I can gather facts about a
+
+147
+00:07:50,017 --> 00:07:52,096
+inventory set up so I can see.
+
+148
+00:07:52,096 --> 00:07:53,383
+Here's all my inventory.
+
+149
+00:07:53,383 --> 00:07:57,904
+Tell me everything about, setting this up
+and whether it's going to,
+
+150
+00:07:58,168 --> 00:08:01,171
+adhere to the playbook or not.
+
+151
+00:08:02,029 --> 00:08:02,425
+Okay.
+
+152
+00:08:02,425 --> 00:08:06,286
+That's practices, as we've talked
+about with Isaac in the lecture.
+
+153
+00:08:06,583 --> 00:08:09,586
+If you haven't listened to that, go back
+and listen to the lecture.
+
+154
+00:08:09,652 --> 00:08:11,038
+It's more generalized.
+
+155
+00:08:11,038 --> 00:08:14,107
+But first off, I can use version control
+to control my playbooks,
+
+156
+00:08:15,130 --> 00:08:16,879
+and inventory and roles.
+
+157
+00:08:16,879 --> 00:08:19,156
+I want to store my secrets.
+
+158
+00:08:19,156 --> 00:08:20,344
+These are my keys.
+
+159
+00:08:20,344 --> 00:08:23,017
+So I can access in an ansible vault.
+
+160
+00:08:23,017 --> 00:08:25,855
+It's encrypted Yaml file.
+
+161
+00:08:25,855 --> 00:08:29,419
+Keep everything,
+so restart that into potency
+
+162
+00:08:30,112 --> 00:08:33,445
+so that if I run the same command over
+and over again,
+
+163
+00:08:33,445 --> 00:08:37,306
+I get the same results,
+even if it's, already running.
+
+164
+00:08:37,306 --> 00:08:38,890
+So that's important, right?
+
+165
+00:08:38,890 --> 00:08:40,144
+Try and make sure that
+
+166
+00:08:40,144 --> 00:08:43,147
+I don't have any adverse effects
+when I'm running multiple times.
+
+167
+00:08:43,477 --> 00:08:46,942
+I'll make sure you're structuring
+your code with roles and includes
+
+168
+00:08:46,942 --> 00:08:50,077
+statements for clarity so that I can
+understand what things are used for,
+
+169
+00:08:50,374 --> 00:08:54,037
+and use the handlers for service restarts
+and configuration changes.
+
+170
+00:08:54,037 --> 00:08:59,053
+So I'm not stuck in these weird states
+where I push a configuration out,
+
+171
+00:08:59,053 --> 00:09:02,584
+but the service needs to restart
+in order to take advantage of that.
+
+172
+00:09:03,046 --> 00:09:07,270
+And then, you can leverage, Ansible Galaxy
+for community roles.
+
+173
+00:09:07,435 --> 00:09:10,009
+So take a look at Ansible
+Galaxy that's out there.
+
+174
+00:09:11,428 --> 00:09:11,857
+All right.
+
+175
+00:09:11,857 --> 00:09:14,992
+In summary,
+hey, Ansible is a really cool tool.
+
+176
+00:09:15,124 --> 00:09:17,104
+Yaml based.
+
+177
+00:09:17,104 --> 00:09:19,084
+So if you don't know Yaml,
+you should learn Yaml.
+
+178
+00:09:19,084 --> 00:09:20,866
+It's a pretty simple language.
+
+179
+00:09:20,866 --> 00:09:21,790
+A lot of the generative
+
+180
+00:09:21,790 --> 00:09:25,354
+AI tools out there can help create,
+a lot of this stuff for you,
+
+181
+00:09:25,618 --> 00:09:29,941
+as the syntax may become a little
+and daunting to know everything at first.
+
+182
+00:09:30,337 --> 00:09:33,703
+But by mastering these things,
+you're going to be able to automate,
+
+183
+00:09:33,934 --> 00:09:36,937
+complex workflows
+and before it would take you hours to do,
+
+184
+00:09:37,069 --> 00:09:40,204
+can now take you minutes to
+do and to do it repeatedly.

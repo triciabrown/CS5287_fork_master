@@ -9,6 +9,8 @@ description: Concepts, benefits, and popular tools
 
 # What Is Infrastructure as Code?
 
+Video: [https://youtu.be/iJMPeQkvHpc](https://youtu.be/iJMPeQkvHpc)
+
 - Treat infrastructure (VMs, networks, storage) as versioned code
 - Declarative or imperative definitions stored in text files
 - Automated provisioning, configuration, and teardown
@@ -42,43 +44,46 @@ description: Concepts, benefits, and popular tools
 
 ## Categories of IaC Tools
 
-1. **Provisioners**
-    - Create cloud resources: VMs, networks, load balancers
-    - Terraform, Pulumi, Crossplane
+### **Provisioners**
 
-2. **Configuration Management**
-    - Install software & configure OS/services on servers
-    - Ansible, Chef, Puppet, SaltStack
+- Create cloud resources: VMs, networks, load balancers
+- Terraform, Pulumi, Crossplane
 
-3. **Orchestration & Templating**
-    - Deploy multi-tier applications via templates
-    - AWS CloudFormation, Azure ARM/Bicep, Google Deployment Manager
+### **Configuration Management**
 
-4. **Containers & Kubernetes Operators**
-    - Manage infra via Kubernetes CRDs and controllers
-    - Helm, Flux, ArgoCD, Terraform Operator
+- Install software & configure OS/services on servers
+- Ansible, Chef, Puppet, SaltStack
+
+---
+
+## Categories of IaC Tools (cont.)
+
+### **Orchestration & Templating**
+
+- Deploy multi-tier applications via templates
+- AWS CloudFormation, Azure ARM/Bicep, Google Deployment Manager
+
+### **Containers & Kubernetes Operators**
+
+- Manage infra via Kubernetes CRDs and controllers
+- Helm, Flux, ArgoCD, Terraform Operator
 
 ---
 
 ## Popular IaC Tools at a Glance
 
-- **Terraform**  
-  • HashiCorp tool, declarative HCL, multi-cloud support, large module registry
-
-- **Pulumi**  
-  • Code-first (JavaScript, Python, Go, .NET), multi-cloud, state management
-
-- **Ansible**  
-  • Agentless, YAML playbooks, imperative or idempotent tasks, extensive modules
-
-- **Chef & Puppet**  
-  • Ruby-based DSL, client/server model, desired-state configs
-
-- **CloudFormation / ARM / Deployment Manager**  
-  • Native to AWS, Azure, GCP; deep integration, drift detection
-
-- **Crossplane**  
-  • Kubernetes-native control plane for provisioning cloud resources
+* **Terraform**  
+  * HashiCorp tool, declarative HCL, multi-cloud support, large module registry
+* **Pulumi**  
+  * Code-first (JavaScript, Python, Go, .NET), multi-cloud, state management
+* **Ansible**  
+  * Agentless, YAML playbooks, imperative or idempotent tasks, extensive modules
+* **Chef & Puppet**  
+  * Ruby-based DSL, client/server model, desired-state configs
+* **CloudFormation / ARM / Deployment Manager**  
+  * Native to AWS, Azure, GCP; deep integration, drift detection
+* **Crossplane**  
+  * Kubernetes-native control plane for provisioning cloud resources
 
 ---
 
@@ -99,7 +104,3 @@ description: Concepts, benefits, and popular tools
 - Choose declarative vs. imperative based on use case
 - Leverage version control, modularity, and CI/CD integration
 - Select tools that fit your cloud environment and team skills
-
----
-
-Thank you!

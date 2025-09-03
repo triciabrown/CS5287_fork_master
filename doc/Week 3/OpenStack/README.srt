@@ -1,0 +1,936 @@
+﻿1
+00:00:01,682 --> 00:00:01,946
+All right.
+
+2
+00:00:01,946 --> 00:00:05,708
+In this lecture we're going to
+cover OpenStack and how it came about.
+
+3
+00:00:06,104 --> 00:00:07,589
+It's an open source.
+
+4
+00:00:07,589 --> 00:00:10,790
+They called open source
+cloud OS for building IaaS.
+
+5
+00:00:11,153 --> 00:00:13,925
+And it really came out
+from all the success that the public
+
+6
+00:00:13,925 --> 00:00:16,895
+cloud service providers had
+and all the things that they were doing.
+
+7
+00:00:17,027 --> 00:00:20,459
+And also, with VMware, that was,
+
+8
+00:00:20,855 --> 00:00:24,419
+very popular at the time,
+focusing on compute
+
+9
+00:00:25,442 --> 00:00:29,204
+and not just, just compute at first,
+
+10
+00:00:29,435 --> 00:00:32,768
+but then they needed something
+that could do network and storage and,
+
+11
+00:00:33,395 --> 00:00:37,190
+all the other aspects of it, like all the
+public cloud service providers had.
+
+12
+00:00:37,619 --> 00:00:41,348
+So OpenStack
+actually took some of the best, tools
+
+13
+00:00:41,348 --> 00:00:43,856
+that were out there
+that did the individual things
+
+14
+00:00:43,856 --> 00:00:47,453
+and kind of as a consortium
+brought everything together and formed
+
+15
+00:00:47,453 --> 00:00:49,730
+something called the OpenStack Foundation.
+
+16
+00:00:49,730 --> 00:00:54,614
+And at first it was messy,
+because you had a lot of, tool,
+
+17
+00:00:55,076 --> 00:00:58,673
+providers, all open source tool providers
+that had their opinions
+
+18
+00:00:58,805 --> 00:01:00,191
+and they all did different things.
+
+19
+00:01:00,191 --> 00:01:03,194
+And so they wanted to get
+the best of everything together
+
+20
+00:01:03,359 --> 00:01:06,362
+so that they could produce something
+that could
+
+21
+00:01:06,395 --> 00:01:12,005
+allow, open source community
+to stand up their own private cloud
+
+22
+00:01:12,302 --> 00:01:15,041
+on their own infrastructure,
+and even stand up their own
+
+23
+00:01:15,041 --> 00:01:19,397
+regional clouds and compete
+with all the big, players like Amazon,
+
+24
+00:01:20,321 --> 00:01:22,730
+and Azure and Google at the time.
+
+25
+00:01:22,730 --> 00:01:26,525
+And believe it or not, those guys
+actually helped contribute to OpenStack
+
+26
+00:01:26,525 --> 00:01:31,211
+in some in some respects as well,
+because they wanted the ability for people
+
+27
+00:01:31,211 --> 00:01:34,973
+to have both private and public decided
+make it easier for the migration
+
+28
+00:01:34,973 --> 00:01:37,976
+of moving, between different clouds.
+
+29
+00:01:38,273 --> 00:01:41,705
+So let's take a look at some of the key
+elements inside
+
+30
+00:01:41,705 --> 00:01:44,675
+and then key services
+inside OpenStack. First off,
+
+31
+00:01:46,391 --> 00:01:47,150
+and these are in no
+
+32
+00:01:47,150 --> 00:01:51,242
+particular order,
+not in the order that, they came in.
+
+33
+00:01:51,770 --> 00:01:54,740
+You could go look out on the OpenStack
+
+34
+00:01:54,740 --> 00:01:58,304
+Foundation on kind of, the, history of it.
+
+35
+00:01:58,304 --> 00:02:01,307
+It's a fascinating, history in,
+
+36
+00:02:02,363 --> 00:02:05,828
+in the emergence of cloud computing,
+frankly.
+
+37
+00:02:05,828 --> 00:02:09,260
+So, it was interesting
+when it was going through it
+
+38
+00:02:09,260 --> 00:02:14,375
+and sitting, you know, behind closed
+doors, listening to the fighting over
+
+39
+00:02:14,375 --> 00:02:17,345
+just the naming of things
+was fascinating at the time.
+
+40
+00:02:17,378 --> 00:02:20,612
+So let's go over a quick look at their,
+first one, Keystone.
+
+41
+00:02:20,612 --> 00:02:24,077
+This is an identity manager
+that helps with authentication,
+
+42
+00:02:24,077 --> 00:02:27,080
+multi-tenant projects
+and role based access across,
+
+43
+00:02:28,400 --> 00:02:30,578
+private cloud that you're standing up.
+
+44
+00:02:30,578 --> 00:02:33,845
+Nova is my software
+defined compute controller.
+
+45
+00:02:34,604 --> 00:02:37,640
+Glance is image, management.
+
+46
+00:02:37,640 --> 00:02:43,085
+So I can I can take a snapshot of a VM
+and it's storing and managing my images
+
+47
+00:02:43,448 --> 00:02:48,926
+across, my cloud where Nova is
+the cloud is the compute controllers
+
+48
+00:02:48,959 --> 00:02:52,127
+that takes those images
+and turns them into, running VMs.
+
+49
+00:02:52,622 --> 00:02:55,823
+I've got neutron for my
+software defined networking
+
+50
+00:02:56,813 --> 00:03:00,509
+and, cinder for block storage.
+
+51
+00:03:01,631 --> 00:03:05,657
+Which, gives me
+those persistent volumes are attachable
+
+52
+00:03:05,657 --> 00:03:09,254
+to individual instances
+and then Swift for my object storage
+
+53
+00:03:09,254 --> 00:03:14,006
+at very S3 bucket, style high durable
+object storage.
+
+54
+00:03:14,501 --> 00:03:17,504
+Horizon four is my web interface.
+
+55
+00:03:17,669 --> 00:03:20,837
+So I could have a web interface
+into doing all these things.
+
+56
+00:03:21,200 --> 00:03:24,665
+And horizon
+obviously was built by the team
+
+57
+00:03:24,665 --> 00:03:28,625
+on bringing all these different projects,
+together under one umbrella,
+
+58
+00:03:29,219 --> 00:03:32,915
+before each one of these projects
+have their own user interface.
+
+59
+00:03:32,915 --> 00:03:38,888
+And the first versions of OpenStack were
+a Frankenstein mess, to say the least.
+
+60
+00:03:39,383 --> 00:03:43,211
+And then there's heat,
+which is a template driven deployment
+
+61
+00:03:43,211 --> 00:03:45,125
+from multi-service stacks.
+
+62
+00:03:45,125 --> 00:03:48,095
+This is very similar to cloud formations.
+
+63
+00:03:48,788 --> 00:03:53,045
+And, and, he can actually take
+cloud for, formations.
+
+64
+00:03:53,639 --> 00:03:58,853
+So it's a very cool tool if I'm doing
+multiple VMs, for my application.
+
+65
+00:04:00,800 --> 00:04:02,186
+Okay.
+
+66
+00:04:02,186 --> 00:04:04,595
+Let's take a look at,
+
+67
+00:04:04,595 --> 00:04:07,565
+how everything fits together.
+
+68
+00:04:07,961 --> 00:04:09,677
+Yeah. Really simply.
+
+69
+00:04:09,677 --> 00:04:13,901
+I've got a control node that's out there
+that has the services running on it.
+
+70
+00:04:14,792 --> 00:04:18,686
+The the horizon dashboard,
+which is my user interface,
+
+71
+00:04:19,313 --> 00:04:23,075
+identity management with Keystone,
+the glance API.
+
+72
+00:04:23,075 --> 00:04:23,570
+Nova.
+
+73
+00:04:23,570 --> 00:04:27,596
+This is the control node, and there can be
+multiple control nodes running,
+
+74
+00:04:28,256 --> 00:04:30,764
+in a, in a high availability cluster.
+
+75
+00:04:30,764 --> 00:04:33,635
+But these control nodes are important
+
+76
+00:04:33,635 --> 00:04:36,605
+for controlling all of the other,
+
+77
+00:04:37,595 --> 00:04:40,895
+physical devices
+that are out there in your, private cloud.
+
+78
+00:04:41,324 --> 00:04:41,819
+Right.
+
+79
+00:04:41,819 --> 00:04:45,416
+And then I've got compute nodes, network
+nodes, block storage
+
+80
+00:04:45,416 --> 00:04:48,419
+nodes, and,
+
+81
+00:04:49,277 --> 00:04:52,676
+and object storage, nodes as well.
+
+82
+00:04:52,973 --> 00:04:55,976
+So the physical devices
+that are out there,
+
+83
+00:04:57,626 --> 00:05:01,685
+I need to know what those devices are and
+also which services are running on them.
+
+84
+00:05:01,685 --> 00:05:06,536
+When you're deploying OpenStack, I think
+the minimum you can really get away with,
+
+85
+00:05:06,536 --> 00:05:10,892
+you could run it on one, machine,
+but that's not going to do you very much.
+
+86
+00:05:11,585 --> 00:05:15,215
+But I think the minimum you need for
+the control plane is probably about
+
+87
+00:05:15,215 --> 00:05:19,340
+three nodes, and that that'll give you
+a micro cloud right there.
+
+88
+00:05:21,584 --> 00:05:22,079
+Okay.
+
+89
+00:05:22,079 --> 00:05:22,970
+Installation.
+
+90
+00:05:22,970 --> 00:05:26,765
+So if you if you want to try this,
+you can actually download and install this
+
+91
+00:05:26,765 --> 00:05:29,900
+starting on a single ubuntu host
+like I already mentioned.
+
+92
+00:05:29,900 --> 00:05:32,902
+You can run it on, on there.
+
+93
+00:05:32,902 --> 00:05:36,598
+And it's really simple,
+to get up and running,
+
+94
+00:05:37,258 --> 00:05:41,251
+you just install OpenStack tools
+and then you can run an OpenStack
+
+95
+00:05:41,251 --> 00:05:45,112
+quickstart all in one, and it will store
+all of the elements on there.
+
+96
+00:05:45,112 --> 00:05:45,904
+And then you can play around
+
+97
+00:05:45,904 --> 00:05:51,349
+with your own cloud on one box,
+which, lets you look at the interface.
+
+98
+00:05:51,349 --> 00:05:54,748
+It really doesn't give you a lot
+of benefit, except maybe for development,
+
+99
+00:05:54,748 --> 00:05:59,038
+maybe you're running some, Iirc,
+some infrastructure is code
+
+100
+00:05:59,368 --> 00:06:02,503
+and you want to try things out
+before you, deploy it on a big,
+
+101
+00:06:02,899 --> 00:06:04,351
+on a big cluster in boxes.
+
+102
+00:06:06,397 --> 00:06:06,760
+Okay.
+
+103
+00:06:06,760 --> 00:06:08,839
+No, multi-node production.
+
+104
+00:06:08,839 --> 00:06:10,555
+We've already kind of covered this
+a little bit.
+
+105
+00:06:10,555 --> 00:06:12,568
+I need control over nodes.
+
+106
+00:06:12,568 --> 00:06:15,637
+Compute
+nodes, storage nodes, and network nodes.
+
+107
+00:06:15,637 --> 00:06:18,640
+Those are the four types of nodes
+that I need.
+
+108
+00:06:19,069 --> 00:06:22,864
+In order to deploy OpenStack,
+you can actually use something
+
+109
+00:06:22,864 --> 00:06:27,715
+like OpenStack Ansible,
+which will actually you can specify
+
+110
+00:06:27,847 --> 00:06:32,698
+which nodes are going to be what and
+put it into your ansible, playbook there.
+
+111
+00:06:32,698 --> 00:06:37,351
+And voila, it will deploy it
+and you're off to the races.
+
+112
+00:06:37,846 --> 00:06:42,070
+Now, someone has also done some other work
+by, Kola Ansible,
+
+113
+00:06:42,202 --> 00:06:47,251
+where it's all containerized, where I'm
+running OpenStack in a container,
+
+114
+00:06:47,515 --> 00:06:51,145
+or I can do 000, which is actually
+pretty cool, where I'm running OpenStack
+
+115
+00:06:51,640 --> 00:06:54,676
+in OpenStack itself,
+which is very interesting,
+
+116
+00:06:55,204 --> 00:06:57,679
+where I'm using a public
+
+117
+00:06:57,679 --> 00:07:00,682
+or I'm
+using a cloud to run a cloud inside it.
+
+118
+00:07:00,814 --> 00:07:05,401
+You can even run OpenStack out there
+on, public cloud if you wanted to.
+
+119
+00:07:06,127 --> 00:07:09,064
+If you want to, do that,
+that could be kind of fun.
+
+120
+00:07:09,064 --> 00:07:11,341
+Fun to play around
+with. But watch your cost.
+
+121
+00:07:12,430 --> 00:07:12,727
+All right.
+
+122
+00:07:12,727 --> 00:07:14,905
+Common workflow,
+
+123
+00:07:14,905 --> 00:07:18,502
+that you want to do
+once you get things up and running, is
+
+124
+00:07:18,502 --> 00:07:22,561
+you want to create a project,
+create users in there, create roles.
+
+125
+00:07:22,726 --> 00:07:26,092
+These are the basic things that you need
+to do in order to get things running.
+
+126
+00:07:26,092 --> 00:07:31,867
+Remember, OpenStack
+is you running your own cloud, right?
+
+127
+00:07:31,867 --> 00:07:33,451
+So you've got to set up users.
+
+128
+00:07:33,451 --> 00:07:38,005
+You've got a set of roles, projects
+and put security around all those.
+
+129
+00:07:38,269 --> 00:07:41,635
+These are key aspects that you'll
+want to do in order to get things running.
+
+130
+00:07:42,427 --> 00:07:43,516
+All right.
+
+131
+00:07:43,516 --> 00:07:46,750
+You also want to upload some
+images in there so that you can use them.
+
+132
+00:07:46,981 --> 00:07:50,842
+So they give you the ability
+to, take images that are available
+
+133
+00:07:50,842 --> 00:07:53,845
+and upload them into, OpenStack.
+
+134
+00:07:54,934 --> 00:07:57,607
+And then,
+you want to be able to launch a VM
+
+135
+00:07:57,607 --> 00:08:00,577
+to see how it's working,
+and then you'll have access to your VM.
+
+136
+00:08:00,808 --> 00:08:03,382
+So these are all command line interfaces.
+
+137
+00:08:03,382 --> 00:08:07,639
+You can do this via the horizon
+which is their web interface as well.
+
+138
+00:08:07,837 --> 00:08:11,236
+But here's some good command
+line interfaces for launching a VM.
+
+139
+00:08:11,797 --> 00:08:16,978
+I call OpenStack Server Create,
+and I can tell you how big I want it.
+
+140
+00:08:17,209 --> 00:08:21,169
+The image I'm going to use, the network
+I'm going to use a security group
+
+141
+00:08:21,565 --> 00:08:24,007
+and so on and so forth and give it a name.
+
+142
+00:08:25,558 --> 00:08:25,855
+All right.
+
+143
+00:08:25,855 --> 00:08:31,300
+I can then attach a volume to a specific,
+server that I've already launched
+
+144
+00:08:31,696 --> 00:08:34,699
+where I'm going to create a volume,
+and then I'm going to do the attaching.
+
+145
+00:08:35,557 --> 00:08:39,913
+This allows me to add more storage to VMs
+that are already running.
+
+146
+00:08:39,913 --> 00:08:42,157
+If I need to.
+
+147
+00:08:42,157 --> 00:08:42,421
+Right.
+
+148
+00:08:42,421 --> 00:08:45,985
+And then I need
+if I need to set up, different,
+
+149
+00:08:47,536 --> 00:08:51,364
+security groups and different IP addresses
+and things like that.
+
+150
+00:08:51,628 --> 00:08:54,631
+There's an interface for all that as well.
+
+151
+00:08:56,017 --> 00:08:56,743
+All right.
+
+152
+00:08:56,743 --> 00:08:57,799
+If you don't want to do command
+
+153
+00:08:57,799 --> 00:09:00,967
+line interface and learn that
+which most people don't want to at first,
+
+154
+00:09:01,792 --> 00:09:02,551
+what do they do?
+
+155
+00:09:02,551 --> 00:09:04,201
+They go to the web interface.
+
+156
+00:09:04,201 --> 00:09:06,511
+So the web interface is a horizon.
+
+157
+00:09:06,511 --> 00:09:10,042
+So this is where I can set up
+I have a project
+
+158
+00:09:10,042 --> 00:09:13,441
+and I can set up compute instances
+in those projects.
+
+159
+00:09:13,804 --> 00:09:16,015
+I can set up network in those projects.
+
+160
+00:09:16,015 --> 00:09:18,754
+I've got identity
+for users and management.
+
+161
+00:09:18,754 --> 00:09:21,922
+And then I can use, orchestrate
+multiple stacks as well.
+
+162
+00:09:21,922 --> 00:09:24,595
+So there's lots of different tools
+available in there
+
+163
+00:09:24,595 --> 00:09:26,443
+that, you can go and explore yourself.
+
+164
+00:09:27,697 --> 00:09:28,027
+All right.
+
+165
+00:09:28,027 --> 00:09:31,756
+The best practices in using OpenStack
+take advantage
+
+166
+00:09:31,756 --> 00:09:34,759
+of these great tools
+that have been developed over the last.
+
+167
+00:09:34,792 --> 00:09:38,488
+Oh, I guess it's been almost 20 years, 15
+to 20 years.
+
+168
+00:09:39,247 --> 00:09:42,844
+Like, heat, for repeatable,
+
+169
+00:09:43,702 --> 00:09:46,144
+version deployments of multiple,
+
+170
+00:09:46,144 --> 00:09:50,071
+application or multiple applications
+or microservices running,
+
+171
+00:09:50,467 --> 00:09:54,163
+make sure that you, separate the roles
+and isolate the,
+
+172
+00:09:54,526 --> 00:09:57,562
+APIs and the compute networks
+and storage services.
+
+173
+00:09:58,585 --> 00:10:01,159
+Make sure you define roles appropriately
+
+174
+00:10:01,159 --> 00:10:05,911
+and then enable high availability
+in your, open stack
+
+175
+00:10:06,142 --> 00:10:09,409
+so that you don't run into a problem
+if you have a machine go down.
+
+176
+00:10:09,607 --> 00:10:12,115
+So if you're doing this for production,
+
+177
+00:10:12,115 --> 00:10:14,227
+or even testing
+that you want more reliable,
+
+178
+00:10:14,227 --> 00:10:17,725
+make sure you have enough machines
+and you've set things up appropriately.
+
+179
+00:10:18,022 --> 00:10:21,619
+Don't forget to monitor
+what's going on with your public cloud
+
+180
+00:10:22,114 --> 00:10:25,810
+so that you can see when things start
+going south, and make sure that you are
+
+181
+00:10:25,810 --> 00:10:30,529
+securing your endpoints with TLS
+and establish some really good role
+
+182
+00:10:30,529 --> 00:10:34,687
+based access policies,
+and also use network segmentation.
+
+183
+00:10:34,687 --> 00:10:36,337
+These are common,
+
+184
+00:10:36,337 --> 00:10:40,429
+key elements that you should be thinking
+about for, security of your cloud.
+
+185
+00:10:43,366 --> 00:10:46,369
+So in summary, OpenStack
+
+186
+00:10:46,765 --> 00:10:52,144
+is like AWS for yourself or Azure
+for yourself or Google for yourself.
+
+187
+00:10:52,474 --> 00:10:55,114
+They provide other services as well.
+But guess what?
+
+188
+00:10:55,114 --> 00:10:57,424
+The OpenStack community is still alive
+and well.
+
+189
+00:10:57,424 --> 00:11:00,558
+In fact, it's
+highly used in Europe and Asia.
+
+190
+00:11:01,680 --> 00:11:04,650
+As you've got a great start
+
+191
+00:11:04,650 --> 00:11:07,653
+up and open source
+kind of communities there.
+
+192
+00:11:08,214 --> 00:11:10,326
+And you can deploy it via quickstart.
+
+193
+00:11:10,326 --> 00:11:14,022
+It used to be a bear to deploy
+because there were
+
+194
+00:11:14,022 --> 00:11:17,256
+so many services, you had to get set up
+and you had to get the right
+
+195
+00:11:17,454 --> 00:11:21,183
+because people weren't using Iirc,
+they were doing it by hand.
+
+196
+00:11:21,183 --> 00:11:22,932
+Now there's éac out there.
+
+197
+00:11:22,932 --> 00:11:24,549
+Infrastructure is code.
+
+198
+00:11:24,549 --> 00:11:27,519
+It's much easier to, use.
+
+199
+00:11:27,519 --> 00:11:32,436
+And then also if you need to do things
+more dynamically, they have a great, API
+
+200
+00:11:32,766 --> 00:11:36,726
+and command line interface,
+a rest API and a command line interface.
+
+201
+00:11:36,726 --> 00:11:40,092
+So you can easily
+deploy and use these things.

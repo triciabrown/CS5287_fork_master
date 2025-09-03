@@ -1,0 +1,1260 @@
+﻿1
+00:00:01,847 --> 00:00:04,190
+In this lecture
+we're going to go over message brokers,
+
+2
+00:00:04,190 --> 00:00:08,480
+why they're used and what they're good for
+and the high level architecture of them.
+
+3
+00:00:08,909 --> 00:00:12,638
+So a message broker
+when you think about it is a middleware
+
+4
+00:00:12,968 --> 00:00:15,938
+of decoupled asynchronous communication.
+
+5
+00:00:15,938 --> 00:00:21,317
+Very valuable for large scalability
+durability routing load that there's a
+
+6
+00:00:21,317 --> 00:00:24,320
+there's a lot of benefits to them,
+but they can be complex.
+
+7
+00:00:24,386 --> 00:00:28,082
+But the key element of them is
+that there's something that produces data
+
+8
+00:00:28,940 --> 00:00:32,438
+and there's something that consumes data,
+and there's something in the middle
+
+9
+00:00:32,768 --> 00:00:39,104
+that is going to broker how the data from
+the producer is getting to the consumer.
+
+10
+00:00:39,863 --> 00:00:42,470
+The consumers and producers
+don't necessarily
+
+11
+00:00:42,470 --> 00:00:46,727
+need to even know about each other,
+just that the data is,
+
+12
+00:00:47,585 --> 00:00:50,390
+going to be delivered
+somehow through the broker.
+
+13
+00:00:50,390 --> 00:00:51,875
+That's the whole idea behind it.
+
+14
+00:00:53,294 --> 00:00:56,198
+So why would we want to use a message
+broker
+
+15
+00:00:56,198 --> 00:00:59,102
+primarily decoupling of the producers
+in the consumers.
+
+16
+00:00:59,102 --> 00:01:02,369
+This is highly valuable
+if you have highly scalable systems,
+
+17
+00:01:02,369 --> 00:01:05,603
+or if you have systems
+that are undergoing a lot of change,
+
+18
+00:01:06,065 --> 00:01:09,893
+or if I have a certain,
+or a lot of different consumers
+
+19
+00:01:09,893 --> 00:01:14,282
+that can be consuming the same data
+but doing something different with it.
+
+20
+00:01:14,480 --> 00:01:15,371
+And same thing.
+
+21
+00:01:15,371 --> 00:01:17,912
+If I have a lot of,
+
+22
+00:01:17,912 --> 00:01:21,014
+producers that are producing data
+from different sources,
+
+23
+00:01:21,014 --> 00:01:24,380
+but producing the same type of data,
+that could be very valuable as well.
+
+24
+00:01:24,974 --> 00:01:28,142
+Of course, like in most of,
+computer science,
+
+25
+00:01:28,142 --> 00:01:31,541
+we model the real world
+when it comes to doing these things.
+
+26
+00:01:31,541 --> 00:01:34,973
+So it's just like a normal broker
+that you would have out there,
+
+27
+00:01:34,973 --> 00:01:39,428
+whether it's a commodity exchange broker
+or a house, a housing broker.
+
+28
+00:01:39,428 --> 00:01:42,695
+There's lots of different things
+that you can, correlate this to.
+
+29
+00:01:43,520 --> 00:01:46,754
+It does have a lot of really great
+benefits
+
+30
+00:01:47,051 --> 00:01:50,054
+like scalability, reliability.
+
+31
+00:01:50,318 --> 00:01:54,410
+There can be some advanced
+routing and transformation, by the broker
+
+32
+00:01:54,674 --> 00:01:57,413
+and even traffic
+shaking, shaping and, rate
+
+33
+00:01:57,413 --> 00:02:00,680
+limiting
+so that I don't overwhelm, consumers.
+
+34
+00:02:01,835 --> 00:02:04,805
+So it's a great tool to look at
+
+35
+00:02:05,927 --> 00:02:08,930
+popular message
+broking platforms out there.
+
+36
+00:02:09,161 --> 00:02:13,055
+Maybe you've heard of some of these rabbit
+in MQ Kafka,
+
+37
+00:02:13,385 --> 00:02:16,355
+which is probably one of the most popular
+ones,
+
+38
+00:02:16,520 --> 00:02:18,896
+active MQ Artemus.
+
+39
+00:02:18,896 --> 00:02:19,358
+Zero.
+
+40
+00:02:19,358 --> 00:02:23,978
+Cuz another one is AWS
+SQS and Google Pubsub.
+
+41
+00:02:24,902 --> 00:02:26,882
+There's lots of different ones out there.
+
+42
+00:02:26,882 --> 00:02:29,489
+They all have their pluses and minuses.
+
+43
+00:02:29,489 --> 00:02:33,647
+But you should, easily investigate
+which one is best for your architecture.
+
+44
+00:02:34,307 --> 00:02:38,663
+I would not put one of the more complex
+ones on a simple architecture.
+
+45
+00:02:39,851 --> 00:02:43,547
+Make sure that you're using the right tool
+for the right problem
+
+46
+00:02:43,547 --> 00:02:46,550
+space that you have.
+
+47
+00:02:47,408 --> 00:02:47,903
+Common
+
+48
+00:02:47,903 --> 00:02:50,906
+message patterns that we see out there.
+
+49
+00:02:51,005 --> 00:02:53,678
+The first one is like, point to point
+where
+
+50
+00:02:53,678 --> 00:02:56,912
+this is not a normal message broker.
+
+51
+00:02:56,912 --> 00:02:57,176
+Right?
+
+52
+00:02:57,176 --> 00:03:00,344
+This is, I'm going to send
+a message directly from one,
+
+53
+00:03:01,532 --> 00:03:02,885
+consumer to a producer
+
+54
+00:03:02,885 --> 00:03:05,888
+without a broker in the middle
+to publish and subscribe.
+
+55
+00:03:06,845 --> 00:03:11,003
+Which is more, decoupled
+then a point to point.
+
+56
+00:03:11,003 --> 00:03:13,280
+Point to point
+isn't really that decoupled.
+
+57
+00:03:13,280 --> 00:03:14,237
+Publish and subscribe.
+
+58
+00:03:14,237 --> 00:03:17,702
+Most definitely is where
+I'm publishing on a topic,
+
+59
+00:03:18,197 --> 00:03:21,365
+and then a subscriber is subscribing
+to topics.
+
+60
+00:03:22,025 --> 00:03:26,744
+There's routing, and pattern
+matching, out there.
+
+61
+00:03:26,744 --> 00:03:29,747
+There's request and reply like RPC style.
+
+62
+00:03:29,912 --> 00:03:33,839
+And then there's lots of other options
+out there that we're doing.
+
+63
+00:03:33,971 --> 00:03:37,535
+The one we're going to focus on
+today is primarily publish and subscribe.
+
+64
+00:03:38,294 --> 00:03:41,297
+Design pattern.
+
+65
+00:03:41,462 --> 00:03:43,178
+But let's go over each one
+
+66
+00:03:43,178 --> 00:03:46,742
+individually first
+so that you can see kind of how it works.
+
+67
+00:03:46,841 --> 00:03:47,567
+Right.
+
+68
+00:03:47,567 --> 00:03:52,649
+So with a point to point solution,
+a producer since things to a queue
+
+69
+00:03:53,111 --> 00:03:55,751
+and then a single consumer
+is picking that up.
+
+70
+00:03:55,751 --> 00:03:58,919
+So the producer
+is targeting a very specific,
+
+71
+00:03:59,975 --> 00:04:02,945
+consumer to a work queue.
+
+72
+00:04:03,374 --> 00:04:06,377
+It still decouples the two.
+
+73
+00:04:06,608 --> 00:04:10,205
+The queue access kind of that buffer
+in between the two is great
+
+74
+00:04:10,205 --> 00:04:14,198
+for offloading, task offloading
+and things, things like that.
+
+75
+00:04:14,594 --> 00:04:15,188
+Okay.
+
+76
+00:04:15,188 --> 00:04:18,323
+But point to point, that message
+queue, the work
+
+77
+00:04:18,521 --> 00:04:21,524
+is there in in the middle
+
+78
+00:04:21,821 --> 00:04:23,339
+on a publish and subscribe.
+
+79
+00:04:23,339 --> 00:04:26,441
+The main difference here
+is that the that work
+
+80
+00:04:26,441 --> 00:04:29,972
+queue that I had is now a generalized work
+queue.
+
+81
+00:04:30,203 --> 00:04:32,315
+Instead it's actually a topic.
+
+82
+00:04:32,315 --> 00:04:34,130
+They use the word topic quite a bit.
+
+83
+00:04:34,130 --> 00:04:37,925
+So now I can a
+producer can publish a message
+
+84
+00:04:37,925 --> 00:04:40,928
+on multiple top multiple topics
+
+85
+00:04:41,126 --> 00:04:43,766
+and those get pushed out.
+
+86
+00:04:43,766 --> 00:04:46,505
+And then there's a queue
+for each subscriber.
+
+87
+00:04:46,505 --> 00:04:51,587
+So a subscriber can subscribe
+to one or multiple, topics.
+
+88
+00:04:52,016 --> 00:04:54,128
+And there's a queue that's set up there.
+
+89
+00:04:54,128 --> 00:04:58,253
+So when the producer is producing things,
+those messages get sent to
+
+90
+00:04:58,517 --> 00:05:02,180
+those queues and the subscribers
+and pulling stuff off of those queues.
+
+91
+00:05:03,665 --> 00:05:06,635
+The great thing about this is the fan out.
+
+92
+00:05:06,635 --> 00:05:10,760
+I can have one producer
+and millions of subscribers,
+
+93
+00:05:11,453 --> 00:05:14,456
+and I can have millions of producers and
+
+94
+00:05:14,753 --> 00:05:16,964
+one subscriber, I.
+
+95
+00:05:16,964 --> 00:05:19,736
+And you can do any combination of those,
+
+96
+00:05:19,736 --> 00:05:22,739
+it's an end to end type of,
+
+97
+00:05:23,465 --> 00:05:25,676
+fan out and,
+
+98
+00:05:25,676 --> 00:05:27,458
+architecture so that there's
+
+99
+00:05:27,458 --> 00:05:30,460
+a lot of benefits to that.
+
+100
+00:05:31,120 --> 00:05:35,179
+Routing on topics,
+this one is where the message
+
+101
+00:05:35,179 --> 00:05:38,809
+actually carries routing keys
+so it can specify
+
+102
+00:05:38,809 --> 00:05:41,812
+the specific topic or
+
+103
+00:05:42,175 --> 00:05:43,660
+in in some, some cases
+
+104
+00:05:43,660 --> 00:05:47,323
+this is great for like, events
+and things like that.
+
+105
+00:05:47,323 --> 00:05:51,811
+So when an event comes in from a producer
+
+106
+00:05:51,811 --> 00:05:56,365
+or a message comes in from a producer,
+I'm not doing it on a specific topic.
+
+107
+00:05:57,190 --> 00:06:00,655
+The message itself has the topic in it,
+and then it'll be,
+
+108
+00:06:01,117 --> 00:06:04,186
+offloaded onto, onto different queues
+as needed.
+
+109
+00:06:05,077 --> 00:06:08,377
+The benefit of this
+is that the subscriber can be very fine
+
+110
+00:06:08,377 --> 00:06:12,634
+tuned on what events it wants or messages
+it wants from the topic,
+
+111
+00:06:13,195 --> 00:06:16,165
+instead of it being I'm
+getting all the messages on a topic.
+
+112
+00:06:18,178 --> 00:06:18,838
+There are some
+
+113
+00:06:18,838 --> 00:06:22,105
+benefits to this,
+but one of the downside the benefits are,
+
+114
+00:06:22,666 --> 00:06:26,560
+more targeted and which means
+that a subscriber is not overwhelmed
+
+115
+00:06:26,560 --> 00:06:30,223
+with messages it doesn't want, but it does
+add a little bit of complexity.
+
+116
+00:06:32,434 --> 00:06:34,381
+Request and reply.
+
+117
+00:06:34,381 --> 00:06:38,836
+Very similar people are used
+to, doing this with like, rest calls,
+
+118
+00:06:39,529 --> 00:06:42,994
+where a I'm sending out a request,
+I get a reply back.
+
+119
+00:06:43,984 --> 00:06:46,987
+There are request queues and reply queues
+that are in there.
+
+120
+00:06:47,482 --> 00:06:50,881
+This is when you really need to know
+that something, you
+
+121
+00:06:50,881 --> 00:06:53,884
+know, was received on the other side.
+
+122
+00:06:53,950 --> 00:06:56,161
+And there are some benefits.
+
+123
+00:06:56,161 --> 00:06:59,857
+Benefits to this,
+if you need that reliability.
+
+124
+00:07:00,583 --> 00:07:03,586
+On delivery.
+
+125
+00:07:03,817 --> 00:07:05,302
+But it's not as scalable.
+
+126
+00:07:05,302 --> 00:07:06,985
+So there's, there's your drawback, right.
+
+127
+00:07:06,985 --> 00:07:09,163
+Because if I'm a producer
+
+128
+00:07:09,163 --> 00:07:13,057
+and I'm waiting for reply, I'm
+now blocked until I get that reply back.
+
+129
+00:07:15,103 --> 00:07:15,961
+Okay.
+
+130
+00:07:15,961 --> 00:07:19,789
+There are lots of different
+deployment models, for these different,
+
+131
+00:07:20,845 --> 00:07:23,848
+design patterns and different tools.
+
+132
+00:07:24,772 --> 00:07:27,115
+People are moving more and more towards,
+
+133
+00:07:27,115 --> 00:07:31,240
+managed services
+or to containerized services,
+
+134
+00:07:31,735 --> 00:07:35,497
+but it depends on your application
+and what you're using it for.
+
+135
+00:07:35,497 --> 00:07:37,213
+A lot of people will just drop them
+
+136
+00:07:37,213 --> 00:07:40,447
+on VMs or containers
+and spin them up themselves.
+
+137
+00:07:40,777 --> 00:07:42,097
+You get full control that way.
+
+138
+00:07:42,097 --> 00:07:45,100
+The other one is a managed service
+where it's kind of,
+
+139
+00:07:45,199 --> 00:07:46,651
+outside of your infrastructure.
+
+140
+00:07:46,651 --> 00:07:48,202
+Maybe it's running in the cloud.
+
+141
+00:07:48,202 --> 00:07:51,205
+Be mindful of using cloud.
+
+142
+00:07:51,799 --> 00:07:55,066
+Service busses and things like that,
+because your data is going in
+
+143
+00:07:55,066 --> 00:07:59,059
+and out of the cloud
+and you could incur ingestion, and
+
+144
+00:07:59,884 --> 00:08:03,118
+egress costs, which is sending the data
+out of the cloud.
+
+145
+00:08:03,118 --> 00:08:06,121
+So be mindful that,
+that when you are using
+
+146
+00:08:06,220 --> 00:08:09,883
+a managed service
+like that, that you are moving data
+
+147
+00:08:09,883 --> 00:08:13,612
+in and out of the cloud,
+which has, cost associated with it.
+
+148
+00:08:14,008 --> 00:08:18,199
+The benefits of it, though, is that you
+don't have to manage, these pub sub hubs
+
+149
+00:08:18,199 --> 00:08:22,984
+and some of them can be quite complex
+so you don't get as much customization.
+
+150
+00:08:23,380 --> 00:08:26,383
+But the benefits
+you got to look at the, the,
+
+151
+00:08:26,779 --> 00:08:29,947
+benefits and the costs, to see,
+
+152
+00:08:30,772 --> 00:08:33,181
+you know, which is best
+for the program that you're working on.
+
+153
+00:08:35,887 --> 00:08:37,306
+High availability.
+
+154
+00:08:37,306 --> 00:08:39,484
+Many of these message,
+
+155
+00:08:39,484 --> 00:08:42,916
+brokers have, clustering capabilities,
+
+156
+00:08:43,510 --> 00:08:47,305
+like RabbitMQ clusters
+or you have mirrored queues.
+
+157
+00:08:47,305 --> 00:08:50,374
+Kafka is brilliant on scaling,
+
+158
+00:08:51,067 --> 00:08:53,839
+for high availability and scaling.
+
+159
+00:08:53,839 --> 00:08:56,347
+These work very well because they share
+
+160
+00:08:56,347 --> 00:08:59,350
+the queues
+across multiple nodes of a node goes down.
+
+161
+00:08:59,350 --> 00:09:01,462
+I'm not losing messages.
+
+162
+00:09:01,462 --> 00:09:06,346
+Most of these, queues are persistent,
+which means they're stored.
+
+163
+00:09:06,643 --> 00:09:11,494
+So, there's lots of different options here
+if you don't need a persistent queue.
+
+164
+00:09:12,022 --> 00:09:13,243
+They can run much faster.
+
+165
+00:09:13,243 --> 00:09:17,566
+Like, zoom queue is a great one for that
+if you don't need persistence, or Redis
+
+166
+00:09:17,566 --> 00:09:21,130
+is another one that people are starting
+to use as a message broker.
+
+167
+00:09:21,790 --> 00:09:24,925
+When you are looking inside the cloud,
+make sure that you aren't
+
+168
+00:09:24,925 --> 00:09:27,928
+replicating your, clusters.
+
+169
+00:09:29,083 --> 00:09:30,601
+In the same region.
+
+170
+00:09:30,601 --> 00:09:34,297
+If you think you have higher availability
+and you're all in the same region,
+
+171
+00:09:34,627 --> 00:09:36,706
+there's a danger spot
+that you should be looking at.
+
+172
+00:09:36,706 --> 00:09:40,336
+Because if that region goes down,
+which does happen at times,
+
+173
+00:09:40,600 --> 00:09:42,316
+then now your message,
+
+174
+00:09:43,702 --> 00:09:44,593
+your message queues are
+
+175
+00:09:44,593 --> 00:09:47,596
+down, which means every nothing
+can communicate with each other.
+
+176
+00:09:47,629 --> 00:09:53,866
+So having geo replication is
+is a good, strategy, but your costs go up,
+
+177
+00:09:54,196 --> 00:09:57,199
+so you gotta, you gotta
+you gotta weigh the options here.
+
+178
+00:09:58,981 --> 00:09:59,839
+All right.
+
+179
+00:09:59,839 --> 00:10:03,337
+Security now
+because you are moving messages across,
+
+180
+00:10:03,568 --> 00:10:06,571
+microservices, it's always important
+to look at,
+
+181
+00:10:07,396 --> 00:10:09,706
+different security aspects of this.
+
+182
+00:10:09,706 --> 00:10:13,204
+TLS is probably the most common, of these
+
+183
+00:10:13,204 --> 00:10:17,296
+so that I,
+I do authenticate with the broker.
+
+184
+00:10:17,296 --> 00:10:21,124
+So the producer authenticates
+with the broker and the broker,
+
+185
+00:10:22,312 --> 00:10:23,797
+and the consumer authenticates.
+
+186
+00:10:23,797 --> 00:10:25,447
+So now,
+
+187
+00:10:25,447 --> 00:10:27,658
+by trust, the consumer
+
+188
+00:10:27,658 --> 00:10:30,661
+and producer can exchange data.
+
+189
+00:10:30,826 --> 00:10:33,829
+That's, that's a very, typical,
+
+190
+00:10:35,380 --> 00:10:36,502
+security strategy.
+
+191
+00:10:36,502 --> 00:10:39,901
+There's other security strategies out
+there that people are starting to look at
+
+192
+00:10:40,264 --> 00:10:43,267
+that are role based access control.
+
+193
+00:10:43,300 --> 00:10:44,950
+Based or even attribute based,
+
+194
+00:10:46,138 --> 00:10:48,151
+working through these queues.
+
+195
+00:10:48,151 --> 00:10:50,428
+Remember that the queues are durable.
+
+196
+00:10:50,428 --> 00:10:54,025
+So you it would be great to, encrypt
+the data,
+
+197
+00:10:55,081 --> 00:10:59,239
+in the broker because, remember,
+those are, those queues can be persistent.
+
+198
+00:10:59,239 --> 00:11:03,462
+So you don't want that data
+in the open, right?
+
+199
+00:11:03,693 --> 00:11:06,696
+Because if someone got access
+to your broker box,
+
+200
+00:11:06,729 --> 00:11:09,732
+and got access to your logs or your,
+
+201
+00:11:09,765 --> 00:11:12,768
+queues that are persistent,
+that could be an issue.
+
+202
+00:11:12,900 --> 00:11:15,903
+Also, make sure that you're doing
+some kind of backups on those systems
+
+203
+00:11:16,101 --> 00:11:20,886
+if you don't have, a high
+availability system, but you want to make
+
+204
+00:11:20,886 --> 00:11:24,813
+sure that you have those message queues,
+especially if those queues grow
+
+205
+00:11:24,813 --> 00:11:28,146
+and the consumers have to pick things
+up, you'll want to restore store
+
+206
+00:11:28,146 --> 00:11:31,116
+that.
+
+207
+00:11:31,743 --> 00:11:34,746
+Another really great thing about, these,
+
+208
+00:11:34,779 --> 00:11:38,442
+message brokers
+is it gives you the ability to monitor,
+
+209
+00:11:39,036 --> 00:11:41,478
+the traffic that's going
+between consumers and producers
+
+210
+00:11:41,478 --> 00:11:44,481
+more easily
+because there's, chokepoint, chokepoint.
+
+211
+00:11:44,481 --> 00:11:44,844
+Right.
+
+212
+00:11:44,844 --> 00:11:49,530
+The broker now becomes that one place
+that all that data is flowing through.
+
+213
+00:11:49,530 --> 00:11:53,754
+So there's lots of tools out there
+that can attach to these message busses
+
+214
+00:11:53,754 --> 00:11:57,021
+like busses like Prometheus,
+CloudWatch, Stackdriver,
+
+215
+00:11:57,384 --> 00:12:01,014
+these are all,
+key things that can monitor,
+
+216
+00:12:02,037 --> 00:12:02,466
+and make
+
+217
+00:12:02,466 --> 00:12:06,459
+sure that you are getting the throughput
+that you expect, that your producers
+
+218
+00:12:06,459 --> 00:12:09,825
+are doing a good job, that your consumers
+are doing a good job, actually is.
+
+219
+00:12:09,825 --> 00:12:12,828
+It's pretty clever
+way of monitoring, your,
+
+220
+00:12:13,323 --> 00:12:16,326
+microservice architectures.
+
+221
+00:12:17,184 --> 00:12:17,547
+All right.
+
+222
+00:12:17,547 --> 00:12:19,791
+So best practices,
+
+223
+00:12:19,791 --> 00:12:22,365
+make sure that as a consumer
+
+224
+00:12:22,365 --> 00:12:25,269
+that you are developing
+
+225
+00:12:25,269 --> 00:12:29,262
+into a potent, into potent, consumers.
+
+226
+00:12:29,493 --> 00:12:33,024
+So that if I get something
+from the message bus
+
+227
+00:12:33,024 --> 00:12:36,060
+and I get it multiple times,
+which can happen
+
+228
+00:12:36,060 --> 00:12:40,119
+if maybe a consumer comes down
+and I have to go back and replay,
+
+229
+00:12:40,746 --> 00:12:43,683
+some of the cues that my behavior
+
+230
+00:12:43,683 --> 00:12:46,917
+doesn't change, even if I get the same
+event multiple times.
+
+231
+00:12:47,445 --> 00:12:49,392
+Keep your messages small.
+
+232
+00:12:49,392 --> 00:12:53,022
+The message broker does much better with,
+you know, one key messages
+
+233
+00:12:53,022 --> 00:12:56,883
+instead of megabyte messages,
+but some of them are starting to
+
+234
+00:12:57,246 --> 00:12:59,292
+to go in the hundreds of KS,
+
+235
+00:13:00,348 --> 00:13:01,635
+type of messages.
+
+236
+00:13:01,635 --> 00:13:05,232
+Most of the time, if you're doing larger
+than that in the megabyte range,
+
+237
+00:13:05,529 --> 00:13:09,060
+a lot of times people will pass a pointer
+
+238
+00:13:10,050 --> 00:13:13,911
+to a physical location or another.
+
+239
+00:13:13,911 --> 00:13:17,607
+Another means to go and grab that data
+through a different port.
+
+240
+00:13:18,003 --> 00:13:19,983
+That's, pretty pretty typical.
+
+241
+00:13:19,983 --> 00:13:24,042
+To do that, make sure that you are
+enforcing the schemas of the messages.
+
+242
+00:13:24,768 --> 00:13:28,431
+So that if a consumer makes a change
+that there's
+
+243
+00:13:28,431 --> 00:13:32,490
+some agreement between the messages
+between the consumers and the producers.
+
+244
+00:13:32,952 --> 00:13:34,305
+This really stinks.
+
+245
+00:13:34,305 --> 00:13:35,955
+If the producer is now producing
+
+246
+00:13:35,955 --> 00:13:38,958
+a different type of message
+and none of the consumers know about it,
+
+247
+00:13:39,057 --> 00:13:43,182
+or even worse, if some of the consumers
+know about it, but the other ones do not.
+
+248
+00:13:43,545 --> 00:13:44,832
+All right.
+
+249
+00:13:44,832 --> 00:13:47,835
+That can be, a huge, problem,
+
+250
+00:13:47,967 --> 00:13:50,310
+right, that you need to, handle
+
+251
+00:13:50,310 --> 00:13:53,115
+and then also use dead
+letter cues for failures.
+
+252
+00:13:53,115 --> 00:13:56,316
+So if I do get a failure,
+I push that into another queue.
+
+253
+00:13:56,514 --> 00:13:59,847
+I could have another microservice,
+handle, failure.
+
+254
+00:14:00,771 --> 00:14:04,104
+At least I have, place
+where the information is stored.
+
+255
+00:14:06,546 --> 00:14:07,338
+All right.
+
+256
+00:14:07,338 --> 00:14:09,516
+So in summary,
+
+257
+00:14:09,516 --> 00:14:11,826
+brokers enable scalability, reliability
+
+258
+00:14:11,826 --> 00:14:14,829
+and decoupled systems massively scale.
+
+259
+00:14:14,829 --> 00:14:18,756
+I can scale consumers and producers
+independent of each other,
+
+260
+00:14:19,086 --> 00:14:22,881
+choose the platform in the pattern
+that fits your use case best.
+
+261
+00:14:23,475 --> 00:14:26,016
+Not, you know, you can't use a hammer
+
+262
+00:14:26,016 --> 00:14:29,910
+to to put a screw in you can,
+but it doesn't work very effectively.
+
+263
+00:14:30,141 --> 00:14:31,824
+It's the same thing
+with your message broker.
+
+264
+00:14:31,824 --> 00:14:35,454
+Do you need a big message broker
+that allows you to go to a million,
+
+265
+00:14:36,081 --> 00:14:41,361
+concurrent producers and consumers,
+with all the complexity involved?
+
+266
+00:14:41,361 --> 00:14:45,618
+Or do I just need a simple zero
+MQ or RabbitMQ queue
+
+267
+00:14:45,915 --> 00:14:49,281
+non-clustered for a simple, communication
+that I'm working on,
+
+268
+00:14:49,710 --> 00:14:54,165
+you have to make those types of decisions
+based off of your current state
+
+269
+00:14:54,165 --> 00:14:57,597
+of your application and use case
+and your potential future state.
+
+270
+00:14:58,026 --> 00:15:01,161
+Using abstraction layers
+between your microservices
+
+271
+00:15:01,161 --> 00:15:03,933
+and these message queues
+is also a good way to go.
+
+272
+00:15:03,933 --> 00:15:08,784
+So if you have two, you could swap in
+a message broker in and out very quickly.
+
+273
+00:15:09,048 --> 00:15:11,127
+Has your needs changed?
+
+274
+00:15:11,127 --> 00:15:13,833
+Or maybe even if there's a security issue,
+
+275
+00:15:13,833 --> 00:15:17,265
+you could easily swap out a message broker
+for something more secure.

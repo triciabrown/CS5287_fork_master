@@ -9,6 +9,8 @@ description: Asynchronous messaging, patterns, deployment & cloud management
 
 # Message Brokers Overview
 
+Video: [https://youtu.be/WLzM6KNcfik](https://youtu.be/WLzM6KNcfik)
+
 ![messagebroker-Generalized_Message_Broker_Architecture.png](messagebroker-Generalized_Message_Broker_Architecture.png)
 
 Middleware for reliable, decoupled, asynchronous communication  

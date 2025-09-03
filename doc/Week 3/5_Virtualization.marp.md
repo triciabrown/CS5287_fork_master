@@ -8,6 +8,8 @@ description: Introduction to Virtualization, taxonomy, solutions, challenges, an
 
 # Introduction to Virtualization
 
+Video: [https://youtu.be/dIsRHM_4-Vs](https://youtu.be/dIsRHM_4-Vs)
+
 - Virtualization abstracts a physical resource (e.g., CPU) into a logical form.
 - Users operate on the logical abstraction.
 - Multiple logical abstractions can be multiplexed over a single physical entity.

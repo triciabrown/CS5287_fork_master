@@ -9,6 +9,8 @@ description: Overview, core services, deployment, and common workflows
 
 # What Is OpenStack?
 
+Video: [https://youtu.be/ZsRNHEm-usM](https://youtu.be/ZsRNHEm-usM)
+
 - Open source “cloud OS” for building IaaS  
 - Modular projects for compute, storage, networking, identity, and more  
 - Managed by the OpenStack Foundation (Apache 2.0 license)  
@@ -28,6 +30,10 @@ description: Overview, core services, deployment, and common workflows
 
 - **Neutron** (Networking)  
   • Software-defined networking: networks, subnets, routers, floating IPs  
+
+--- 
+
+## Core OpenStack Services (cont.)
 
 - **Cinder** (Block Storage)  
   • Persistent volumes attachable to instances  

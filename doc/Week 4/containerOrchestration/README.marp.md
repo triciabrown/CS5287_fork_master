@@ -8,6 +8,8 @@ title: Primer on Container Orchestration
 
 # Primer on Container Orchestration
 
+Video: [https://youtu.be/9tPrtdbrbZo](https://youtu.be/9tPrtdbrbZo)
+
 Automates deployment, scaling, networking, and lifecycle of containers  
 Solves complexity of managing many containers across hosts
 

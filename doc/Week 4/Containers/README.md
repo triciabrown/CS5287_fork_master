@@ -1,5 +1,8 @@
 # Containers: Key Principles and Concepts
 
+Video: [https://youtu.be/t8fdQfGeHuU](https://youtu.be/t8fdQfGeHuU)
+
+
 Containers provide lightweight, portable runtime environments by packaging applications with their dependencies. Unlike virtual machines, containers share the host OS kernel yet enforce strong isolation and resource controls.
 
 ---

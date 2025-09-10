@@ -1,0 +1,987 @@
+﻿1
+00:00:01,517 --> 00:00:04,388
+All right, here's
+just a primer on container orchestration.
+
+2
+00:00:04,388 --> 00:00:08,150
+I'm not going to go over the details of
+every different container orchestration,
+
+3
+00:00:08,447 --> 00:00:12,704
+but some common terms that you should know
+about container orchestration
+
+4
+00:00:13,133 --> 00:00:16,136
+and why we have it and and its importance.
+
+5
+00:00:16,466 --> 00:00:21,350
+So first off, the purpose of orchestration
+as I create start
+
+6
+00:00:21,350 --> 00:00:25,442
+creating these microservice architectures
+where I have instead of one big
+
+7
+00:00:26,168 --> 00:00:29,171
+VM or even four VMs for that matter,
+
+8
+00:00:29,666 --> 00:00:34,088
+I, I change that to now
+I have several dozen microservices.
+
+9
+00:00:34,385 --> 00:00:38,411
+Well, I've got to be able to orchestrate
+and make sure that these,
+
+10
+00:00:38,675 --> 00:00:41,975
+microservices are spinning up
+and tearing down at the right times.
+
+11
+00:00:42,305 --> 00:00:44,384
+That's one of the beauties of containers.
+
+12
+00:00:44,384 --> 00:00:46,925
+The time to spin up and tear down is so
+
+13
+00:00:46,925 --> 00:00:50,951
+small, it's in milliseconds or second,
+very few seconds.
+
+14
+00:00:50,951 --> 00:00:52,073
+Right.
+
+15
+00:00:52,073 --> 00:00:55,835
+That I want to not consume resources
+I don't need.
+
+16
+00:00:55,835 --> 00:00:57,452
+So there's a lot of,
+
+17
+00:00:57,452 --> 00:01:01,445
+spinning up and tearing down and
+connecting these microservices together.
+
+18
+00:01:01,445 --> 00:01:06,329
+So I need an automated way of scheduling
+and placing these, containers
+
+19
+00:01:06,329 --> 00:01:11,906
+on the right machines, with the right
+configurations that that I need out there.
+
+20
+00:01:12,401 --> 00:01:16,064
+So that's why one of the main reasons
+why we need orchestration.
+
+21
+00:01:16,064 --> 00:01:16,394
+Right?
+
+22
+00:01:17,417 --> 00:01:20,420
+Also, the benefit of microservices is
+
+23
+00:01:20,453 --> 00:01:23,060
+if a microservice goes down
+for some reason,
+
+24
+00:01:23,060 --> 00:01:25,535
+I don't have to completely fail
+the whole system.
+
+25
+00:01:25,535 --> 00:01:28,505
+So there's self-healing and failover
+that I need.
+
+26
+00:01:28,604 --> 00:01:32,729
+I also gives me an opportunity
+to do rolling, updates.
+
+27
+00:01:32,729 --> 00:01:38,042
+So I have no downtime or very little
+downtime as I'm making code changes.
+
+28
+00:01:38,042 --> 00:01:42,398
+This fits into that, continuous delivery,
+a methodology
+
+29
+00:01:42,398 --> 00:01:45,401
+that's kind of been developed
+over the last 10 or 15 years.
+
+30
+00:01:45,929 --> 00:01:49,262
+Now, another thing that's important here
+is I have microservices, and
+
+31
+00:01:49,262 --> 00:01:52,760
+they need to share data with each other,
+and they need to talk to each other,
+
+32
+00:01:53,684 --> 00:01:56,918
+either through a message bus
+or directly to each other's
+
+33
+00:01:56,918 --> 00:01:58,601
+lots of different protocols out there.
+
+34
+00:01:58,601 --> 00:02:01,571
+They need to be able
+to discover each other,
+
+35
+00:02:01,571 --> 00:02:03,815
+and that's really important.
+
+36
+00:02:03,815 --> 00:02:05,795
+Otherwise I can't get any work done.
+
+37
+00:02:05,795 --> 00:02:09,854
+So that's that's another key element
+that I need to understand.
+
+38
+00:02:10,217 --> 00:02:13,649
+And then I also want to be able to load
+balance
+
+39
+00:02:13,880 --> 00:02:16,883
+as, I can handle more and more loads.
+
+40
+00:02:17,576 --> 00:02:21,074
+I want to make sure that I'm hitting all
+the microservices that I have out there.
+
+41
+00:02:21,074 --> 00:02:24,704
+So that's
+what the orchestrator is responsible for,
+
+42
+00:02:25,760 --> 00:02:26,024
+right?
+
+43
+00:02:26,024 --> 00:02:29,126
+It's all that stuff that a lot of times
+in microservice
+
+44
+00:02:29,126 --> 00:02:32,723
+architectures, we end up, oh,
+I gotta write that myself or whatever.
+
+45
+00:02:33,020 --> 00:02:37,079
+The beauty of container orchestration,
+a lot of that heavy lifting that you would
+
+46
+00:02:37,079 --> 00:02:38,696
+normally have to do
+
+47
+00:02:38,696 --> 00:02:43,349
+is done for you in the orchestrators,
+which is really, really cool, right?
+
+48
+00:02:43,646 --> 00:02:47,771
+Again, remember the whole,
+container ecosystem starting with Docker.
+
+49
+00:02:47,903 --> 00:02:50,906
+Their whole point was make it easy.
+
+50
+00:02:51,401 --> 00:02:52,358
+That's the whole point.
+
+51
+00:02:52,358 --> 00:02:54,800
+Make it easy, easy to use.
+
+52
+00:02:54,800 --> 00:02:59,387
+Our goal was to help developers
+focus on not the infrastructure,
+
+53
+00:02:59,387 --> 00:03:02,885
+but focus on the algorithms
+and the code that they need to write.
+
+54
+00:03:03,314 --> 00:03:05,987
+So that's one of one of the key things.
+
+55
+00:03:05,987 --> 00:03:08,132
+So managing all that complexity
+
+56
+00:03:08,132 --> 00:03:11,993
+of deploying microservices,
+managing them is extremely important.
+
+57
+00:03:12,290 --> 00:03:17,867
+The other problem that orchestrators
+overcome is the dynamic environment.
+
+58
+00:03:18,560 --> 00:03:20,837
+I don't want to especially in the cloud.
+
+59
+00:03:20,837 --> 00:03:23,840
+I don't want to spin up instances
+I don't use.
+
+60
+00:03:24,038 --> 00:03:25,853
+Right. That's expensive. Right.
+
+61
+00:03:25,853 --> 00:03:28,856
+And I want to make sure
+that I'm tearing down things.
+
+62
+00:03:28,856 --> 00:03:31,859
+So I don't have
+zombie VMs sitting out there just chewing
+
+63
+00:03:31,859 --> 00:03:36,776
+up, resources and more importantly,
+costing me money every, every hour.
+
+64
+00:03:36,776 --> 00:03:38,261
+Right. Every minute.
+
+65
+00:03:38,261 --> 00:03:42,980
+So that dynamic, dynamic environment
+is, is a key thing that it helps overcome
+
+66
+00:03:42,980 --> 00:03:47,897
+because the orchestrators
+orchestrating across its symphony of,
+
+67
+00:03:50,339 --> 00:03:52,319
+tools that it has, right?
+
+68
+00:03:52,319 --> 00:03:56,114
+Symphony of instruments that it has, it's
+pulling the right ones in at the right
+
+69
+00:03:56,114 --> 00:03:56,840
+time.
+
+70
+00:03:56,840 --> 00:03:59,843
+That's, that's that coordination
+that, that they do.
+
+71
+00:04:00,140 --> 00:04:03,935
+And then the ability to scale up
+and have multiple instances
+
+72
+00:04:04,034 --> 00:04:06,971
+of the same microservice as I need as
+
+73
+00:04:06,971 --> 00:04:09,974
+I need to dynamically
+is, is really important.
+
+74
+00:04:10,007 --> 00:04:13,604
+And then the last thing that
+it really helps with is that consistency.
+
+75
+00:04:13,604 --> 00:04:16,772
+And reproducibility, which anyone
+
+76
+00:04:16,772 --> 00:04:20,171
+that's in the DevOps world
+or build Meister.
+
+77
+00:04:20,171 --> 00:04:24,164
+In my good old days we were called
+build meisters or configuration managers.
+
+78
+00:04:25,055 --> 00:04:28,190
+Repeatability of builds,
+repeatability of deployment,
+
+79
+00:04:29,015 --> 00:04:31,490
+and runtime is extremely important.
+
+80
+00:04:31,490 --> 00:04:34,691
+This gives me that ability to do that
+very quickly.
+
+81
+00:04:35,054 --> 00:04:38,321
+And it helps, avoid any drift
+
+82
+00:04:38,321 --> 00:04:42,182
+that I might have
+by having consistency in the containers.
+
+83
+00:04:44,525 --> 00:04:45,647
+All right.
+
+84
+00:04:45,647 --> 00:04:47,726
+Why it all matters.
+
+85
+00:04:47,726 --> 00:04:49,805
+This one should be very straightforward.
+
+86
+00:04:49,805 --> 00:04:52,775
+For you guys, reliability
+
+87
+00:04:53,039 --> 00:04:54,887
+is key. Efficiency.
+
+88
+00:04:54,887 --> 00:04:57,890
+I want to decrease my cost,
+
+89
+00:04:58,220 --> 00:05:00,695
+increase developer velocity.
+
+90
+00:05:00,695 --> 00:05:04,457
+So the developers don't focus on things
+that are
+
+91
+00:05:04,754 --> 00:05:08,318
+easily repeatable,
+like setting up an environment.
+
+92
+00:05:08,945 --> 00:05:09,638
+Right.
+
+93
+00:05:09,638 --> 00:05:13,730
+Portability
+so that I can run this microservice,
+
+94
+00:05:13,730 --> 00:05:18,614
+this container, anywhere in my ecosystem,
+in the cloud, on prem, on my laptop.
+
+95
+00:05:18,614 --> 00:05:22,013
+I could test things out on my laptop
+without having to go into the cloud.
+
+96
+00:05:22,475 --> 00:05:24,785
+And I can run on any cloud that I want.
+
+97
+00:05:24,785 --> 00:05:26,204
+And you know, a lot of these.
+
+98
+00:05:26,204 --> 00:05:30,460
+So a lot of the cloud service providers
+out there are going to provide containers
+
+99
+00:05:30,757 --> 00:05:35,707
+that are very specific to the services
+that they connect to in their cloud.
+
+100
+00:05:35,707 --> 00:05:38,941
+So be careful and be mindful of,
+
+101
+00:05:39,634 --> 00:05:42,637
+the California Hotel California Syndrome,
+
+102
+00:05:42,670 --> 00:05:46,267
+where you can check in using
+their services but you can't check out.
+
+103
+00:05:46,267 --> 00:05:50,821
+So spinning your own, images
+can sometimes have
+
+104
+00:05:50,821 --> 00:05:54,814
+a huge advantage over using,
+cloud service providers images.
+
+105
+00:05:55,474 --> 00:05:57,652
+The convenience is there,
+but it locks you in.
+
+106
+00:05:57,652 --> 00:06:00,787
+So you have to weigh the cost
+benefit of that, right?
+
+107
+00:06:01,018 --> 00:06:02,602
+Are you okay saying yes?
+
+108
+00:06:02,602 --> 00:06:07,255
+We're 100%
+AWS or 100% Azure or 100% Google?
+
+109
+00:06:07,618 --> 00:06:09,268
+Or do I want to run some things on prem?
+
+110
+00:06:09,268 --> 00:06:12,007
+So you got to make those decisions
+early on.
+
+111
+00:06:12,007 --> 00:06:12,370
+All right.
+
+112
+00:06:14,779 --> 00:06:15,175
+Okay.
+
+113
+00:06:15,175 --> 00:06:17,353
+There's some popular orchestrators
+there. They're out there.
+
+114
+00:06:17,353 --> 00:06:19,531
+Everyone's heard of Kubernetes.
+
+115
+00:06:19,531 --> 00:06:21,115
+They call it an industry standard.
+
+116
+00:06:21,115 --> 00:06:23,062
+It is kind of by force.
+
+117
+00:06:23,062 --> 00:06:23,656
+Right.
+
+118
+00:06:23,656 --> 00:06:26,659
+Google released it on Kubernetes,
+
+119
+00:06:26,692 --> 00:06:29,926
+is highly configurable, lets
+you do things in production,
+
+120
+00:06:30,817 --> 00:06:33,457
+and lets you configure,
+
+121
+00:06:33,457 --> 00:06:36,394
+your production
+environments, really, really well.
+
+122
+00:06:36,394 --> 00:06:37,747
+Right.
+
+123
+00:06:37,747 --> 00:06:39,760
+And because it's highly configurable,
+
+124
+00:06:39,760 --> 00:06:42,763
+sometimes people say it's a little complex
+to set up.
+
+125
+00:06:43,093 --> 00:06:47,086
+Again, the idea here is for the developer
+
+126
+00:06:47,416 --> 00:06:50,716
+to be able to quickly and easily
+develop their code.
+
+127
+00:06:50,980 --> 00:06:55,138
+Kubernetes requires a system
+admin to get things up and running.
+
+128
+00:06:55,204 --> 00:06:57,646
+Someone that understands
+Kubernetes really well.
+
+129
+00:06:57,646 --> 00:07:00,220
+There have been some,
+
+130
+00:07:00,220 --> 00:07:01,309
+what's the right word?
+
+131
+00:07:01,309 --> 00:07:05,500
+Some permutations of Kubernetes
+that tried to simplify its deployment.
+
+132
+00:07:06,622 --> 00:07:09,625
+Docker, on the other hand,
+with Docker Swarm,
+
+133
+00:07:10,021 --> 00:07:15,334
+their whole premise was easy, simple,
+upfront, less configurable.
+
+134
+00:07:15,862 --> 00:07:18,271
+But it gets a developer
+running right away.
+
+135
+00:07:18,271 --> 00:07:19,888
+No sysadmin required.
+
+136
+00:07:21,307 --> 00:07:22,231
+Any any
+
+137
+00:07:22,231 --> 00:07:25,762
+computer scientists, can easily
+start up a Docker swarm.
+
+138
+00:07:26,059 --> 00:07:27,676
+Get it running.
+
+139
+00:07:27,676 --> 00:07:29,359
+But it's not as configurable.
+
+140
+00:07:29,359 --> 00:07:33,418
+So you have to adhere to the convention
+that they've come up with.
+
+141
+00:07:33,781 --> 00:07:37,114
+And in some cases that doesn't work
+in some production environments
+
+142
+00:07:37,609 --> 00:07:38,731
+where Kubernetes lets
+
+143
+00:07:38,731 --> 00:07:42,097
+you configure different things
+that will work in different, environments.
+
+144
+00:07:42,757 --> 00:07:46,981
+Another, general purpose scheduler out
+there is Mesos, Apache miso,
+
+145
+00:07:47,707 --> 00:07:49,687
+slash marathon.
+
+146
+00:07:49,687 --> 00:07:52,690
+Though
+those out there are pretty, pretty good.
+
+147
+00:07:53,119 --> 00:07:56,386
+We see a lot of the miso stuff
+in high performance computing,
+
+148
+00:07:56,980 --> 00:07:59,983
+is where I've seen it mostly. But,
+
+149
+00:08:00,742 --> 00:08:02,689
+it's still has it's still has its place.
+
+150
+00:08:02,689 --> 00:08:06,319
+I think Kubernetes is kind of taking over
+the miso space a little bit more.
+
+151
+00:08:06,715 --> 00:08:12,787
+And then another up and coming is, Nomad,
+which Nomad is great for the edge.
+
+152
+00:08:13,018 --> 00:08:14,437
+Very low profile.
+
+153
+00:08:15,658 --> 00:08:18,661
+Very similar to Docker Swarm in that,
+in that respect
+
+154
+00:08:18,826 --> 00:08:22,027
+because it focuses on ease of use,
+but at the edge,
+
+155
+00:08:24,139 --> 00:08:25,921
+so it, it's, it's
+
+156
+00:08:25,921 --> 00:08:28,924
+tailored direct for,
+for that extremely lightweight.
+
+157
+00:08:29,353 --> 00:08:31,696
+And it can happen
+multiple workloads very easily.
+
+158
+00:08:31,696 --> 00:08:36,217
+So if I'm in edge environment
+where maybe I only have four gigs of Ram.
+
+159
+00:08:36,778 --> 00:08:40,771
+So a small footprint
+Nomad is a really good, choice for that.
+
+160
+00:08:43,180 --> 00:08:43,477
+All right.
+
+161
+00:08:43,477 --> 00:08:46,249
+Some key concepts across
+all the orchestrators.
+
+162
+00:08:46,249 --> 00:08:49,252
+There's a little bit of difference
+here, but not not much.
+
+163
+00:08:49,417 --> 00:08:51,991
+Not much. Cluster. Right.
+
+164
+00:08:51,991 --> 00:08:55,027
+A cluster is, contains a control
+
+165
+00:08:55,027 --> 00:08:57,997
+node and a bunch of worker nodes.
+
+166
+00:08:58,129 --> 00:09:00,142
+That's a that's a cluster. Right?
+
+167
+00:09:00,142 --> 00:09:02,947
+A node is a host
+that's running a container agent.
+
+168
+00:09:02,947 --> 00:09:06,247
+All these,
+all these have agents that run run them.
+
+169
+00:09:06,643 --> 00:09:12,352
+A pod is for Kubernetes, and a task
+is more on the Docker swarm side.
+
+170
+00:09:12,682 --> 00:09:13,837
+Right.
+
+171
+00:09:13,837 --> 00:09:16,114
+With a pod there, and we can.
+
+172
+00:09:16,114 --> 00:09:17,005
+You know what?
+
+173
+00:09:17,005 --> 00:09:19,051
+We'll save that for Kubernetes.
+
+174
+00:09:19,051 --> 00:09:22,846
+Deep dive on the difference
+between a pod and an individual task.
+
+175
+00:09:22,846 --> 00:09:27,037
+But they have a new they have a different
+abstraction there than in Docker Swarm.
+
+176
+00:09:27,994 --> 00:09:30,172
+I've got deployments and jobs.
+
+177
+00:09:30,172 --> 00:09:31,888
+So if I want to deploy something
+
+178
+00:09:32,911 --> 00:09:33,736
+that's, that
+
+179
+00:09:33,736 --> 00:09:36,805
+could be running a job to do that
+deployment a service.
+
+180
+00:09:36,805 --> 00:09:40,039
+This is pretty, consistent across
+all of them.
+
+181
+00:09:40,237 --> 00:09:42,910
+It's a stable network endpoint.
+
+182
+00:09:42,910 --> 00:09:46,738
+A service can be served up
+by multiple instances
+
+183
+00:09:46,738 --> 00:09:50,236
+of a container running,
+which is really interesting.
+
+184
+00:09:50,236 --> 00:09:51,061
+Right?
+
+185
+00:09:51,061 --> 00:09:54,064
+I've got ingress, which is my
+
+186
+00:09:54,130 --> 00:09:56,968
+data coming in it.
+
+187
+00:09:56,968 --> 00:10:00,862
+A lot of times it's used with a gateway
+so that external,
+
+188
+00:10:02,215 --> 00:10:07,429
+applications or external clients
+can interface into the networks
+
+189
+00:10:07,429 --> 00:10:10,927
+of, container network, which we're going
+to talk about in another lecture.
+
+190
+00:10:11,224 --> 00:10:12,049
+Right.
+
+191
+00:10:12,049 --> 00:10:15,448
+We talked about, config, maps and secrets.
+
+192
+00:10:15,712 --> 00:10:18,550
+This is my way of storing these secrets.
+
+193
+00:10:18,550 --> 00:10:19,969
+I don't want to storm any image.
+
+194
+00:10:19,969 --> 00:10:23,104
+That would be bad,
+because anyone that downloaded
+
+195
+00:10:23,104 --> 00:10:26,767
+my image would have all my certs
+and my tokens, so I don't want that.
+
+196
+00:10:27,130 --> 00:10:29,275
+So this sits on the side.
+
+197
+00:10:29,275 --> 00:10:31,057
+These secrets and tokens,
+
+198
+00:10:31,057 --> 00:10:35,314
+are stored in these config maps
+and secret vaults and things like that.
+
+199
+00:10:36,667 --> 00:10:39,769
+And then, for the Kubernetes world,
+we've got horizontal,
+
+200
+00:10:40,033 --> 00:10:43,036
+pod autoscaler,
+which will go in more depth,
+
+201
+00:10:44,026 --> 00:10:46,897
+which is metric driven, scaling.
+
+202
+00:10:46,897 --> 00:10:49,867
+We'll go more depth
+in the Kubernetes, lectures in the future.
+
+203
+00:10:50,395 --> 00:10:55,378
+And then in Kubernetes,
+we use helm charts and operators
+
+204
+00:10:55,378 --> 00:10:58,876
+that are out there,
+which are custom controllers that handle,
+
+205
+00:10:59,305 --> 00:11:04,056
+kind of the scheduling and control
+of individual pods, differently.
+
+206
+00:11:04,056 --> 00:11:07,356
+So like I said, we'll discuss
+those are more Kubernetes.
+
+207
+00:11:07,752 --> 00:11:10,326
+Focus.
+
+208
+00:11:10,326 --> 00:11:10,986
+All right.
+
+209
+00:11:10,986 --> 00:11:12,966
+Now that you understand
+some of the terminology,
+
+210
+00:11:12,966 --> 00:11:17,949
+go out there and explore some more
+on orchestration, and find out more.
+
+211
+00:11:17,949 --> 00:11:22,371
+Get a deeper dive on this by, you know,
+consulting with your favorite gin
+
+212
+00:11:22,371 --> 00:11:27,519
+AI or out there
+on, stack space or one of the other,
+
+213
+00:11:28,377 --> 00:11:31,380
+developer, forums that are out there.
+
+214
+00:11:31,479 --> 00:11:32,832
+But a lot of people are using,
+
+215
+00:11:34,119 --> 00:11:36,495
+their
+favorite genie AI to help them understand
+
+216
+00:11:36,495 --> 00:11:39,696
+more, but explore you use those tools
+that are out there for you.

@@ -8,6 +8,8 @@ title: Primer on Container Networking
 
 # Primer on Container Networking
 
+Video: [https://youtu.be/yapubtE2bfs](https://youtu.be/yapubtE2bfs)
+
 Container networking provides connectivity between containers on the same host and across multiple hosts.  
 Leverages Linux kernel features and CNI plugins for flexible, isolated, scalable networks.
 
@@ -17,24 +19,20 @@ Leverages Linux kernel features and CNI plugins for flexible, isolated, scalable
 
 ### Network Namespaces
 
+![BasicContainerNetworkingDiagram.png](BasicContainerNetworkingDiagram.png)
+
 - Each container gets its own network namespace: isolated interfaces, routes, firewall rules  
 - Managed manually via `ip netns` or automatically by orchestrators  
 
 ---
 
-![BasicContainerNetworkingDiagram.png](BasicContainerNetworkingDiagram.png)
-
----
-
 ### veth Pairs
+
+![CNIPluginWorkflowDiagram-CNI_Plugin_Workflow.png](CNIPluginWorkflowDiagram-CNI_Plugin_Workflow.png)
 
 - Virtual Ethernet pair: two linked interfaces  
 - One end in container namespace (`eth0`), the other in host namespace (`vethXYZ`)  
 - Packets sent on one end appear at the other  
-
----
-
-![CNIPluginWorkflowDiagram-CNI_Plugin_Workflow.png](CNIPluginWorkflowDiagram-CNI_Plugin_Workflow.png)
 
 ---
 
@@ -58,7 +56,10 @@ Leverages Linux kernel features and CNI plugins for flexible, isolated, scalable
 ## Common Networking Modes
 
 --- 
+
 ### Bridge (Default Docker Network)
+
+[bridge.puml](bridge.png)
 
 - Containers attach to a host bridge (`docker0`).
 - All containers on that host share a subnet (e.g., `172.17.0.0/16`).
@@ -67,18 +68,13 @@ Leverages Linux kernel features and CNI plugins for flexible, isolated, scalable
 
 --- 
 
-[bridge.puml](bridge.puml)
-
---- 
 ### Host Networking
+
+![host_networking_mode_diagram-Host_Networking_Mode.png](host_networking_mode_diagram-Host_Networking_Mode.png)
 
 - Container shares the host's network namespace.
 - No isolation: container's `eth0` is the host interface (e.g., `eth0`).
 - Port mapping not required; high performance, but limited isolation.
-
---- 
-
-![host_networking_mode_diagram-Host_Networking_Mode.png](host_networking_mode_diagram-Host_Networking_Mode.png)
 
 --- 
 
@@ -91,13 +87,11 @@ Leverages Linux kernel features and CNI plugins for flexible, isolated, scalable
 
 ### MacVLAN / IPVLAN
 
+![MacVLAN_IPVLAN_Networking_Diagram-MacVLAN___IPVLAN_Networking.png](MacVLAN_IPVLAN_Networking_Diagram-MacVLAN___IPVLAN_Networking.png)
+
 - Directly attach a container's veth to a physical NIC with its own MAC/IP.
 - Good for legacy applications requiring L2 connectivity.
 - IPVLAN variants multiplex IP addresses on one MAC.
-
---- 
-
-![MacVLAN_IPVLAN_Networking_Diagram-MacVLAN___IPVLAN_Networking.png](MacVLAN_IPVLAN_Networking_Diagram-MacVLAN___IPVLAN_Networking.png)
 
 ---
 
@@ -107,15 +101,18 @@ Leverages Linux kernel features and CNI plugins for flexible, isolated, scalable
 
 ### Overlay (VXLAN)
 
+![overlay_network_v_x_l_a_n.png](overlay_network_v_x_l_a_n.png)
+
 - Encapsulate container traffic in UDP VXLAN tunnels between hosts.
 - Each host runs an agent (e.g., Docker Swarm, Flannel, Weave, Calico) to manage tunnels.
 - Containers on different hosts appear on the same virtual L2 network.
 
 --- 
 
-![overlay_network_v_x_l_a_n.png](overlay_network_v_x_l_a_n.png)
 
 ### BGP / Route-Based (Calico)
+
+![b_g_p_route_based_container_networking_diagram.png](b_g_p_route_based_container_networking_diagram.png)
 
 - Use BGP routing instead of encapsulation.
 - Each host programs Linux routing tables for container subnets.
@@ -123,21 +120,16 @@ Leverages Linux kernel features and CNI plugins for flexible, isolated, scalable
 
 --- 
 
-![b_g_p_route_based_container_networking_diagram.png](b_g_p_route_based_container_networking_diagram.png)
-
---- 
 
 ### Service Mesh (Sidecar Proxies)
+
+![service_mesh_with_sidecar_proxies-Service_Mesh_with_Sidecar_Proxies.png](service_mesh_with_sidecar_proxies-Service_Mesh_with_Sidecar_Proxies.png)
 
 - Not exactly layer 2/3, but builds an L7 overlay for east-west traffic.
 - Examples: Istio, Linkerd.
 - Provides service discovery, load balancing, mTLS encryption at the application layer.
 
 --- 
-
-![service_mesh_with_sidecar_proxies-Service_Mesh_with_Sidecar_Proxies.png](service_mesh_with_sidecar_proxies-Service_Mesh_with_Sidecar_Proxies.png)
-
----
 
 ## Container Network Interface (CNI)
 

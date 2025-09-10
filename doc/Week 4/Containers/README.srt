@@ -1,0 +1,1215 @@
+﻿1
+00:00:02,870 --> 00:00:03,101
+All right.
+
+2
+00:00:03,101 --> 00:00:05,312
+In this
+lecture we're going to go over containers.
+
+3
+00:00:05,312 --> 00:00:06,302
+What they are.
+
+4
+00:00:06,302 --> 00:00:10,790
+A little history behind them to see how
+they've evolved into what they are today.
+
+5
+00:00:11,549 --> 00:00:14,255
+So, first off, there's a Trivial Pursuit
+
+6
+00:00:14,255 --> 00:00:17,456
+question everyone should know,
+and always get right.
+
+7
+00:00:17,456 --> 00:00:20,492
+What's older containers
+or virtual machines?
+
+8
+00:00:21,053 --> 00:00:25,376
+The answer might surprise
+people as containers really took off
+
+9
+00:00:26,234 --> 00:00:28,907
+in the mid, 2000.
+
+10
+00:00:28,907 --> 00:00:31,415
+Actually closer to 2010.
+
+11
+00:00:31,415 --> 00:00:35,573
+So when they really kind of took off, 
+but before that, they,
+
+12
+00:00:35,639 --> 00:00:41,183
+they were actually established really
+early on in the Unix, operating systems
+
+13
+00:00:41,480 --> 00:00:45,737
+with filesystem isolation
+and with something called jails.
+
+14
+00:00:45,836 --> 00:00:48,839
+And, 
+they turned in the millennium in 2000,
+
+15
+00:00:49,037 --> 00:00:52,898
+in, freebie, FreeBSD and also in
+
+16
+00:00:52,898 --> 00:00:56,990
+Solaris and Sun OS even
+had some inklings of, of these things.
+
+17
+00:00:57,221 --> 00:01:00,257
+But the problem with containers back
+
+18
+00:01:00,257 --> 00:01:03,260
+in those days is
+they were still very difficult to use.
+
+19
+00:01:03,755 --> 00:01:09,233
+And, even even in the early days,
+when the Linux Foundation took over
+
+20
+00:01:09,233 --> 00:01:12,335
+namespaces and C groups and L,
+
+21
+00:01:12,698 --> 00:01:16,130
+c, which combined both of them in 2008,
+
+22
+00:01:17,087 --> 00:01:18,209
+it was still,
+
+23
+00:01:18,209 --> 00:01:23,489
+not super easy to use,
+not until Docker really came on to,
+
+24
+00:01:24,050 --> 00:01:28,208
+the it came into the ecosystem
+and made it easy to use.
+
+25
+00:01:28,208 --> 00:01:32,795
+And once that happened,
+developers flocked to it in droves
+
+26
+00:01:32,795 --> 00:01:36,623
+because it made it easy to stand up
+applications
+
+27
+00:01:36,920 --> 00:01:41,606
+had a complete OS that I could,
+put into a container,
+
+28
+00:01:41,936 --> 00:01:46,424
+right into a little package
+that I could easily deploy it,
+
+29
+00:01:46,424 --> 00:01:51,044
+it could run its stuff and then, 
+you know, tear down very quickly.
+
+30
+00:01:51,044 --> 00:01:54,179
+And now that was one of the,
+the huge benefits of,
+
+31
+00:01:54,476 --> 00:01:57,479
+Docker containers that made it so easy.
+
+32
+00:01:57,611 --> 00:02:01,076
+And the reason it,
+it kind of overtook, VMs,
+
+33
+00:02:01,538 --> 00:02:04,508
+and it kind of took a little bit of time,
+but it overtook VMs
+
+34
+00:02:04,508 --> 00:02:07,874
+is because they were so lightweight
+and they came up so quickly,
+
+35
+00:02:08,105 --> 00:02:13,055
+so understanding kind of that background
+kind of gives you an idea with software
+
+36
+00:02:13,055 --> 00:02:17,048
+engineering and computer science,
+what we tend to see is
+
+37
+00:02:17,213 --> 00:02:20,777
+if we can make something easier,
+take a complex concept
+
+38
+00:02:21,140 --> 00:02:25,001
+and make it easier to use,
+people will flock to it.
+
+39
+00:02:25,298 --> 00:02:26,453
+More than likely.
+
+40
+00:02:26,453 --> 00:02:29,456
+And that's really
+what happened with, Docker containers.
+
+41
+00:02:29,786 --> 00:02:34,439
+And why it really kind of just took off
+and it took over the world.
+
+42
+00:02:35,792 --> 00:02:36,122
+All right.
+
+43
+00:02:36,122 --> 00:02:41,468
+So the isolation, mechanisms
+that are used, are really interesting.
+
+44
+00:02:41,600 --> 00:02:43,250
+Let's start with namespaces first.
+
+45
+00:02:43,250 --> 00:02:47,243
+So namespaces gave me the ability
+to isolate
+
+46
+00:02:47,309 --> 00:02:52,259
+different parts of the operating system
+with process IDs, network mounts, UTI,
+
+47
+00:02:52,688 --> 00:02:58,100
+all this stuff together, to give me
+isolation and some, some security.
+
+48
+00:02:58,100 --> 00:03:04,040
+So, it it wouldn't allow users
+to see other people's, information.
+
+49
+00:03:04,040 --> 00:03:09,683
+I could isolate all these, processes
+and everything into a specific namespace.
+
+50
+00:03:10,112 --> 00:03:13,214
+Then came control groups,
+where I now started looking
+
+51
+00:03:13,445 --> 00:03:17,405
+beyond just the user data and started
+looking more into the operating system
+
+52
+00:03:17,669 --> 00:03:21,398
+where I had, control of CPU, memory,
+IO network limits.
+
+53
+00:03:21,662 --> 00:03:25,325
+I could start having these control groups
+that could control kind of,
+
+54
+00:03:25,424 --> 00:03:27,668
+the hardware side of things.
+
+55
+00:03:27,668 --> 00:03:29,945
+And then, we had you
+
+56
+00:03:29,945 --> 00:03:34,631
+you combine all that with file systems,
+and this gave me a quick way
+
+57
+00:03:34,631 --> 00:03:38,261
+to, to get things,
+launched and get things going.
+
+58
+00:03:38,525 --> 00:03:42,551
+So the idea behind containers
+and the union file systems, where
+
+59
+00:03:42,551 --> 00:03:46,874
+I'm combining things together
+to create a new image,
+
+60
+00:03:47,105 --> 00:03:50,537
+meant that I could start out very quickly
+by reusing different layers
+
+61
+00:03:50,537 --> 00:03:53,540
+in, in containers
+between different containers.
+
+62
+00:03:53,969 --> 00:03:58,985
+But the total, container itself
+was unique, so it made it very, very fast.
+
+63
+00:04:01,229 --> 00:04:04,232
+So let's take a look at a container image.
+
+64
+00:04:04,595 --> 00:04:06,707
+Right. A container image.
+
+65
+00:04:06,707 --> 00:04:08,753
+And this is hard for people at first.
+
+66
+00:04:08,753 --> 00:04:13,505
+But a container image contains
+everything that's needed in order
+
+67
+00:04:13,505 --> 00:04:20,534
+to run the application in, in, in a file
+or a, it's an interesting thing.
+
+68
+00:04:20,732 --> 00:04:23,735
+It's a layered file
+for no, for no better word.
+
+69
+00:04:23,867 --> 00:04:26,870
+And it always starts with a base image.
+
+70
+00:04:26,969 --> 00:04:29,543
+Some of the most popular ones out there.
+
+71
+00:04:29,543 --> 00:04:31,655
+Alpine being a very small image.
+
+72
+00:04:31,655 --> 00:04:33,140
+Very, very small.
+
+73
+00:04:33,140 --> 00:04:35,813
+And this is really good
+if you have memory
+
+74
+00:04:35,813 --> 00:04:38,816
+limitations
+or if you're running out at the edge.
+
+75
+00:04:38,915 --> 00:04:41,951
+It's very small and very compact,
+
+76
+00:04:42,743 --> 00:04:45,845
+and it by default doesn't
+include everything.
+
+77
+00:04:45,845 --> 00:04:48,815
+You have to include
+every single package that you need.
+
+78
+00:04:48,815 --> 00:04:50,993
+This is great for security as well, right?
+
+79
+00:04:50,993 --> 00:04:55,679
+As you as you're not having extra weight
+coming around, with the system.
+
+80
+00:04:55,943 --> 00:04:59,012
+Then I another, 
+one that I have is ubuntu,
+
+81
+00:04:59,045 --> 00:05:02,015
+which everyone knows ubuntu
+that's worked in Linux.
+
+82
+00:05:02,081 --> 00:05:04,589
+Right.
+And there's different flavors of ubuntu.
+
+83
+00:05:04,589 --> 00:05:08,780
+You can do a lightweight, lightweight
+ubuntu or go bigger.
+
+84
+00:05:09,110 --> 00:05:13,598
+Then what happens from that base
+image is I build things on top of,
+
+85
+00:05:13,598 --> 00:05:17,459
+I install different packages that I need,
+
+86
+00:05:18,746 --> 00:05:19,439
+and then
+
+87
+00:05:19,439 --> 00:05:23,861
+I can take, let's say,
+a base image of alpine.
+
+88
+00:05:23,861 --> 00:05:28,943
+I can install Node.js on there, and
+I can call that a Node.js alpine image.
+
+89
+00:05:29,174 --> 00:05:34,552
+So now any, program that needs Node.js,
+I can just take that image and use it.
+
+90
+00:05:34,552 --> 00:05:39,007
+So this, this thing keeps building
+on top of each other.
+
+91
+00:05:39,205 --> 00:05:42,274
+And one way to protect it
+from being changed is by,
+
+92
+00:05:42,703 --> 00:05:45,871
+having immutable artifacts in there
+and creating
+
+93
+00:05:46,036 --> 00:05:50,755
+a, hash or sha sha 256, does a great job
+
+94
+00:05:50,854 --> 00:05:54,616
+so that I can be guaranteed
+that the layer that I say it is
+
+95
+00:05:54,748 --> 00:05:57,751
+that I can check it against the hash
+and it'll work.
+
+96
+00:05:58,114 --> 00:06:03,922
+Now, these layers or images,
+of containers that I have out there,
+
+97
+00:06:04,186 --> 00:06:07,420
+I can store in repository
+so I can use them over and over again.
+
+98
+00:06:07,717 --> 00:06:11,677
+And one of the true benefits of this,
+layered approach of the images
+
+99
+00:06:12,337 --> 00:06:15,274
+is because the images are built
+through layers.
+
+100
+00:06:15,274 --> 00:06:18,937
+If I have 100 different images,
+but they all have the base
+
+101
+00:06:19,630 --> 00:06:23,524
+layer of, the alpine operating system,
+the base image,
+
+102
+00:06:24,118 --> 00:06:28,672
+I only have to download that base image
+once because the other things are are kind
+
+103
+00:06:28,672 --> 00:06:31,873
+of, sucked in at, runtime.
+
+104
+00:06:32,071 --> 00:06:36,229
+So I'm not carrying around all, of,
+all of that information.
+
+105
+00:06:36,493 --> 00:06:41,278
+I'm guaranteed, immutable artifacts,
+immutable layers, throughout there.
+
+106
+00:06:41,278 --> 00:06:43,588
+So I just add on to what's needed.
+
+107
+00:06:43,588 --> 00:06:47,416
+This is one of the things
+that makes Docker, faster than like a VM,
+
+108
+00:06:47,647 --> 00:06:52,267
+where I'm taking a snapshot of everything
+and it's all coming in there.
+
+109
+00:06:52,267 --> 00:06:54,247
+Now, there's some benefits to VMs.
+
+110
+00:06:54,247 --> 00:06:55,336
+If I can take a snapshot
+
+111
+00:06:55,336 --> 00:06:59,494
+of a running application,
+I save all the state I can migrate.
+
+112
+00:06:59,890 --> 00:07:05,038
+I can migrate VMs around
+because they save state containers.
+
+113
+00:07:05,467 --> 00:07:08,107
+No save state
+unless I take a snapshot of it.
+
+114
+00:07:08,107 --> 00:07:11,341
+But even then, it's not saving all
+the registers and everything else on it.
+
+115
+00:07:11,638 --> 00:07:14,080
+Then I normally have a run in there.
+
+116
+00:07:14,080 --> 00:07:17,083
+So that's that's a major difference
+that you should understand.
+
+117
+00:07:17,281 --> 00:07:19,459
+But these registries,
+the most popular one out
+
+118
+00:07:19,459 --> 00:07:21,868
+there is Docker Hub,
+but there's several others out there.
+
+119
+00:07:21,868 --> 00:07:26,125
+Even GitHub is starting
+and has y'all years ago
+
+120
+00:07:26,125 --> 00:07:30,712
+actually started, hosting a Docker
+containers or Docker images.
+
+121
+00:07:30,712 --> 00:07:32,725
+I guess it's the right, way to put it.
+
+122
+00:07:35,266 --> 00:07:35,959
+Okay,
+
+123
+00:07:35,959 --> 00:07:39,127
+one of the things I've already talked
+about is the portability aspect.
+
+124
+00:07:39,127 --> 00:07:42,592
+So because it's carrying
+the whole operating system with it
+
+125
+00:07:42,889 --> 00:07:45,925
+and the applications, I can easily build
+
+126
+00:07:45,925 --> 00:07:48,928
+this image once
+and I can spin it up anywhere.
+
+127
+00:07:49,357 --> 00:07:51,205
+And that's really cool, right?
+
+128
+00:07:51,205 --> 00:07:55,198
+Because everything's contained inside
+that bundle, that I need.
+
+129
+00:07:55,726 --> 00:07:58,564
+And, it makes it very easy
+
+130
+00:07:58,564 --> 00:08:03,019
+for me to declare these are using
+something called a Docker file.
+
+131
+00:08:03,019 --> 00:08:06,781
+So I can create through code,
+I can create these images,
+
+132
+00:08:07,210 --> 00:08:10,312
+that I can use over and over again,
+which is, which is awesome.
+
+133
+00:08:10,576 --> 00:08:13,777
+Where VM a VM takes a current,
+
+134
+00:08:14,305 --> 00:08:17,308
+running a machine
+because it's saving state.
+
+135
+00:08:18,067 --> 00:08:20,377
+State. I take a snapshot of that.
+
+136
+00:08:20,377 --> 00:08:24,370
+So, VMs are much more difficult
+to code up
+
+137
+00:08:24,370 --> 00:08:29,353
+like I can with a container where I can be
+very explicit about what's going into
+
+138
+00:08:29,353 --> 00:08:34,534
+that image that I get started, including
+configuration files, the whole gamut.
+
+139
+00:08:37,207 --> 00:08:37,669
+All right.
+
+140
+00:08:37,669 --> 00:08:41,893
+The other really cool thing about,
+containers is the ability
+
+141
+00:08:42,157 --> 00:08:46,150
+to spin them up in milliseconds
+instead of seconds or minutes.
+
+142
+00:08:46,150 --> 00:08:49,153
+For VMs, even pretty large,
+
+143
+00:08:49,219 --> 00:08:52,222
+containers can spin up very quickly,
+
+144
+00:08:52,453 --> 00:08:57,370
+especially if I've spun them up before,
+because those layers are already on that
+
+145
+00:08:57,370 --> 00:09:02,419
+machine and I can get things 
+going, much quicker.
+
+146
+00:09:02,650 --> 00:09:07,534
+The other thing is, is I can install
+a lot more containers onto a box
+
+147
+00:09:07,534 --> 00:09:10,537
+and I can a VM. Why?
+
+148
+00:09:11,494 --> 00:09:14,002
+You're right, they're sharing
+some of the same memory space,
+
+149
+00:09:14,002 --> 00:09:18,127
+under the containers,
+specifically those base layers,
+
+150
+00:09:18,622 --> 00:09:22,252
+at spin up time, they're,
+they're saving those, which,
+
+151
+00:09:22,681 --> 00:09:26,146
+which means
+I've got really low overhead, for those.
+
+152
+00:09:26,509 --> 00:09:31,954
+And there's no, there's no,
+guest OS kernel like I have in, in VMs.
+
+153
+00:09:31,954 --> 00:09:33,736
+Right. Everything's contained.
+
+154
+00:09:33,736 --> 00:09:35,353
+It's very low overhead there.
+
+155
+00:09:35,353 --> 00:09:38,752
+Now, some people have said, can I run a,
+
+156
+00:09:39,874 --> 00:09:43,009
+an alpine container on a windows box?
+
+157
+00:09:43,009 --> 00:09:47,827
+And the answer to that is kind of sorta,
+because containers right now
+
+158
+00:09:48,223 --> 00:09:51,391
+are primarily running on Unix, boxes or
+
+159
+00:09:51,391 --> 00:09:54,394
+flavors of Unix like Linux or,
+
+160
+00:09:54,394 --> 00:09:58,057
+whistle to, whistle to things like that.
+
+161
+00:09:58,057 --> 00:10:01,852
+So it can run on a windows box,
+but you are actually running it in a VM
+
+162
+00:10:01,852 --> 00:10:03,700
+that's running Linux.
+
+163
+00:10:03,700 --> 00:10:06,274
+So there you go.
+
+164
+00:10:06,274 --> 00:10:06,802
+All right.
+
+165
+00:10:06,802 --> 00:10:09,805
+Some security concerns with, containers.
+
+166
+00:10:09,970 --> 00:10:12,907
+So you want to make sure
+that when you are running containers
+
+167
+00:10:12,907 --> 00:10:17,593
+that you are dropping any capabilities
+you do not need in that container,
+
+168
+00:10:18,022 --> 00:10:22,048
+because that opens up, the attack
+surface of that container,
+
+169
+00:10:22,048 --> 00:10:25,051
+make sure that you're running as non-root.
+
+170
+00:10:26,437 --> 00:10:29,275
+That when you spin up, your container
+
+171
+00:10:29,275 --> 00:10:32,278
+in your image, you can define
+which user you're running as
+
+172
+00:10:32,707 --> 00:10:35,017
+and make sure
+that you use a lot of the hardening
+
+173
+00:10:35,017 --> 00:10:37,987
+and vulnerability scanning techniques
+that are out there today.
+
+174
+00:10:38,482 --> 00:10:38,878
+Right.
+
+175
+00:10:38,878 --> 00:10:43,960
+There's lots of options out there
+to scan, containers
+
+176
+00:10:44,191 --> 00:10:47,194
+and even, Docker
+
+177
+00:10:47,227 --> 00:10:50,230
+itself has some of that scanning
+capability in there.
+
+178
+00:10:50,560 --> 00:10:54,421
+Another, great technique
+here is to sign your images
+
+179
+00:10:54,619 --> 00:10:57,622
+to make sure that you are getting them
+from a reliable source
+
+180
+00:10:57,721 --> 00:11:00,723
+and that they're not coming,
+with some malicious code in them.
+
+181
+00:11:00,756 --> 00:11:04,419
+So this is kind of been been great
+for the Docker ecosystem,
+
+182
+00:11:04,419 --> 00:11:08,346
+because you can make them even more secure
+than what we've seen
+
+183
+00:11:08,346 --> 00:11:10,491
+with some of the VM images
+that are out there today.
+
+184
+00:11:12,966 --> 00:11:13,428
+Okay.
+
+185
+00:11:13,428 --> 00:11:14,880
+Lots of standards out there.
+
+186
+00:11:14,880 --> 00:11:18,345
+There's been, really interesting battles
+
+187
+00:11:18,345 --> 00:11:21,348
+in in running images out there.
+
+188
+00:11:21,546 --> 00:11:24,846
+But from that, the easiest way to put it
+
+189
+00:11:24,846 --> 00:11:28,212
+is there's a Docker engine
+that that's been around for a long time.
+
+190
+00:11:28,674 --> 00:11:32,337
+Probably one of the most popular
+container D
+
+191
+00:11:32,337 --> 00:11:35,340
+is an underlying,
+
+192
+00:11:36,396 --> 00:11:37,188
+what's the right word?
+
+193
+00:11:37,188 --> 00:11:41,049
+I wouldn't call it a hypervisor,
+but it's running the containers and CRI.
+
+194
+00:11:41,049 --> 00:11:44,217
+Oh, these are light, lightweight runtimes
+for the,
+
+195
+00:11:46,032 --> 00:11:47,154
+containers.
+
+196
+00:11:47,154 --> 00:11:53,226
+The images to start running and then OCI
+are image and runtime, specifications.
+
+197
+00:11:53,820 --> 00:11:58,572
+Go ahead and and research those some more
+if you want to learn more about them.
+
+198
+00:11:58,836 --> 00:12:02,895
+There's quite an interesting history
+behind each one of these
+
+199
+00:12:02,895 --> 00:12:07,020
+in kind of the standards battle,
+that that went on behind
+
+200
+00:12:07,020 --> 00:12:10,848
+some of these, are actually quite
+interesting if you're if you're interested
+
+201
+00:12:10,848 --> 00:12:13,092
+in learning some of the computer
+science history behind it.
+
+202
+00:12:14,313 --> 00:12:14,676
+All right.
+
+203
+00:12:14,676 --> 00:12:18,504
+So we've got individual containers
+and we are going to talk more
+
+204
+00:12:18,504 --> 00:12:21,507
+about orchestration needs
+and what comes next.
+
+205
+00:12:21,540 --> 00:12:23,553
+But simple.
+
+206
+00:12:23,553 --> 00:12:24,213
+Right.
+
+207
+00:12:24,213 --> 00:12:27,843
+Other gun orchestration needs
+for containers I need to schedule them.
+
+208
+00:12:27,843 --> 00:12:29,823
+I need to scale them up.
+
+209
+00:12:29,823 --> 00:12:33,189
+I need to be able to discover
+individual containers
+
+210
+00:12:33,189 --> 00:12:37,677
+and what they provide, because people
+are using them as microservices,
+
+211
+00:12:38,436 --> 00:12:41,076
+but they do one specific things.
+
+212
+00:12:41,076 --> 00:12:44,178
+I also need a lot of times
+I need some configuration
+
+213
+00:12:44,178 --> 00:12:48,963
+for all my containers that are the same,
+that I can pass in at runtime,
+
+214
+00:12:49,260 --> 00:12:53,055
+or maybe secrets, maybe their passwords
+or tokens that are needed in order
+
+215
+00:12:53,055 --> 00:12:57,939
+for that container
+to talk to another container through, TSL
+
+216
+00:12:57,939 --> 00:13:00,216
+or one of the other protocols
+where I need tokens
+
+217
+00:13:00,216 --> 00:13:03,318
+being passed or certification
+certs being passed around.
+
+218
+00:13:03,912 --> 00:13:07,311
+And then I also need the ability
+for self-healing and rollouts and health
+
+219
+00:13:07,311 --> 00:13:11,832
+checks, so that if a container does fail,
+that a new one can take its place.
+
+220
+00:13:11,832 --> 00:13:17,838
+Remember, containers tend to not store
+well, they don't store, state.
+
+221
+00:13:17,838 --> 00:13:20,214
+So I need to store that state somewhere.
+
+222
+00:13:20,214 --> 00:13:22,986
+And if I even starting up
+
+223
+00:13:22,986 --> 00:13:26,385
+a new container, it needs to know
+whether it's a stateless container
+
+224
+00:13:26,385 --> 00:13:30,906
+or whether I need to pick up
+for where I left off by storing those in,
+
+225
+00:13:32,127 --> 00:13:33,216
+in some kind of storage.
+
+226
+00:13:33,216 --> 00:13:33,546
+Right.
+
+227
+00:13:33,546 --> 00:13:36,516
+Some kind of, persistent store.
+
+228
+00:13:38,331 --> 00:13:38,661
+All right.
+
+229
+00:13:38,661 --> 00:13:42,126
+So best practices,
+keep your containers small,
+
+230
+00:13:42,258 --> 00:13:45,426
+make sure that they have
+a single responsibility for the image.
+
+231
+00:13:45,723 --> 00:13:48,759
+I've seen some of these images
+have everything in them,
+
+232
+00:13:49,056 --> 00:13:51,762
+which is great when you're doing
+development and things like that.
+
+233
+00:13:51,762 --> 00:13:54,831
+But for production,
+they become kind of big and unwieldy,
+
+234
+00:13:54,897 --> 00:14:00,177
+and you lose some of the flexibility that
+you want, for deploying and scalability
+
+235
+00:14:00,177 --> 00:14:04,038
+and all those things that we look for
+in a microservice architecture.
+
+236
+00:14:05,226 --> 00:14:08,658
+Multi-stage builds, you want to make sure
+that you are building
+
+237
+00:14:08,658 --> 00:14:13,773
+things in, in stages
+and take advantage of that layering
+
+238
+00:14:14,268 --> 00:14:17,898
+that you have instead of having one
+big command in one of the steps,
+
+239
+00:14:17,898 --> 00:14:19,680
+have multiple steps in there.
+
+240
+00:14:19,680 --> 00:14:23,013
+So if you do make a change to it,
+you're not rebuilding everything.
+
+241
+00:14:23,013 --> 00:14:24,432
+You're only building that one layer.
+
+242
+00:14:25,422 --> 00:14:27,699
+And take advantage of,
+
+243
+00:14:27,699 --> 00:14:32,253
+take advantage of CI, CD pipelines
+in automating
+
+244
+00:14:32,253 --> 00:14:35,949
+the build of your of your, containers
+that you have out there.
+
+245
+00:14:36,378 --> 00:14:38,292
+And here's another great hint.
+
+246
+00:14:38,292 --> 00:14:41,757
+And a lot of times developers
+miss this one, I do I miss this one a lot.
+
+247
+00:14:42,153 --> 00:14:45,222
+You can set
+resource limits on your container.
+
+248
+00:14:45,222 --> 00:14:49,380
+So if you get, the infamous 
+while one for loop
+
+249
+00:14:49,710 --> 00:14:54,066
+in one of your applications
+that you can limit how much CPU and memory
+
+250
+00:14:54,066 --> 00:14:58,752
+that's going to take, or even worse, in a,
+while one for loop is a while,
+
+251
+00:14:58,752 --> 00:15:02,415
+one Malak Falk loop,
+that will throw you for a loop.
+
+252
+00:15:02,844 --> 00:15:05,781
+You'll chew up all the CPU
+and memory really quick,
+
+253
+00:15:05,781 --> 00:15:09,246
+but with a container,
+I can limit how much it can actually take.
+
+254
+00:15:11,787 --> 00:15:14,790
+All right, go out there and explore
+more containers.
+
+255
+00:15:14,790 --> 00:15:16,143
+There's a lot.
+
+256
+00:15:16,143 --> 00:15:18,585
+It's a very cool technology.
+
+257
+00:15:18,585 --> 00:15:22,050
+Dive into it some more and play around
+with Docker files.
+
+258
+00:15:22,050 --> 00:15:25,053
+And don't forget some of these
+best practices that we've talked about.
+
+259
+00:15:25,152 --> 00:15:28,056
+This will help you when you start
+deploying
+
+260
+00:15:28,056 --> 00:15:31,653
+more and more into,
+your cloud architectures.

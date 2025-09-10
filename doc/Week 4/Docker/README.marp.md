@@ -8,6 +8,8 @@ title: Primer on Docker
 
 # Docker Primer
 
+Video: [https://youtu.be/PmTBTCE84Fk](https://youtu.be/PmTBTCE84Fk)
+
 Docker is a platform for building, shipping, and running containerized applications. Containers package code and dependencies together, ensuring consistency across environments.
 
 ---
@@ -39,7 +41,6 @@ brew update
 brew install --cask docker
 ```
 
-
 ### Windows
 
 - Install Docker Desktop for Windows from docker.com
@@ -65,6 +66,7 @@ FROM node:18-alpine
 docker build -t myapp:latest .
 ```
 
+---
 
 3. **Run Container**
 ```shell script
@@ -81,6 +83,7 @@ docker images
    docker ps -a
 ```
 
+---
 
 5. **Stop & Remove**
 ```shell script

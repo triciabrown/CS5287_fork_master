@@ -1,0 +1,1515 @@
+﻿1
+00:00:01,055 --> 00:00:02,738
+All right, let's talk about the docker.
+
+2
+00:00:02,738 --> 00:00:06,401
+Let's give you an overview of Docker,
+the commands that you want to use
+
+3
+00:00:06,401 --> 00:00:07,655
+and everything.
+
+4
+00:00:07,655 --> 00:00:10,130
+The theory behind it,
+we won't touch on nearly as much.
+
+5
+00:00:10,130 --> 00:00:13,067
+Let's make this really practical.
+How's that sound?
+
+6
+00:00:13,067 --> 00:00:15,080
+Okay, first off, core concepts.
+
+7
+00:00:15,080 --> 00:00:18,017
+And then we'll get into,
+commands that you can run.
+
+8
+00:00:18,017 --> 00:00:21,020
+I've got an image
+which we've talked about in other,
+
+9
+00:00:21,284 --> 00:00:24,683
+lectures where an image contains
+
+10
+00:00:24,683 --> 00:00:28,115
+everything that needs to happen
+or in order to run a container.
+
+11
+00:00:28,445 --> 00:00:31,514
+So it's read
+only it's built from a Docker file.
+
+12
+00:00:31,745 --> 00:00:35,276
+There's different layers in there
+that represent file systems, the core,
+
+13
+00:00:35,375 --> 00:00:37,388
+operating system.
+
+14
+00:00:37,388 --> 00:00:41,249
+And then the file system changes
+throughout, including configuration files.
+
+15
+00:00:41,249 --> 00:00:45,572
+All that remember images are don't
+really contain a state unless you're
+
+16
+00:00:45,572 --> 00:00:49,400
+storing things in files in the file system
+that gets mounted into the image.
+
+17
+00:00:50,093 --> 00:00:54,812
+A container is a runtime instance
+of an image, with its own file system,
+
+18
+00:00:54,812 --> 00:00:59,069
+its own process space, its own network
+interface, and operating environment.
+
+19
+00:00:59,399 --> 00:00:59,927
+All right.
+
+20
+00:00:59,927 --> 00:01:02,930
+So you can take a snapshot of a container,
+
+21
+00:01:02,930 --> 00:01:07,286
+but it's not it's not,
+what's the right word?
+
+22
+00:01:07,484 --> 00:01:11,873
+It's not taking a snapshot
+of the running registries
+
+23
+00:01:11,873 --> 00:01:15,008
+and CPU and memory and all that
+that you normally get with like a VM,
+
+24
+00:01:15,734 --> 00:01:20,750
+right eye containers,
+just taking a snapshot of the file system,
+
+25
+00:01:20,750 --> 00:01:22,763
+the processes,
+
+26
+00:01:22,763 --> 00:01:24,314
+you know, the file system mostly
+
+27
+00:01:24,314 --> 00:01:26,360
+because that's
+all I can really store inside an image.
+
+28
+00:01:26,360 --> 00:01:27,449
+Right?
+
+29
+00:01:27,449 --> 00:01:27,680
+All right.
+
+30
+00:01:27,680 --> 00:01:32,630
+A Docker file is a script of instructions
+to create an image.
+
+31
+00:01:32,894 --> 00:01:36,656
+And there's some basic, commands inside
+these Docker files will show you
+
+32
+00:01:36,656 --> 00:01:40,781
+a couple of examples from 
+which means I'm going to inherit
+
+33
+00:01:40,781 --> 00:01:42,365
+from another base image.
+
+34
+00:01:42,365 --> 00:01:43,619
+I'm going to run a command.
+
+35
+00:01:43,619 --> 00:01:46,622
+I'm going to copy files
+and an entry point.
+
+36
+00:01:46,721 --> 00:01:49,229
+It's always some kind of entry point
+or command.
+
+37
+00:01:49,229 --> 00:01:53,849
+Then I'm actually going to run
+when I actually run the image to create
+
+38
+00:01:53,849 --> 00:01:55,268
+a container.
+
+39
+00:01:55,268 --> 00:01:58,733
+And then there's a registry
+which contains all these images.
+
+40
+00:01:59,591 --> 00:02:04,244
+Most popular out there is Docker Hub,
+but a lot of people are hosting their own,
+
+41
+00:02:04,607 --> 00:02:08,237
+to guarantee the image quality
+that they have running in the
+
+42
+00:02:08,237 --> 00:02:09,887
+in their enterprise organization.
+
+43
+00:02:12,164 --> 00:02:12,659
+All right.
+
+44
+00:02:12,659 --> 00:02:16,025
+To install, Docker,
+
+45
+00:02:16,025 --> 00:02:19,655
+on a mac OS,
+you can use homebrew to install Docker.
+
+46
+00:02:19,655 --> 00:02:21,965
+If you're in Linux, you can do the same.
+
+47
+00:02:21,965 --> 00:02:27,443
+There's lots of, different, 
+versions of, installers out there,
+
+48
+00:02:27,443 --> 00:02:31,502
+depending on the, operating system
+that you're using on windows.
+
+49
+00:02:31,667 --> 00:02:34,670
+Docker
+desktop is probably the easiest way to go.
+
+50
+00:02:34,934 --> 00:02:39,158
+And you want to make sure
+that you're enabling, Wizard to,
+
+51
+00:02:40,676 --> 00:02:43,382
+it's the best operating environment
+to run Docker.
+
+52
+00:02:43,382 --> 00:02:47,837
+Remember Docker containers natively run
+in, Linux environments.
+
+53
+00:02:47,837 --> 00:02:50,411
+They do not run on windows
+environments, right?
+
+54
+00:02:50,411 --> 00:02:53,876
+So on a windows box
+you are going to actually
+
+55
+00:02:53,876 --> 00:02:59,024
+be creating a, wizard to integration,
+which is basically just a VM running,
+
+56
+00:02:59,321 --> 00:03:02,324
+that you're running this stuff in.
+
+57
+00:03:02,885 --> 00:03:03,578
+Okay.
+
+58
+00:03:03,578 --> 00:03:06,614
+Let's take a look at a basic workflow
+on working with Docker.
+
+59
+00:03:06,845 --> 00:03:09,815
+The first thing you need to do
+is write a Docker container,
+
+60
+00:03:10,145 --> 00:03:13,148
+or write a Docker file
+that gives you a Docker image.
+
+61
+00:03:13,148 --> 00:03:14,303
+Sorry about that.
+
+62
+00:03:14,303 --> 00:03:19,418
+So a docker file I have in here from
+which is my base image.
+
+63
+00:03:19,418 --> 00:03:23,345
+In this case I'm grabbing a Node.js,
+
+64
+00:03:23,345 --> 00:03:26,348
+version 18 or running on alpine.
+
+65
+00:03:26,645 --> 00:03:27,173
+Right.
+
+66
+00:03:27,173 --> 00:03:29,747
+I set what my working directory is.
+
+67
+00:03:29,747 --> 00:03:33,410
+I'm copying some files into the image.
+
+68
+00:03:33,773 --> 00:03:37,304
+I'm going to run, some commands
+to help set up the image.
+
+69
+00:03:37,568 --> 00:03:39,845
+I'm going to copy more data in.
+
+70
+00:03:39,845 --> 00:03:44,564
+And then the command I'm going
+to run is node and then server dot js.
+
+71
+00:03:45,026 --> 00:03:48,359
+Remember each one of these commands
+the working directory
+
+72
+00:03:48,359 --> 00:03:52,715
+the copy the run the copy
+and command are individual layers.
+
+73
+00:03:52,847 --> 00:03:54,332
+When building that image.
+
+74
+00:03:54,332 --> 00:03:56,939
+So pay attention to those layers.
+
+75
+00:03:56,939 --> 00:04:01,790
+If you have one big long command right,
+and you're constantly changing that,
+
+76
+00:04:01,790 --> 00:04:06,707
+you may want to break that into other
+to multiple, run lines in there
+
+77
+00:04:06,938 --> 00:04:09,941
+so that you're not rebuilding everything
+every time.
+
+78
+00:04:10,337 --> 00:04:13,109
+Then, to build the image.
+
+79
+00:04:13,109 --> 00:04:18,059
+I just type in Docker build,
+dash means tag.
+
+80
+00:04:18,059 --> 00:04:20,633
+That's
+what you're going to name your image
+
+81
+00:04:20,633 --> 00:04:23,240
+and it's going to pull from that Docker
+file.
+
+82
+00:04:23,240 --> 00:04:26,705
+The, the dot there says
+build it from this directory
+
+83
+00:04:26,969 --> 00:04:29,708
+because I'm copying things
+into this image.
+
+84
+00:04:29,708 --> 00:04:33,305
+The directory that it you do the build in
+is important because it's going to look
+
+85
+00:04:33,305 --> 00:04:36,803
+in the current directory,
+for package.json in this case.
+
+86
+00:04:37,166 --> 00:04:37,661
+Right.
+
+87
+00:04:37,661 --> 00:04:40,895
+There's other things
+you can specify on the command line.
+
+88
+00:04:41,060 --> 00:04:43,502
+Go ahead and take a look at Docker.
+
+89
+00:04:43,502 --> 00:04:45,251
+Dash h for help.
+
+90
+00:04:45,251 --> 00:04:47,363
+And that will help you out some.
+
+91
+00:04:47,363 --> 00:04:47,627
+All right.
+
+92
+00:04:47,627 --> 00:04:50,696
+The next thing I'm going to do once
+I have that image, what do I want to do?
+
+93
+00:04:50,696 --> 00:04:51,653
+I want to run that image.
+
+94
+00:04:51,653 --> 00:04:53,567
+I want to create a container from that.
+
+95
+00:04:53,567 --> 00:04:55,745
+Right. So it's a Docker run.
+
+96
+00:04:56,768 --> 00:04:57,098
+And in
+
+97
+00:04:57,098 --> 00:05:00,365
+this case I do a dash which runs it
+as a daemon in the background.
+
+98
+00:05:00,860 --> 00:05:03,665
+I give the container a name
+
+99
+00:05:03,665 --> 00:05:06,668
+and then I open up some ports
+with the dash P.
+
+100
+00:05:06,701 --> 00:05:10,298
+It's mapping supports
+so that I can actually access this,
+
+101
+00:05:10,463 --> 00:05:13,367
+Docker container on port 8080.
+
+102
+00:05:13,367 --> 00:05:15,479
+And then I give the image name.
+
+103
+00:05:15,479 --> 00:05:18,614
+So there's a container name
+and an image name.
+
+104
+00:05:18,614 --> 00:05:20,495
+Remember container is the runtime.
+
+105
+00:05:20,495 --> 00:05:22,574
+The image is that thing
+
+106
+00:05:22,574 --> 00:05:26,237
+I'm going to use over and over again
+for each container that that I spin up.
+
+107
+00:05:26,897 --> 00:05:27,425
+Right.
+
+108
+00:05:27,425 --> 00:05:30,757
+I can also list
+all of the different images that I have
+
+109
+00:05:30,988 --> 00:05:33,298
+by typing in Docker images.
+
+110
+00:05:33,298 --> 00:05:38,116
+Or Docker ls will do the same thing, or I
+if I want to see
+
+111
+00:05:38,116 --> 00:05:41,581
+what's running the containers
+I have running, I can type in docker.
+
+112
+00:05:41,581 --> 00:05:46,003
+PS these are very similar commands
+that if you're already in the Linux world,
+
+113
+00:05:46,003 --> 00:05:50,260
+you're going to be very familiar
+with a command like ls and PES.
+
+114
+00:05:50,755 --> 00:05:52,372
+So they kind of mimicked,
+
+115
+00:05:52,372 --> 00:05:55,375
+they tried their best to mimic
+what developers already knew.
+
+116
+00:05:55,639 --> 00:05:56,266
+All right.
+
+117
+00:05:56,266 --> 00:05:59,269
+My containers running, everything's
+hunky dory.
+
+118
+00:05:59,302 --> 00:06:00,787
+What if I want to shut it down?
+
+119
+00:06:00,787 --> 00:06:02,965
+What if I want to, you know,
+stop this container.
+
+120
+00:06:02,965 --> 00:06:04,912
+Well, it's very easy.
+
+121
+00:06:04,912 --> 00:06:06,793
+I stop it now.
+
+122
+00:06:06,793 --> 00:06:10,357
+The container will stop, but the container
+
+123
+00:06:10,357 --> 00:06:13,360
+and the information around
+the container will still exist.
+
+124
+00:06:13,921 --> 00:06:14,218
+Right?
+
+125
+00:06:14,218 --> 00:06:17,881
+I can inspect, 
+what's going on inside the container,
+
+126
+00:06:18,013 --> 00:06:23,161
+but if I leave it there, it will continue
+to, can consume,
+
+127
+00:06:23,557 --> 00:06:26,725
+space on the file system,
+it storing container information.
+
+128
+00:06:27,286 --> 00:06:30,124
+So I want to make sure that I remove that
+container.
+
+129
+00:06:30,124 --> 00:06:32,962
+And I also want to
+maybe remove the image as well
+
+130
+00:06:32,962 --> 00:06:35,965
+if I'm, if I'm done using the image, I'm
+not going to use it ever again.
+
+131
+00:06:36,130 --> 00:06:38,077
+Go ahead and remove the image as well.
+
+132
+00:06:38,077 --> 00:06:40,057
+That will free up
+the resources that you need.
+
+133
+00:06:40,057 --> 00:06:41,542
+This is especially important
+
+134
+00:06:41,542 --> 00:06:45,700
+if you're running in the cloud environment
+and you're concerned about resources
+
+135
+00:06:45,997 --> 00:06:51,013
+on an individual VM,
+or if I'm spinning up multiple, of these.
+
+136
+00:06:52,366 --> 00:06:54,016
+Okay, so
+
+137
+00:06:54,016 --> 00:06:58,471
+so far we've copy data in it at runtime
+or at build time.
+
+138
+00:06:58,471 --> 00:06:59,428
+Right.
+
+139
+00:06:59,428 --> 00:07:01,903
+What if I have data I want to attach
+
+140
+00:07:01,903 --> 00:07:05,170
+to a container
+that I didn't build into the image?
+
+141
+00:07:05,302 --> 00:07:08,239
+I have a common image
+that I want to use over and over again,
+
+142
+00:07:08,239 --> 00:07:13,486
+but I want to mount data
+into a running container.
+
+143
+00:07:13,717 --> 00:07:16,720
+They have the concept of something
+called a volume.
+
+144
+00:07:17,215 --> 00:07:20,218
+Now this is not a true blown,
+
+145
+00:07:20,284 --> 00:07:25,498
+you know, all the way out there, software
+defined storage system,
+
+146
+00:07:25,498 --> 00:07:31,306
+but it gives me a way of mounting data
+into a running container.
+
+147
+00:07:31,306 --> 00:07:35,167
+By creating a volume,
+I can create, named volume.
+
+148
+00:07:35,167 --> 00:07:36,619
+There, and then I can
+
+149
+00:07:36,619 --> 00:07:41,107
+do the mappings of that volume up
+from my current file system at runtime.
+
+150
+00:07:41,107 --> 00:07:44,110
+So I can say, hey,
+the volume is called my data.
+
+151
+00:07:44,374 --> 00:07:49,753
+And I can either specify how that's being,
+what data is going into that volume,
+
+152
+00:07:50,116 --> 00:07:53,548
+or I can specify at runtime
+by saying dash v.
+
+153
+00:07:53,548 --> 00:07:54,241
+In this case
+
+154
+00:07:55,198 --> 00:07:58,267
+the volume name,
+and then where the data is coming from.
+
+155
+00:07:58,927 --> 00:07:59,224
+Right.
+
+156
+00:07:59,224 --> 00:08:02,458
+Slash data in in this case
+is where it's getting mounted to.
+
+157
+00:08:03,019 --> 00:08:03,613
+Right.
+
+158
+00:08:03,613 --> 00:08:08,794
+So there's that gives you kind of an idea
+of how to use volumes.
+
+159
+00:08:08,959 --> 00:08:11,962
+We'll go more depth on volumes,
+but go ahead and research it.
+
+160
+00:08:12,028 --> 00:08:14,569
+Go ahead and type in Docker volumes.
+
+161
+00:08:14,569 --> 00:08:17,572
+Dash dash help
+and it'll tell you all about it.
+
+162
+00:08:17,770 --> 00:08:22,093
+So there's some, great,
+tips on how to use it effectively.
+
+163
+00:08:22,654 --> 00:08:23,677
+Right.
+
+164
+00:08:23,677 --> 00:08:28,396
+So if I, I can actually, create
+
+165
+00:08:28,396 --> 00:08:31,399
+a, it's a,
+
+166
+00:08:31,762 --> 00:08:34,996
+it's a bind mount,
+so it's an unnamed volume,
+
+167
+00:08:35,590 --> 00:08:38,098
+which means I'm doing
+it just specifically for this container
+
+168
+00:08:38,098 --> 00:08:41,101
+that I'm not sharing
+that volume across containers.
+
+169
+00:08:41,332 --> 00:08:44,335
+And I can do that at runtime with the dash
+V as well.
+
+170
+00:08:44,368 --> 00:08:49,318
+And I can specify the current working
+directory or the directory in the host
+
+171
+00:08:49,615 --> 00:08:53,839
+that I want mounted into the container
+and the container endpoint.
+
+172
+00:08:54,235 --> 00:08:59,086
+The difference between about a bind
+mount point and the named volume is bound.
+
+173
+00:08:59,086 --> 00:09:03,607
+My, mount points cannot be shared
+between containers where volume can.
+
+174
+00:09:03,607 --> 00:09:06,313
+I can have a container, or a volume.
+
+175
+00:09:06,313 --> 00:09:10,339
+I mean, that, can be shared
+between different containers,
+
+176
+00:09:10,339 --> 00:09:14,596
+which is an easy way for them to share
+a file system or whatever the case may be.
+
+177
+00:09:17,434 --> 00:09:17,764
+All right.
+
+178
+00:09:17,764 --> 00:09:19,480
+Let's talk about networking a little bit.
+
+179
+00:09:19,480 --> 00:09:21,328
+There's a whole lecture on networking.
+
+180
+00:09:21,328 --> 00:09:24,331
+It's quite a doozy of, of a lecture.
+
+181
+00:09:24,694 --> 00:09:26,212
+Take a look at it.
+
+182
+00:09:26,212 --> 00:09:29,875
+The networking,
+aspect always seems to be difficult,
+
+183
+00:09:30,271 --> 00:09:35,287
+in all these systems, because I'm
+connecting different things together, and
+
+184
+00:09:35,650 --> 00:09:39,346
+but let's keep it real simple, with Docker
+by default,
+
+185
+00:09:40,105 --> 00:09:44,758
+it's a bridged network
+that gets created, when a container runs,
+
+186
+00:09:45,121 --> 00:09:49,312
+which means if it's a bridge,
+I need to go to port mapping.
+
+187
+00:09:49,741 --> 00:09:53,701
+So port mapping between the host
+and the individual container.
+
+188
+00:09:54,790 --> 00:09:57,793
+So that's at dash P
+that I see all the time
+
+189
+00:09:58,090 --> 00:10:02,215
+that if I'm going to use the default
+I'll do a dash P, the host
+
+190
+00:10:02,215 --> 00:10:06,472
+IP or the host port colon
+the container port.
+
+191
+00:10:07,033 --> 00:10:10,168
+So if I want to map host port 8080
+
+192
+00:10:10,168 --> 00:10:14,524
+to container
+point 3000 and B 8080 colon 3000.
+
+193
+00:10:14,821 --> 00:10:18,517
+So anytime anyone from the host accesses
+
+194
+00:10:18,880 --> 00:10:22,972
+port 8080,
+it's going to be mapped to port 30
+
+195
+00:10:22,972 --> 00:10:26,635
+or 3000 in the, container.
+
+196
+00:10:27,262 --> 00:10:29,572
+That's the easiest way
+to think of a bridge.
+
+197
+00:10:29,572 --> 00:10:31,651
+That's what a bridge does.
+
+198
+00:10:31,651 --> 00:10:34,324
+I can define my own bridges,
+
+199
+00:10:34,324 --> 00:10:39,835
+where I've where I've created
+my own bridges that can be used across
+
+200
+00:10:39,835 --> 00:10:44,125
+multiple, containers,
+which can isolate those containers,
+
+201
+00:10:45,082 --> 00:10:46,897
+right, to use that same bridge.
+
+202
+00:10:46,897 --> 00:10:51,154
+So that's important when we start thinking
+about micro segmentation and things
+
+203
+00:10:51,154 --> 00:10:56,104
+like that, containers can reside
+on these new software defined networks.
+
+204
+00:10:56,500 --> 00:11:00,294
+This truly, is kind of
+rudimentary software defined networking.
+
+205
+00:11:00,294 --> 00:11:04,221
+We're going to see that
+with the Docker world that it can get
+
+206
+00:11:04,221 --> 00:11:08,280
+even more and more,
+complex network architectures.
+
+207
+00:11:08,280 --> 00:11:11,283
+And so really cool things
+when we start talking
+
+208
+00:11:11,316 --> 00:11:15,111
+Docker Swarm and Kubernetes, where
+I'm spanning across multiple hosts
+
+209
+00:11:15,870 --> 00:11:18,411
+for a host, network,
+
+210
+00:11:18,411 --> 00:11:21,975
+on Linux only,
+I can specify a host network
+
+211
+00:11:22,107 --> 00:11:25,473
+so that my container can see
+the host network as well,
+
+212
+00:11:26,001 --> 00:11:29,004
+by pulling
+by creating a new network on the host
+
+213
+00:11:29,466 --> 00:11:33,492
+and now
+adding that network to the container,
+
+214
+00:11:33,855 --> 00:11:37,023
+I can now that container now
+has access to the host network.
+
+215
+00:11:37,782 --> 00:11:40,026
+Without that it doesn't
+
+216
+00:11:40,026 --> 00:11:42,996
+I it's a
+so that's that's important to understand.
+
+217
+00:11:45,075 --> 00:11:45,966
+Okay.
+
+218
+00:11:45,966 --> 00:11:49,761
+I can
+share images in like my repositories
+
+219
+00:11:49,761 --> 00:11:52,698
+as we talked about before,
+they're called registries.
+
+220
+00:11:52,698 --> 00:11:57,879
+So when I tag when I create my image,
+I do a dash t to tag it.
+
+221
+00:11:58,341 --> 00:12:01,476
+But I can also tag an image
+with multiple names
+
+222
+00:12:01,476 --> 00:12:06,492
+if I want the most common, taxonomy
+that people use
+
+223
+00:12:06,756 --> 00:12:10,584
+is they use the name of the image
+and then colon, and then a version.
+
+224
+00:12:11,805 --> 00:12:14,775
+I see this very common
+commonly used out there.
+
+225
+00:12:14,775 --> 00:12:18,405
+So for in this example
+that we're looking at here,
+
+226
+00:12:18,735 --> 00:12:21,738
+tagging my app latest
+
+227
+00:12:22,101 --> 00:12:25,104
+because maybe that's what I just built to
+
+228
+00:12:25,203 --> 00:12:29,196
+my repo, my app colon version one.
+
+229
+00:12:29,889 --> 00:12:31,704
+So we'll talk about my repo in a second.
+
+230
+00:12:31,704 --> 00:12:35,565
+But the idea here is that everything
+after the colon tends to be,
+
+231
+00:12:36,027 --> 00:12:39,096
+some kind of version or, yeah.
+
+232
+00:12:39,228 --> 00:12:44,211
+Yeah, version or, 
+permutation of the image.
+
+233
+00:12:44,211 --> 00:12:46,719
+So people can easily
+see what they're looking at.
+
+234
+00:12:46,719 --> 00:12:50,778
+Latest is, is, common vernacular
+that everyone uses to say,
+
+235
+00:12:50,778 --> 00:12:53,451
+this is the latest and greatest
+that I've pushed up.
+
+236
+00:12:53,451 --> 00:12:56,190
+Okay. Now, yeah, I you did notice.
+
+237
+00:12:56,190 --> 00:12:59,490
+I hope you noticed the name
+with my repo on the front.
+
+238
+00:12:59,787 --> 00:13:03,087
+This is really important
+when you start talking about registries.
+
+239
+00:13:03,384 --> 00:13:08,433
+Because if everyone just pumped everything
+into one registry and my app,
+
+240
+00:13:09,093 --> 00:13:13,152
+and everyone wanted to use my app,
+you'd be overwriting each other, right?
+
+241
+00:13:13,185 --> 00:13:14,736
+If you had the right permissions.
+
+242
+00:13:14,736 --> 00:13:19,092
+So they have this concept of my repo
+so you can specify which repository
+
+243
+00:13:19,092 --> 00:13:20,412
+you're going to put it in.
+
+244
+00:13:20,412 --> 00:13:25,131
+And in GitHub you can't push things
+into the root repository.
+
+245
+00:13:25,725 --> 00:13:27,804
+You have to create your own, repository.
+
+246
+00:13:27,804 --> 00:13:29,289
+And that's the name there.
+
+247
+00:13:29,289 --> 00:13:32,886
+So in this case my repo is the repository.
+
+248
+00:13:33,447 --> 00:13:36,945
+My app is the name of the image
+in that repository.
+
+249
+00:13:37,275 --> 00:13:40,410
+And now when I go out
+and I'm pulling from that registry,
+
+250
+00:13:40,872 --> 00:13:45,360
+where I'm actually going to grab that
+from the registry, I do a pool
+
+251
+00:13:45,822 --> 00:13:49,980
+and I can specify the repo
+and the image name Docker push
+
+252
+00:13:50,178 --> 00:13:54,204
+lets me push that image into the repo,
+and then docker
+
+253
+00:13:54,204 --> 00:13:58,098
+pull lets me pull it out so I can share
+these images across multiple machines.
+
+254
+00:13:58,098 --> 00:14:01,728
+By doing this important thing to note,
+especially when you're doing
+
+255
+00:14:01,728 --> 00:14:04,929
+multi machine and Docker
+Swarm or Kubernetes,
+
+256
+00:14:05,523 --> 00:14:11,265
+you have to push your image up into a repo
+so the other machines can see it.
+
+257
+00:14:11,265 --> 00:14:15,126
+Because if you just build an image
+on an individual machine,
+
+258
+00:14:15,126 --> 00:14:16,479
+only that machine can see it.
+
+259
+00:14:17,766 --> 00:14:18,393
+And if you
+
+260
+00:14:18,393 --> 00:14:21,396
+want to deploy across
+multiple machines in a cluster,
+
+261
+00:14:21,429 --> 00:14:24,432
+you need to put it
+in a registry of some sort.
+
+262
+00:14:25,158 --> 00:14:28,128
+Okay, let's talk about Docker compose.
+
+263
+00:14:28,128 --> 00:14:31,131
+This is probably the the foundation
+
+264
+00:14:31,362 --> 00:14:34,365
+of of running, multiple
+
+265
+00:14:34,563 --> 00:14:38,127
+images together
+to form a set of services.
+
+266
+00:14:38,457 --> 00:14:42,780
+Because running a microservice, which is
+one microservice, is kind of boring.
+
+267
+00:14:42,780 --> 00:14:45,090
+It's not really a good architecture,
+right?
+
+268
+00:14:45,090 --> 00:14:48,621
+So a lot of times I have many of these
+containers that I want to run.
+
+269
+00:14:48,918 --> 00:14:52,746
+So Docker
+compose gives me that ability to specify
+
+270
+00:14:52,746 --> 00:14:55,848
+the name of the service,
+what build I'm using.
+
+271
+00:14:56,409 --> 00:15:01,755
+Or which I should say which image
+I'm going to use, the volumes
+
+272
+00:15:01,755 --> 00:15:04,857
+I want to connect to it, the ports
+I want to open.
+
+273
+00:15:05,055 --> 00:15:07,695
+I can set up dependencies
+between the different services.
+
+274
+00:15:07,695 --> 00:15:09,576
+So they're spinning up at the right times.
+
+275
+00:15:10,863 --> 00:15:13,866
+All these all
+these different things are involved there.
+
+276
+00:15:13,866 --> 00:15:15,681
+Take a look at the lecture notes.
+
+277
+00:15:15,681 --> 00:15:18,684
+You're going to see a lot of Docker
+compose.
+
+278
+00:15:18,717 --> 00:15:20,631
+It's all built on Yaml.
+
+279
+00:15:20,631 --> 00:15:22,578
+Learn some of the syntax there.
+
+280
+00:15:22,578 --> 00:15:26,769
+Rely on some of the generative
+AI to help you out, but understand what
+
+281
+00:15:26,769 --> 00:15:30,201
+each one of those things means because
+it's going to become very important
+
+282
+00:15:30,333 --> 00:15:35,514
+as we move into, using Docker
+in the cloud more effectively,
+
+283
+00:15:35,712 --> 00:15:39,078
+it's important to understand
+what each of those different layers mean
+
+284
+00:15:39,276 --> 00:15:42,279
+and how they interact with each other.
+
+285
+00:15:42,312 --> 00:15:43,962
+Okay, some of the best practices
+
+286
+00:15:43,962 --> 00:15:47,394
+we want to look at keep your images small.
+
+287
+00:15:48,219 --> 00:15:50,001
+You see alpine base images.
+
+288
+00:15:50,001 --> 00:15:53,367
+They're really good images, but they do
+require that you install everything.
+
+289
+00:15:53,367 --> 00:15:55,677
+They don't come with hardly
+anything in there. Right.
+
+290
+00:15:55,677 --> 00:15:58,383
+So some of the things
+you're already used to on ubuntu,
+
+291
+00:15:58,383 --> 00:16:02,376
+if you're using version two or Rhel,
+they're not going to be on there.
+
+292
+00:16:02,376 --> 00:16:05,082
+So you've got to install
+every everything that you need.
+
+293
+00:16:05,082 --> 00:16:09,273
+Look for other images, common 
+alpine base images.
+
+294
+00:16:09,273 --> 00:16:13,002
+If you're doing like Node or Python,
+there's some really good ones out there
+
+295
+00:16:13,002 --> 00:16:15,906
+that are very minimal,
+that you should be looking at.
+
+296
+00:16:15,906 --> 00:16:17,292
+So keep your images small.
+
+297
+00:16:17,292 --> 00:16:20,295
+That way they spin up faster,
+they're easier to manage.
+
+298
+00:16:20,592 --> 00:16:23,892
+Leverage multi-stage builds
+to separate build and runtime.
+
+299
+00:16:24,387 --> 00:16:26,466
+Very important.
+
+300
+00:16:27,522 --> 00:16:30,557
+Pin your
+images with versions to avoid surprises.
+
+301
+00:16:30,557 --> 00:16:35,276
+So don't always just go to latest,
+because if you do and you're pulling
+
+302
+00:16:35,540 --> 00:16:39,995
+every time that you, you know, do a run,
+you could get a side effect.
+
+303
+00:16:39,995 --> 00:16:43,427
+If there's a new image that's your base
+image that you're pulling off of.
+
+304
+00:16:43,691 --> 00:16:47,057
+So, pin them to specific versions,
+if you can,
+
+305
+00:16:47,453 --> 00:16:50,885
+and then make sure that you're cleaning up
+your system to get rid of any old stuff
+
+306
+00:16:50,885 --> 00:16:52,304
+that's not used anymore.
+
+307
+00:16:52,304 --> 00:16:55,736
+You can do a Docker system prune,
+and it will clean up old images
+
+308
+00:16:55,736 --> 00:16:57,155
+that aren't used.
+
+309
+00:16:57,155 --> 00:17:00,158
+They can get there
+can be a lot of data in there, right?
+
+310
+00:17:00,422 --> 00:17:04,448
+Also, make sure that you're storing
+your secrets securely.
+
+311
+00:17:04,448 --> 00:17:08,375
+Avoid EMV, directives in images.
+
+312
+00:17:08,672 --> 00:17:09,200
+Right.
+
+313
+00:17:09,200 --> 00:17:12,434
+Because a lot of times
+these, dockerfiles get checked in.
+
+314
+00:17:12,863 --> 00:17:15,635
+Instead, use Docker secrets or use,
+
+315
+00:17:15,635 --> 00:17:18,638
+HashiCorp vault, to store those secrets.
+
+316
+00:17:18,770 --> 00:17:24,248
+And you can specify which, you're using
+when you run your Docker containers.
+
+317
+00:17:27,713 --> 00:17:28,769
+Or. All right.
+
+318
+00:17:28,769 --> 00:17:32,069
+For some further reading
+if you want to learn more docs.
+
+319
+00:17:32,267 --> 00:17:34,115
+Docker.com. Great resource.
+
+320
+00:17:34,115 --> 00:17:36,326
+They they've got lots of examples up
+there.
+
+321
+00:17:36,326 --> 00:17:37,217
+There's a great book.
+
+322
+00:17:37,217 --> 00:17:39,857
+From O'Reilly Docker up and running.
+
+323
+00:17:39,857 --> 00:17:44,906
+Like I said, Docker was designed for
+developers for the easy button on there.
+
+324
+00:17:45,104 --> 00:17:47,315
+And there's lots of great examples
+out there.
+
+325
+00:17:47,315 --> 00:17:48,635
+I'm going to make sure
+in the lecture notes
+
+326
+00:17:48,635 --> 00:17:49,889
+that you have lots of different docker
+
+327
+00:17:49,889 --> 00:17:53,882
+compose and docker
+file, examples out there for you.

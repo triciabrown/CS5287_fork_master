@@ -7,6 +7,8 @@ title: Primer on Docker Swarm
 description: Basic information on Docker Swarm.
 ---
 
+Video: [https://youtu.be/hiy_XLAwWWo](https://youtu.be/hiy_XLAwWWo)
+
 Docker Swarm is Docker’s built-in orchestration engine. It enables you to create and manage a cluster of Docker Engines as a single, virtual Docker Engine.
 
 ---

@@ -1,0 +1,117 @@
+@startuml Plant Monitoring Network Architecture
+
+skinparam rectangle {
+    BackgroundColor<<public>> LightGreen
+    BackgroundColor<<private>> LightBlue
+    BackgroundColor<<trust_boundary>> LightYellow
+    BackgroundColor<<vpc>> LightCyan
+    BorderColor Black
+    FontSize 10
+}
+
+skinparam cloud {
+    BackgroundColor LightGray
+    BorderColor Black
+}
+
+skinparam component {
+    BackgroundColor White
+    BorderColor Black
+    FontSize 9
+}
+
+' Internet
+cloud "Internet" as internet {
+    actor "Admin SSH" as admin
+    actor "Dashboard Users" as users
+}
+
+' AWS VPC
+rectangle "AWS VPC: plant-monitoring-vpc\nCIDR: 10.0.0.0/16" <<vpc>> as vpc {
+    
+    ' Internet Gateway
+    rectangle "Internet Gateway" as igw {
+    }
+    
+    ' Public Subnet
+    rectangle "Public Subnet\nCIDR: 10.0.0.0/24" <<public>> as public_subnet {
+        rectangle "VM-4: Home Assistant + Sensors\nIP: 10.0.0.10\nInstance: t3.medium" as vm4 {
+            component "Home Assistant\nPort: 8123" as ha
+            component "MQTT Broker\nPort: 1883" as mqtt
+            component "Plant Sensor 1\n(Fiddle Leaf)" as sensor1
+            component "Plant Sensor 2\n(Snake Plant)" as sensor2
+        }
+    }
+    
+    ' Private Subnet
+    rectangle "Private Subnet\nCIDR: 10.0.1.0/24" <<private>> as private_subnet {
+        
+        rectangle "VM-1: Kafka Cluster\nIP: 10.0.1.10\nInstance: t3.medium" as vm1 {
+            component "ZooKeeper\nPort: 2181" as zk
+            component "Kafka Broker\nPort: 9092" as kafka
+        }
+        
+        rectangle "VM-2: Database\nIP: 10.0.1.20\nInstance: t3.medium" as vm2 {
+            component "MongoDB\nPort: 27017" as mongodb
+        }
+        
+        rectangle "VM-3: Processor\nIP: 10.0.1.30\nInstance: t3.medium" as vm3 {
+            component "Plant Care Engine\nPort: 8080" as processor
+        }
+    }
+}
+
+' Trust Boundaries
+rectangle "Trust Boundary 1: Internet Access" <<trust_boundary>> as tb1 {
+    note top : Only VM-4 has direct internet access\nfor Home Assistant dashboard
+}
+
+rectangle "Trust Boundary 2: Internal Services" <<trust_boundary>> as tb2 {
+    note top : Private subnet isolates core services\nfrom direct internet access
+}
+
+' Connections - Internet to Public Subnet
+internet --> igw
+igw --> vm4 : "HTTPS/8123\nSSH/22"
+admin --> vm4 : "SSH Key Only\nYour IP Only"
+users --> ha : "HTTPS Dashboard\nPort 8123"
+
+' Connections - Internal Data Flow
+sensor1 --> kafka : "Kafka Produce\nPort 9092"
+sensor2 --> kafka : "Kafka Produce\nPort 9092"
+processor --> kafka : "Kafka Consume\nPort 9092"
+processor --> mongodb : "Database Write\nPort 27017"
+processor --> mqtt : "MQTT Publish\nPort 1883"
+kafka --> zk : "ZooKeeper\nPort 2181"
+
+' Security Group Rules
+note bottom of vm1 : **Security Group: SG-Kafka**\nInbound:\n• 9092 from 10.0.0.0/16\n• 2181 from 10.0.0.0/16\n• 22 from Admin IP\nOutbound: All traffic
+
+note bottom of vm2 : **Security Group: SG-MongoDB**\nInbound:\n• 27017 from VM-3 only\n• 22 from Admin IP\nOutbound: All traffic
+
+note bottom of vm3 : **Security Group: SG-Processor**\nInbound:\n• 8080 from VM-4\n• 22 from Admin IP\nOutbound:\n• 9092 to VM-1\n• 27017 to VM-2\n• 1883 to VM-4
+
+note bottom of vm4 : **Security Group: SG-HomeAssistant**\nInbound:\n• 8123 from 0.0.0.0/0\n• 1883 from VM-3\n• 22 from Admin IP\nOutbound: All traffic
+
+' Data Flow Legend
+legend right
+    |Color| Description |
+    |<back:LightGreen>   </back>| Public Subnet (Internet Access) |
+    |<back:LightBlue>    </back>| Private Subnet (Internal Only) |
+    |<back:LightYellow>  </back>| Trust Boundaries |
+    
+    **Data Flow:**
+    1. Sensors → Kafka (plant data)
+    2. Processor ← Kafka (consume data)
+    3. Processor → MongoDB (store results)
+    4. Processor → Home Assistant (updates)
+    5. Users → Home Assistant (dashboard)
+    
+    **Security:**
+    • SSH Key Authentication Only
+    • Minimal Port Exposure
+    • Private Subnet Isolation
+    • Security Group Restrictions
+endlegend
+
+@enduml

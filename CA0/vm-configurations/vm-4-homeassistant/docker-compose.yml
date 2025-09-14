@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  homeassistant:
+    image: homeassistant/home-assistant:2023.8.0
+    hostname: homeassistant
+    ports:
+      - "8123:8123"
+    volumes:
+      - ha_config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    user: "1000:1000"
+    mem_limit: 512m  # Memory limit for t2.micro
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    hostname: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    restart: unless-stopped
+    user: mosquitto
+    mem_limit: 128m  # Memory limit for t2.micro
+
+  plant-sensor-001:
+    build: ./plant-sensors
+    hostname: sensor-plant-001
+    environment:
+      - PLANT_ID=plant-001
+      - PLANT_TYPE=monstera
+      - LOCATION=Living Room
+      - KAFKA_BROKERS=10.0.143.200:9092
+      - SENSOR_INTERVAL=30
+      - NODE_OPTIONS=--max-old-space-size=128  # Reduced for t2.micro
+    restart: unless-stopped
+    user: "1001:1001"
+    mem_limit: 128m  # Memory limit for t2.micro
+
+  plant-sensor-002:
+    build: ./plant-sensors
+    hostname: sensor-plant-002
+    environment:
+      - PLANT_ID=plant-002
+      - PLANT_TYPE=sansevieria
+      - LOCATION=Bedroom
+      - KAFKA_BROKERS=10.0.143.200:9092
+      - SENSOR_INTERVAL=45
+      - NODE_OPTIONS=--max-old-space-size=128  # Reduced for t2.micro
+    restart: unless-stopped
+    user: "1001:1001"
+    mem_limit: 128m  # Memory limit for t2.micro
+
+volumes:
+  ha_config:
+  mosquitto_data:
+  mosquitto_logs:

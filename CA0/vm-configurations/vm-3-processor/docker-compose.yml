@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  plant-processor:
+    build: ./plant-care-processor
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=256  # Reduced for t2.micro
+    restart: unless-stopped
+    mem_limit: 512m  # Memory limit for t2.micro
+    depends_on:
+      - kafka-health-check
+      - mongo-health-check
+
+  kafka-health-check:
+    image: busybox
+    command: ['sh', '-c', 'until nc -z 10.0.143.200 9092; do sleep 1; done']
+
+  mongo-health-check:
+    image: busybox
+    command: ['sh', '-c', 'until nc -z 10.0.135.192 27017; do sleep 1; done']

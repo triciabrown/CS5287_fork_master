@@ -1,0 +1,55 @@
+---
+# MongoDB role: Deploy MongoDB using Docker Compose
+- name: Ensure MongoDB directory exists
+  file:
+    path: /opt/mongodb
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+  - name: Copy MongoDB docker-compose.yml to VM
+    copy:
+      src: ../../docker-compose/mongodb.yml
+      dest: /opt/mongodb/docker-compose.yml
+      owner: ubuntu
+      group: ubuntu
+      mode: '0644'
+    become: yes
+
+  - name: Copy MongoDB init-db.js to VM
+    copy:
+      src: ../../mongodb_init-db.js
+      dest: /opt/mongodb/init-db.js
+      owner: ubuntu
+      group: ubuntu
+      mode: '0644'
+    become: yes
+
+- name: Start MongoDB stack with Docker Compose
+  command: docker compose -f /opt/mongodb/docker-compose.yml up -d
+  args:
+    chdir: /opt/mongodb
+  become: yes
+
+- name: Wait for MongoDB container to be healthy
+  shell: |
+    docker compose ps | grep mongodb | grep "running"
+  register: mongodb_status
+  retries: 10
+  delay: 10
+  until: mongodb_status.stdout.find('running') != -1
+  become: yes
+
+- name: Show MongoDB container status
+  command: docker compose ps
+  args:
+    chdir: /opt/mongodb
+  register: mongodb_ps
+  changed_when: false
+  become: yes
+
+- name: Display MongoDB container status
+  debug:
+    var: mongodb_ps.stdout

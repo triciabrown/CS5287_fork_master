@@ -1,0 +1,64 @@
+---
+# Home Assistant role: Deploy Home Assistant, Mosquitto, and Plant Sensors using Docker Compose
+- name: Ensure Home Assistant directory exists
+  file:
+    path: /opt/homeassistant
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+  - name: Copy Home Assistant docker-compose.yml to VM
+    copy:
+      src: ../../docker-compose/homeassistant.yml
+      dest: /opt/homeassistant/docker-compose.yml
+      owner: ubuntu
+      group: ubuntu
+      mode: '0644'
+    become: yes
+
+- name: Copy Mosquitto config to VM
+  copy:
+    src: ../../../../vm-configurations/vm-4-homeassistant/mosquitto/config/mosquitto.conf
+    dest: /opt/homeassistant/mosquitto/config/mosquitto.conf
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+  become: yes
+
+- name: Copy Plant Sensors files to VM
+  copy:
+    src: ../../../../vm-configurations/vm-4-homeassistant/plant-sensors/
+    dest: /opt/homeassistant/plant-sensors/
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+- name: Start Home Assistant stack with Docker Compose
+  command: docker compose -f /opt/homeassistant/docker-compose.yml up -d --build
+  args:
+    chdir: /opt/homeassistant
+  become: yes
+
+- name: Wait for Home Assistant container to be healthy
+  shell: |
+    docker compose ps | grep homeassistant | grep "running"
+  register: ha_status
+  retries: 10
+  delay: 10
+  until: ha_status.stdout.find('running') != -1
+  become: yes
+
+- name: Show Home Assistant container status
+  command: docker compose ps
+  args:
+    chdir: /opt/homeassistant
+  register: ha_ps
+  changed_when: false
+  become: yes
+
+- name: Display Home Assistant container status
+  debug:
+    var: ha_ps.stdout

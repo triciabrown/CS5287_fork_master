@@ -72,3 +72,15 @@
 - Store secrets in a dedicated workspace or encrypted file—not in plain text.
 - Test destroy workflows early to avoid lingering cloud charges.
 - Keep your README up-to-date as you iterate on your code.
+
+## Troubleshooting
+
+### Resource Ownership and Manual Cleanup
+If you previously created AWS resources (such as Elastic IPs, NAT Gateways, or EC2 instances) using the AWS root user or a different IAM user, your new `ansible-deployer` IAM user may not have permission to delete or release those resources. This can result in errors or orphaned resources when running the teardown playbook.
+
+**Solution:**
+- Always use your `ansible-deployer` IAM user for all resource creation and management for this project.
+- If you encounter errors about permissions or resources that cannot be deleted, log in to the AWS Console as the root user (or the user that created the resource) and manually delete those resources.
+- Common resources that may require manual cleanup include Elastic IPs, NAT Gateways, and EC2 instances created outside of your automation workflow.
+
+This will help ensure your teardown playbook can fully clean up all resources and prevent unexpected AWS charges.

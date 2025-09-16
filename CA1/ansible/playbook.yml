@@ -1,0 +1,10 @@
+---
+- name: Setup IoT Pipeline Services
+  hosts: all
+  become: yes
+  roles:
+    - common  # Ensure Docker is installed on all hosts first
+    - { role: kafka, when: "inventory_hostname in groups['kafka']" }
+    - { role: mongodb, when: "inventory_hostname in groups['mongodb']" }
+    - { role: processor, when: "inventory_hostname in groups['processor']" }
+    - { role: homeassistant, when: "inventory_hostname in groups['homeassistant']" }

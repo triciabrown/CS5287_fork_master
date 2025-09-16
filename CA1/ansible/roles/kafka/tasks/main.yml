@@ -1,0 +1,46 @@
+---
+# Kafka role: Deploy Kafka in KRaft mode using Docker Compose
+  - name: Copy Kafka docker-compose.yml to VM
+    copy:
+      src: ../../docker-compose/kafka.yml
+      dest: /opt/kafka/docker-compose.yml
+      owner: ubuntu
+      group: ubuntu
+      mode: '0644'
+    become: yes
+
+- name: Ensure Kafka directory exists
+  file:
+    path: /opt/kafka
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+- name: Start Kafka stack with Docker Compose
+  command: docker compose -f /opt/kafka/docker-compose.yml up -d
+  args:
+    chdir: /opt/kafka
+  become: yes
+
+- name: Wait for Kafka container to be healthy
+  shell: |
+    docker compose ps | grep kafka | grep "running"
+  register: kafka_status
+  retries: 10
+  delay: 10
+  until: kafka_status.stdout.find('running') != -1
+  become: yes
+
+- name: Show Kafka container status
+  command: docker compose ps
+  args:
+    chdir: /opt/kafka
+  register: kafka_ps
+  changed_when: false
+  become: yes
+
+- name: Display Kafka container status
+  debug:
+    var: kafka_ps.stdout

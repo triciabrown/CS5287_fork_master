@@ -1,0 +1,55 @@
+---
+# Processor role: Deploy Plant Care Processor using Docker Compose
+- name: Ensure Processor directory exists
+  file:
+    path: /opt/processor
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+  - name: Copy Processor docker-compose.yml to VM
+    copy:
+      src: ../../docker-compose/processor.yml
+      dest: /opt/processor/docker-compose.yml
+      owner: ubuntu
+      group: ubuntu
+      mode: '0644'
+    become: yes
+
+- name: Copy Plant Care Processor app files to VM
+  copy:
+    src: ../../../../vm-configurations/vm-3-processor/plant-care-processor/
+    dest: /opt/processor/plant-care-processor/
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+- name: Start Processor stack with Docker Compose
+  command: docker compose -f /opt/processor/docker-compose.yml up -d --build
+  args:
+    chdir: /opt/processor
+  become: yes
+
+- name: Wait for Processor container to be healthy
+  shell: |
+    docker compose ps | grep plant-processor | grep "running"
+  register: processor_status
+  retries: 10
+  delay: 10
+  until: processor_status.stdout.find('running') != -1
+  become: yes
+
+- name: Show Processor container status
+  command: docker compose ps
+  args:
+    chdir: /opt/processor
+  register: processor_ps
+  changed_when: false
+  become: yes
+
+- name: Display Processor container status
+  debug:
+    var: processor_ps.stdout

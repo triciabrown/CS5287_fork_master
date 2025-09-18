@@ -1,0 +1,61 @@
+---
+# Teardown: Delete all NAT Gateways in the VPC
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-east-2
+    vpc_cidr: "10.0.0.0/16"
+  tasks:
+    # Lookup VPC by CIDR (for use in lookups below)
+    - name: Lookup VPC by CIDR
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ region }}"
+        filters:
+          cidr: "{{ vpc_cidr }}"
+      register: vpc_info
+
+    # Set vpc_id fact for reuse
+    - name: Set vpc_id fact
+      set_fact:
+        vpc_id: "{{ vpc_info.vpcs[0].id }}"
+      when: vpc_info.vpcs is defined and vpc_info.vpcs|length > 0
+
+    # Lookup all NAT Gateways in VPC
+    - name: Lookup all NAT Gateways in VPC
+      amazon.aws.ec2_vpc_nat_gateway_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+      register: vpc_nat_gw_info
+      when: vpc_id is defined
+
+    - name: Show NAT Gateways found for deletion
+      debug:
+        msg: "Found {{ vpc_nat_gw_info.result | length }} NAT Gateways to delete"
+      when: vpc_id is defined and vpc_nat_gw_info.result is defined
+
+    - name: Delete all NAT Gateways in VPC
+      amazon.aws.ec2_vpc_nat_gateway:
+        nat_gateway_id: "{{ item.nat_gateway_id }}"
+        state: absent
+        region: "{{ region }}"
+      loop: "{{ vpc_nat_gw_info.result }}"
+      when: vpc_id is defined and vpc_nat_gw_info.result is defined and vpc_nat_gw_info.result|length > 0
+
+    - name: Wait for NAT Gateways to be deleted
+      amazon.aws.ec2_vpc_nat_gateway_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          state: ["available", "pending", "deleting"]
+      register: natgw_wait_info
+      until: natgw_wait_info.result | length == 0
+      retries: 30
+      delay: 15
+      when: vpc_id is defined and vpc_nat_gw_info.result is defined and vpc_nat_gw_info.result|length > 0
+
+    - name: Verify NAT Gateway deletion completion
+      debug:
+        msg: "All NAT Gateways have been successfully deleted from VPC {{ vpc_id }}"
+      when: vpc_id is defined

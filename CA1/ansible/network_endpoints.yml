@@ -1,0 +1,173 @@
+---
+# Network Endpoints: EIPs, NAT Gateway, and Private Route Table
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    # Look up VPC and subnets to get required IDs
+    - name: Lookup VPC by CIDR
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ region }}"
+        filters:
+          cidr: "{{ vpc_cidr }}"
+      register: vpc_lookup
+
+    - name: Set vpc_id fact
+      set_fact:
+        vpc_id: "{{ vpc_lookup.vpcs[0].id }}"
+      when: vpc_lookup.vpcs is defined and vpc_lookup.vpcs|length > 0
+
+    - name: Lookup public subnet
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          cidr-block: "{{ public_subnet_cidr }}"
+      register: public_subnet_lookup
+      when: vpc_id is defined
+
+    - name: Set public_subnet_id fact
+      set_fact:
+        public_subnet_id: "{{ public_subnet_lookup.subnets[0].id }}"
+      when: public_subnet_lookup.subnets is defined and public_subnet_lookup.subnets|length > 0
+
+    - name: Lookup private subnet
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          cidr-block: "{{ private_subnet_cidr }}"
+      register: private_subnet_lookup
+      when: vpc_id is defined
+
+    - name: Set private_subnet_id fact
+      set_fact:
+        private_subnet_id: "{{ private_subnet_lookup.subnets[0].id }}"
+      when: private_subnet_lookup.subnets is defined and private_subnet_lookup.subnets|length > 0
+
+    - name: Find existing EIP for NAT Gateway by tag
+      amazon.aws.ec2_eip_info:
+        region: "{{ region }}"
+        filters:
+          tag:Name: "plant-monitoring-nat-eip"
+      register: eip_info
+
+    - name: Set NAT EIP allocation_id from existing tagged EIP
+      set_fact:
+        nat_eip_allocation_id: "{{ eip_info.addresses[0].allocation_id }}"
+      when: eip_info.addresses is defined and eip_info.addresses|length > 0
+
+    - name: Allocate new Elastic IP for NAT Gateway if tagged EIP doesn't exist
+      amazon.aws.ec2_eip:
+        in_vpc: true
+        region: "{{ region }}"
+        tags:
+          Name: plant-monitoring-nat-eip
+        state: present
+      register: nat_eip
+      when: nat_eip_allocation_id is not defined
+
+    - name: Set NAT EIP allocation_id from newly created EIP
+      set_fact:
+        nat_eip_allocation_id: "{{ nat_eip.allocation_id }}"
+      when: nat_eip_allocation_id is not defined and nat_eip is defined
+
+    # NAT Gateway lookup and creation (moved from networking.yml)
+    - name: Find existing plant-monitoring NAT Gateway by tag
+      amazon.aws.ec2_vpc_nat_gateway_info:
+        region: "{{ region }}"
+        filters:
+          tag:Name: "plant-monitoring-nat-gw"
+          state: "available"
+      register: nat_gw_info
+
+    - name: Set NAT Gateway ID from existing plant-monitoring NAT Gateway
+      set_fact:
+        nat_gw_id: "{{ nat_gw_info.nat_gateways[0].nat_gateway_id }}"
+      when: nat_gw_info.nat_gateways is defined and nat_gw_info.nat_gateways|length > 0
+
+    - name: Create NAT Gateway in public subnet if plant-monitoring NAT Gateway doesn't exist
+      amazon.aws.ec2_vpc_nat_gateway:
+        subnet_id: "{{ public_subnet_id }}"
+        allocation_id: "{{ nat_eip_allocation_id }}"
+        region: "{{ region }}"
+        tags:
+          Name: plant-monitoring-nat-gw
+        state: present
+      register: nat_gw
+      when: nat_gw_id is not defined and nat_eip_allocation_id is defined
+
+    - name: Set NAT Gateway ID from newly created NAT Gateway
+      set_fact:
+        nat_gw_id: "{{ nat_gw.nat_gateway_id }}"
+      when: nat_gw is defined and nat_gw.nat_gateway_id is defined
+
+    - name: Wait for NAT Gateway to be available before creating routes
+      amazon.aws.ec2_vpc_nat_gateway_info:
+        region: "{{ region }}"
+        nat_gateway_ids:
+          - "{{ nat_gw_id }}"
+      register: nat_gw_status
+      until: nat_gw_status.result is defined and nat_gw_status.result|length > 0 and nat_gw_status.result[0].state == 'available'
+      retries: 30
+      delay: 10
+      when: nat_gw_id is defined
+
+    - name: Verify NAT Gateway exists and is available
+      debug:
+        msg: "NAT Gateway {{ nat_gw_id }} is available. State: {{ nat_gw_status.result[0].state }}"
+      when: nat_gw_id is defined and nat_gw_status.result is defined and nat_gw_status.result|length > 0
+
+    # Private route table (must be created after NAT Gateway is available)
+    - name: Create or get private route table (with NAT Gateway route)
+      amazon.aws.ec2_vpc_route_table:
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ region }}"
+        tags:
+          Name: plant-monitoring-private-rt
+        routes:
+          - dest: "0.0.0.0/0"
+            nat_gateway_id: "{{ nat_gw_id }}"
+        subnets:
+          - "{{ private_subnet_id }}"
+        state: present
+      register: private_rt
+      when: nat_gw_id is defined and private_subnet_id is defined and vpc_id is defined
+
+    - name: Allocate or get Elastic IP for Home Assistant (VM-4)
+      amazon.aws.ec2_eip:
+        in_vpc: true
+        region: "{{ region }}"
+        tags:
+          Name: plant-monitoring-ha-eip
+        state: present
+      register: ha_eip
+
+    - name: Wait for Home Assistant instance to be running
+      amazon.aws.ec2_instance_info:
+        region: "{{ region }}"
+        instance_ids:
+          - "{{ ha_instance.instances[0].instance_id }}"
+      register: ha_instance_state
+      until: ha_instance_state.instances[0].state.name == 'running'
+      retries: 12
+      delay: 10
+      when: ha_instance is defined
+
+    - name: Associate Elastic IP with Home Assistant instance
+      community.aws.ec2_eip:
+        region: "{{ region }}"
+        public_ip: "{{ ha_eip.public_ip }}"
+        device_id: "{{ ha_instance.instances[0].network_interfaces[0].network_interface_id }}"
+        private_ip_address: "{{ ha_instance.instances[0].private_ip_address }}"
+        in_vpc: true
+        state: present
+      when: ha_eip is defined and ha_instance is defined
+
+    - name: Show instance details
+      debug:
+        msg:
+          - "Kafka: {{ kafka_instance.instances[0].private_ip_address }}"
+          - "MongoDB: {{ mongodb_instance.instances[0].private_ip_address }}"
+          - "Processor: {{ processor_instance.instances[0].private_ip_address }}"
+          - "Home Assistant: {{ ha_instance.instances[0].private_ip_address }} (Elastic IP: {{ ha_eip.public_ip }})"

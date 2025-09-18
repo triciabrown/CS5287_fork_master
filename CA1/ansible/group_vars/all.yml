@@ -1,0 +1,13 @@
+# Default variables for CA1 AWS infrastructure
+# These are sourced automatically by Ansible from group_vars/all.yml
+region: us-east-2
+vpc_cidr: "10.0.0.0/16"
+public_subnet_cidr: "10.0.0.0/20"
+private_subnet_cidr: "10.0.128.0/20"
+instance_type: t2.micro
+key_name: plant-monitoring-key
+ami: ami-0cfde0ea8edd312d4
+kafka_port: 9092
+mongodb_port: 27017
+ha_port: 8123
+# Add more variables as needed for flexibility

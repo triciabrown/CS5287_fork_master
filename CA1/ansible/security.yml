@@ -1,0 +1,184 @@
+---
+# Security: Security groups and rules
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Create or get security group for Kafka
+      amazon.aws.ec2_security_group:
+        name: SG-Kafka
+        description: Kafka security group - VM-1 message broker for plant sensor data
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        tags:
+          Name: plant-monitoring-sg-kafka
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "SSH access for administrative tasks"
+          - proto: tcp
+            from_port: 9092
+            to_port: 9092
+            cidr_ip: 10.0.0.0/16
+            rule_desc: "Kafka broker access from VPC (processor and other services)"
+        state: present
+      register: sg_kafka
+
+    - name: Create or get security group for MongoDB (CIDR only)
+      amazon.aws.ec2_security_group:
+        name: SG-MongoDB
+        description: MongoDB security group - VM-2 database with authentication for plant sensor data storage
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        tags:
+          Name: plant-monitoring-sg-mongodb
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "SSH access for administrative tasks and database management"
+        state: present
+      register: sg_mongodb
+
+    - name: Create or get security group for Processor (CIDR only)
+      amazon.aws.ec2_security_group:
+        name: SG-Processor
+        description: Processor security group - VM-3 plant care processor with automatic MQTT discovery
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        tags:
+          Name: plant-monitoring-sg-processor
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "SSH access for administrative tasks and application deployment"
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "HTTPS outbound for package downloads and external API calls"
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "HTTP outbound for package downloads and external API calls"
+        state: present
+      register: sg_processor
+
+    - name: Create or get security group for Home Assistant (CIDR only)
+      amazon.aws.ec2_security_group:
+        name: SG-HomeAssistant
+        description: Home Assistant security group - VM-4 dashboard + MQTT broker + plant sensors (public access)
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        tags:
+          Name: plant-monitoring-sg-homeassistant
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "SSH access for administrative tasks (also serves as bastion host for private subnet access)"
+          - proto: tcp
+            from_port: 8123
+            to_port: 8123
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "Home Assistant dashboard public access for plant monitoring interface"
+        state: present
+      register: sg_homeassistant
+
+    # Phase 2: Add group-pair rules after all SGs exist - implementing database boundary security
+    - name: Add group-pair rules to MongoDB SG
+      amazon.aws.ec2_security_group:
+        name: SG-MongoDB
+        description: MongoDB security group - VM-2 database with authentication for plant sensor data storage
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "SSH access for administrative tasks and database management"
+          - proto: tcp
+            from_port: 27017
+            to_port: 27017
+            group_id: "{{ sg_processor.group_id }}"
+            rule_desc: "MongoDB database access restricted to processor service only (database boundary)"
+        state: present
+      when: sg_processor is defined
+
+    - name: Add group-pair rules to Processor SG
+      amazon.aws.ec2_security_group:
+        name: SG-Processor
+        description: Processor security group - VM-3 plant care processor with automatic MQTT discovery
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "SSH access for administrative tasks and application deployment"
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "HTTPS outbound for package downloads and external API calls"
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "HTTP outbound for package downloads and external API calls"
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            group_id: "{{ sg_homeassistant.group_id }}"
+            rule_desc: "Processor API access from Home Assistant for plant care recommendations"
+          - proto: tcp
+            from_port: 9092
+            to_port: 9092
+            group_id: "{{ sg_kafka.group_id }}"
+            rule_desc: "Kafka consumer access to receive plant sensor messages"
+          - proto: tcp
+            from_port: 27017
+            to_port: 27017
+            group_id: "{{ sg_mongodb.group_id }}"
+            rule_desc: "MongoDB client access to store processed plant data"
+          - proto: tcp
+            from_port: 1883
+            to_port: 1883
+            group_id: "{{ sg_homeassistant.group_id }}"
+            rule_desc: "MQTT publisher access to send plant care alerts to Home Assistant"
+        state: present
+      when: sg_kafka is defined and sg_mongodb is defined and sg_homeassistant is defined
+
+    - name: Add group-pair rules to Home Assistant SG
+      amazon.aws.ec2_security_group:
+        name: SG-HomeAssistant
+        description: Home Assistant security group - VM-4 dashboard + MQTT broker + plant sensors (public access)
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "SSH access for administrative tasks (also serves as bastion host for private subnet access)"
+          - proto: tcp
+            from_port: 8123
+            to_port: 8123
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "Home Assistant dashboard public access for plant monitoring interface"
+          - proto: tcp
+            from_port: 1883
+            to_port: 1883
+            group_id: "{{ sg_processor.group_id }}"
+            rule_desc: "MQTT broker access from processor service for plant care alerts and sensor data"
+        state: present
+      when: sg_processor is defined

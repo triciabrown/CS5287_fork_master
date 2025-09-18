@@ -1,0 +1,85 @@
+---
+# Teardown: Remove rules and delete non-default security groups
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-east-2
+    vpc_cidr: "10.0.0.0/16"
+  tasks:
+    # Lookup VPC by CIDR
+    - name: Lookup VPC by CIDR
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ region }}"
+        filters:
+          cidr: "{{ vpc_cidr }}"
+      register: vpc_info
+
+    # Set vpc_id fact for reuse
+    - name: Set vpc_id fact
+      set_fact:
+        vpc_id: "{{ vpc_info.vpcs[0].id }}"
+      when: vpc_info.vpcs is defined and vpc_info.vpcs|length > 0
+
+    # Lookup all security groups in VPC
+    - name: Lookup all security groups in VPC
+      amazon.aws.ec2_security_group_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+      register: vpc_sg_info
+      when: vpc_id is defined
+
+    - name: Show security groups found for deletion
+      debug:
+        msg: "Found {{ vpc_sg_info.security_groups | rejectattr('group_name', 'equalto', 'default') | list | length }} non-default security groups to delete"
+      when: vpc_id is defined and vpc_sg_info.security_groups is defined
+
+    # Remove all rules from non-default security groups first (to break cross-references)
+    - name: Remove all ingress and egress rules from non-default security groups
+      amazon.aws.ec2_security_group:
+        name: "{{ item.group_name }}"
+        group_id: "{{ item.group_id }}"
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ region }}"
+        description: "{{ item.description }}"
+        rules: []
+        rules_egress: []
+        state: present
+      loop: "{{ vpc_sg_info.security_groups | rejectattr('group_name', 'equalto', 'default') | list }}"
+      when:
+        - vpc_sg_info.security_groups is defined
+        - vpc_sg_info.security_groups | length > 0
+      ignore_errors: yes
+
+    # Wait for rule removal to propagate
+    - name: Wait for security group rule removal to propagate
+      pause:
+        seconds: 10
+
+    # Delete all non-default security groups in VPC
+    - name: Delete all non-default security groups in VPC
+      amazon.aws.ec2_security_group:
+        group_id: "{{ item.group_id }}"
+        state: absent
+        region: "{{ region }}"
+      loop: "{{ vpc_sg_info.security_groups | rejectattr('group_name', 'equalto', 'default') | list }}"
+      when:
+        - vpc_id is defined
+        - vpc_sg_info.security_groups is defined
+        - vpc_sg_info.security_groups | length > 0
+      ignore_errors: yes
+
+    # Verify all non-default security groups are deleted
+    - name: Verify security group deletion
+      amazon.aws.ec2_security_group_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+      register: final_sg_check
+      when: vpc_id is defined
+
+    - name: Show final security group status
+      debug:
+        msg: "Remaining security groups: {{ final_sg_check.security_groups | rejectattr('group_name', 'equalto', 'default') | list | length }} (should be 0)"
+      when: vpc_id is defined and final_sg_check.security_groups is defined

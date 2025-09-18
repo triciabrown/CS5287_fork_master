@@ -1,0 +1,25 @@
+---
+# Debug: Check NAT Gateway status
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-east-2
+  tasks:
+    # Check if NAT Gateways still exist
+    - name: Check NAT Gateway status
+      amazon.aws.ec2_vpc_nat_gateway_info:
+        region: "{{ region }}"
+        filters:
+          state: ["available", "pending", "deleting"]
+      register: existing_nat_gateways
+
+    - name: Show NAT Gateway details
+      debug:
+        msg: "NAT Gateway {{ item.nat_gateway_id }}: state={{ item.state }}, vpc_id={{ item.vpc_id }}, subnet_id={{ item.subnet_id }}"
+      loop: "{{ existing_nat_gateways.result }}"
+      when: existing_nat_gateways.result | length > 0
+
+    - name: Show NAT Gateway count
+      debug:
+        msg: "Total NAT Gateways found: {{ existing_nat_gateways.result | length }}"

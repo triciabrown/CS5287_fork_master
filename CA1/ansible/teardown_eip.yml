@@ -1,0 +1,115 @@
+---
+# Teardown: Disassociate and release all Elastic IPs in the VPC
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-east-2
+  tasks:
+    # Lookup all Elastic IPs in region
+    - name: Lookup all Elastic IPs
+      amazon.aws.ec2_eip_info:
+        region: "{{ region }}"
+      register: all_eips
+
+    # Show all VPC EIPs for debugging
+    - name: Show all VPC EIP details for debugging
+      debug:
+        msg: "VPC EIP {{ item.public_ip }}: association_id={{ item.association_id | default('none') }}, network_interface_id={{ item.network_interface_id | default('none') }}, network_interface_owner_id={{ item.network_interface_owner_id | default('none') }}, instance_id={{ item.instance_id | default('none') }}"
+      loop: "{{ all_eips.addresses | selectattr('domain', 'equalto', 'vpc') | list }}"
+      when: all_eips.addresses | selectattr('domain', 'equalto', 'vpc') | list | length > 0
+
+    # Check if NAT Gateways still exist (EIPs attached to NAT Gateways cannot be manually released)
+    - name: Check for existing NAT Gateways
+      amazon.aws.ec2_vpc_nat_gateway_info:
+        region: "{{ region }}"
+        filters:
+          state: ["available", "pending", "deleting"]
+      register: existing_nat_gateways
+
+    - name: Show NAT Gateway status
+      debug:
+        msg: "Found {{ existing_nat_gateways.result | length }} NAT Gateways still in progress. Waiting for deletion to complete..."
+      when: existing_nat_gateways.result | length > 0
+
+    # Wait for NAT Gateway deletion to complete (NAT Gateway EIPs are auto-released)
+    - name: Wait for NAT Gateway deletion to complete
+      amazon.aws.ec2_vpc_nat_gateway_info:
+        region: "{{ region }}"
+        filters:
+          state: ["available", "pending", "deleting"]
+      register: nat_gateway_check
+      until: nat_gateway_check.result | length == 0
+      retries: 20
+      delay: 30
+      ignore_errors: yes
+
+    # Separate NAT Gateway EIPs from user-managed EIPs
+    - name: Identify NAT Gateway EIPs (cannot be manually released)
+      set_fact:
+        nat_gateway_eips: "{{ all_eips.addresses | selectattr('domain', 'equalto', 'vpc') | selectattr('tags.Name', 'defined') | selectattr('tags.Name', 'match', '.*nat.*') | list }}"
+        user_eips: "{{ all_eips.addresses | selectattr('domain', 'equalto', 'vpc') | rejectattr('tags.Name', 'defined') | list + all_eips.addresses | selectattr('domain', 'equalto', 'vpc') | selectattr('tags.Name', 'defined') | rejectattr('tags.Name', 'match', '.*nat.*') | list }}"
+
+    - name: Show EIP classification
+      debug:
+        msg: "Found {{ nat_gateway_eips | length }} NAT Gateway EIPs and {{ user_eips | length }} user-managed EIPs"
+
+    # First, disassociate and release user-managed EIPs from instances
+    - name: Disassociate user-managed EIPs from instances
+      amazon.aws.ec2_eip:
+        public_ip: "{{ item.public_ip }}"
+        device_id: "{{ item.instance_id }}"
+        state: absent
+        region: "{{ region }}"
+      loop: "{{ user_eips | selectattr('instance_id', 'defined') | list }}"
+      ignore_errors: yes
+
+    # Wait a moment for disassociation to complete
+    - name: Wait for EIP disassociation to complete
+      pause:
+        seconds: 10
+
+    # Release only user-managed VPC EIPs (NAT Gateway EIPs are auto-released by AWS)
+    - name: Release user-managed VPC Elastic IPs
+      amazon.aws.ec2_eip:
+        public_ip: "{{ item.public_ip }}"
+        state: absent
+        region: "{{ region }}"
+      loop: "{{ user_eips }}"
+      ignore_errors: yes
+
+    # Wait for NAT Gateway EIPs to be automatically released by AWS
+    - name: Wait for NAT Gateway EIPs to be automatically released
+      amazon.aws.ec2_eip_info:
+        region: "{{ region }}"
+        filters:
+          domain: vpc
+      register: remaining_eips_check
+      until: remaining_eips_check.addresses | rejectattr('tags.Name', 'defined') | list | length == 0 and remaining_eips_check.addresses | selectattr('tags.Name', 'defined') | rejectattr('tags.Name', 'match', '.*nat.*') | list | length == 0
+      retries: 15
+      delay: 20
+      ignore_errors: yes
+
+    # Log any remaining NAT Gateway EIPs (these are normal and will be cleaned up by AWS)
+    - name: Log remaining NAT Gateway EIPs
+      debug:
+        msg: "NAT Gateway EIP {{ item.public_ip }} still exists - this is normal, AWS will clean it up automatically"
+      loop: "{{ remaining_eips_check.addresses | selectattr('tags.Name', 'defined') | selectattr('tags.Name', 'match', '.*nat.*') | list }}"
+      when: remaining_eips_check.addresses is defined
+
+    # Final verification
+    - name: Final verification - check for any remaining VPC EIPs
+      amazon.aws.ec2_eip_info:
+        region: "{{ region }}"
+        filters:
+          domain: vpc
+      register: final_eips_check
+
+    - name: Show final EIP status
+      debug:
+        msg: "Final VPC EIPs remaining: {{ final_eips_check.addresses | length }}"
+
+    - name: Warn about remaining EIPs
+      debug:
+        msg: "WARNING: {{ final_eips_check.addresses | length }} EIPs still remain. These may be managed by AWS services and will be cleaned up automatically."
+      when: final_eips_check.addresses | length > 0

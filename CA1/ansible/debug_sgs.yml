@@ -1,0 +1,37 @@
+---
+# Debug: Check what security groups still exist
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-east-2
+    vpc_cidr: "10.0.0.0/16"
+  tasks:
+    # Lookup VPC by CIDR
+    - name: Lookup VPC by CIDR
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ region }}"
+        filters:
+          cidr: "{{ vpc_cidr }}"
+      register: vpc_info
+
+    # Set vpc_id fact for reuse
+    - name: Set vpc_id fact
+      set_fact:
+        vpc_id: "{{ vpc_info.vpcs[0].id }}"
+      when: vpc_info.vpcs is defined and vpc_info.vpcs|length > 0
+
+    # Check remaining security groups
+    - name: Check remaining security groups
+      amazon.aws.ec2_security_group_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+      register: remaining_sgs
+      when: vpc_id is defined
+
+    - name: Show remaining security groups
+      debug:
+        msg: "Security Group {{ item.group_name }} ({{ item.group_id }}): {{ item.description }}"
+      loop: "{{ remaining_sgs.security_groups }}"
+      when: vpc_id is defined and remaining_sgs.security_groups is defined

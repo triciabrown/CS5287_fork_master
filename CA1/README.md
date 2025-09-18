@@ -1,3 +1,16 @@
+# Prerequisites
+
+Before running these playbooks, ensure you have the following installed in your (preferably WSL/Ubuntu) environment:
+
+- Ansible (see instructions below)
+- Required Ansible collections:
+  ```bash
+  ansible-galaxy collection install amazon.aws
+  ansible-galaxy collection install community.aws
+  ```
+- AWS CLI (for credential setup)
+- Valid AWS credentials (see AWS Credentials Setup below)
+
 # CA1 – Infrastructure as Code (IaC)
 
 This assignment recreates the IoT pipeline from CA0 using automated deployment tools (Ansible). All infrastructure setup, configuration, and service deployment should be defined as code and documented here.
@@ -144,3 +157,15 @@ Document any issues or troubleshooting steps in this README as you test and refi
 ---
 
 Add documentation, diagrams, and links to your Ansible files below as you build out your solution.
+
+## Troubleshooting
+
+### Resource Ownership and Manual Cleanup
+If you previously created AWS resources (such as Elastic IPs, NAT Gateways, or EC2 instances) using the AWS root user or a different IAM user, your new `ansible-deployer` IAM user may not have permission to delete or release those resources. This can result in errors or orphaned resources when running the teardown playbook.
+
+**Solution:**
+- Always use your `ansible-deployer` IAM user for all resource creation and management for this project.
+- If you encounter errors about permissions or resources that cannot be deleted, log in to the AWS Console as the root user (or the user that created the resource) and manually delete those resources.
+- Common resources that may require manual cleanup include Elastic IPs, NAT Gateways, and EC2 instances created outside of your automation workflow.
+
+This will help ensure your teardown playbook can fully clean up all resources and prevent unexpected AWS charges.

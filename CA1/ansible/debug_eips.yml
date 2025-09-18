@@ -1,0 +1,21 @@
+---
+# Debug: Show all EIPs and their properties
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-east-2
+  tasks:
+    - name: Lookup all Elastic IPs
+      amazon.aws.ec2_eip_info:
+        region: "{{ region }}"
+      register: all_eips
+
+    - name: Show all EIP details
+      debug:
+        var: all_eips.addresses
+
+    - name: Show VPC EIPs specifically
+      debug:
+        msg: "VPC EIP {{ item.public_ip }}: association_id={{ item.association_id | default('none') }}, network_interface_id={{ item.network_interface_id | default('none') }}, network_interface_owner_id={{ item.network_interface_owner_id | default('none') }}, instance_id={{ item.instance_id | default('none') }}"
+      loop: "{{ all_eips.addresses | selectattr('domain', 'equalto', 'vpc') | list }}"

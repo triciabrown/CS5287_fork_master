@@ -1,0 +1,55 @@
+---
+# Teardown: Detach and delete all ENIs in the VPC
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-east-2
+    vpc_cidr: "10.0.0.0/16"
+  tasks:
+    # Lookup VPC by CIDR
+    - name: Lookup VPC by CIDR
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ region }}"
+        filters:
+          cidr: "{{ vpc_cidr }}"
+      register: vpc_info
+
+    # Set vpc_id fact for reuse
+    - name: Set vpc_id fact
+      set_fact:
+        vpc_id: "{{ vpc_info.vpcs[0].id }}"
+      when: vpc_info.vpcs is defined and vpc_info.vpcs|length > 0
+
+    # Lookup all ENIs in VPC (must be after subnet deletion, before security group deletion)
+    - name: Lookup all ENIs in VPC
+      amazon.aws.ec2_eni_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+      register: vpc_eni_info
+      when: vpc_id is defined
+
+    # Separate user-managed ENIs from AWS service-managed ENIs
+    - name: Identify user-managed vs service-managed ENIs
+      set_fact:
+        user_managed_enis: "{{ vpc_eni_info.network_interfaces | rejectattr('interface_type', 'defined') | rejectattr('requester_managed', 'equalto', true) | list }}"
+        service_managed_enis: "{{ vpc_eni_info.network_interfaces | selectattr('interface_type', 'defined') | list + (vpc_eni_info.network_interfaces | selectattr('requester_managed', 'equalto', true) | list) }}"
+      when: vpc_id is defined and vpc_eni_info.network_interfaces is defined
+
+    - name: Show service-managed ENIs that will be auto-deleted by AWS services
+      debug:
+        msg: 
+          - "Service-managed ENIs (will be auto-deleted): {{ service_managed_enis | map(attribute='network_interface_id') | list }}"
+          - "Interface types: {{ service_managed_enis | map(attribute='interface_type') | select('defined') | list }}"
+      when: vpc_id is defined and service_managed_enis is defined and service_managed_enis | length > 0
+
+    # Only delete user-managed ENIs (not NAT Gateway, Load Balancer, etc.)
+    - name: Delete user-managed ENIs only
+      amazon.aws.ec2_eni:
+        eni_id: "{{ item.network_interface_id }}"
+        state: absent
+        region: "{{ region }}"
+        force_detach: true
+      loop: "{{ user_managed_enis }}"
+      when: vpc_id is defined and user_managed_enis is defined and user_managed_enis | length > 0

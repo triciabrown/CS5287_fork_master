@@ -28,3 +28,29 @@ bin/
 ### Mac OS ###
 .DS_Store
 /.output/
+
+# Terraform Files (Large binary providers)
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/*.tfplan
+**/*.tfvars
+**/*.auto.tfvars
+
+# Ansible Files
+**/inventory.ini
+**/.ansible/
+**/ansible.log
+
+# Environment Variables & Secrets
+**/.env
+**/secrets.yml
+*.pem
+*.key
+
+# Application Generated Files
+**/node_modules/
+**/logs/
+*.tmp
+*.log

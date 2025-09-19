@@ -4,5 +4,5 @@
 - import_playbook: teardown_nat.yml
 - import_playbook: teardown_eip.yml
 - import_playbook: teardown_enis.yml
-- import_playbook: teardown_networking.yml
 - import_playbook: teardown_security.yml
+- import_playbook: teardown_networking.yml

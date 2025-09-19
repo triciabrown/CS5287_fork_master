@@ -1,0 +1,103 @@
+---
+- name: Generate MongoDB TLS Certificates
+  hosts: mongodb_vm
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Generate MongoDB private key
+      openssl_privatekey:
+        path: /opt/ssl/mongodb/mongodb-key.pem
+        size: 2048
+        mode: '0600'
+
+    - name: Generate MongoDB certificate signing request
+      openssl_csr:
+        path: /opt/ssl/mongodb/mongodb.csr
+        privatekey_path: /opt/ssl/mongodb/mongodb-key.pem
+        common_name: "{{ ansible_hostname }}"
+        subject_alt_name:
+          - "DNS:{{ ansible_hostname }}"
+          - "DNS:mongodb"
+          - "IP:{{ ansible_default_ipv4.address }}"
+
+    - name: Generate MongoDB certificate
+      openssl_certificate:
+        path: /opt/ssl/mongodb/mongodb-cert.pem
+        csr_path: /opt/ssl/mongodb/mongodb.csr
+        ownca_path: /opt/ssl/ca/ca.pem
+        ownca_privatekey_path: /opt/ssl/ca/ca-key.pem
+        provider: ownca
+        mode: '0644'
+      delegate_to: "{{ groups['homeassistant'][0] }}"
+
+    - name: Combine MongoDB certificate and key
+      shell: |
+        cat /opt/ssl/mongodb/mongodb-cert.pem /opt/ssl/mongodb/mongodb-key.pem > /opt/ssl/mongodb/mongodb.pem
+        chmod 600 /opt/ssl/mongodb/mongodb.pem
+        chown 999:999 /opt/ssl/mongodb/mongodb.pem
+
+    - name: Copy CA certificate for MongoDB
+      copy:
+        src: /opt/ssl/ca/ca.pem
+        dest: /opt/ssl/mongodb/ca.pem
+        mode: '0644'
+        owner: '999'
+        group: '999'
+        remote_src: yes
+
+    - name: Create MongoDB certificates directory in application path
+      file:
+        path: /opt/apps/vm-2-mongodb/certs
+        state: directory
+        mode: '0755'
+        owner: '999'
+        group: '999'
+
+    - name: Copy certificates to application directory
+      copy:
+        src: "/opt/ssl/mongodb/{{ item }}"
+        dest: "/opt/apps/vm-2-mongodb/certs/{{ item }}"
+        mode: '0600'
+        owner: '999'
+        group: '999'
+        remote_src: yes
+      loop:
+        - mongodb.pem
+        - ca.pem
+
+    - name: Generate client certificate for applications
+      openssl_privatekey:
+        path: /opt/ssl/mongodb/client-key.pem
+        size: 2048
+        mode: '0644'
+
+    - name: Generate client certificate signing request
+      openssl_csr:
+        path: /opt/ssl/mongodb/client.csr
+        privatekey_path: /opt/ssl/mongodb/client-key.pem
+        common_name: "mongodb-client"
+
+    - name: Generate client certificate
+      openssl_certificate:
+        path: /opt/ssl/mongodb/client-cert.pem
+        csr_path: /opt/ssl/mongodb/client.csr
+        ownca_path: /opt/ssl/ca/ca.pem
+        ownca_privatekey_path: /opt/ssl/ca/ca-key.pem
+        provider: ownca
+        mode: '0644'
+      delegate_to: "{{ groups['homeassistant'][0] }}"
+
+    - name: Combine client certificate and key
+      shell: |
+        cat /opt/ssl/mongodb/client-cert.pem /opt/ssl/mongodb/client-key.pem > /opt/ssl/mongodb/client.pem
+        chmod 644 /opt/ssl/mongodb/client.pem
+
+    - name: Copy client certificate to application directory
+      copy:
+        src: /opt/ssl/mongodb/client.pem
+        dest: /opt/apps/vm-2-mongodb/certs/client.pem
+        mode: '0644'
+        owner: '999'
+        group: '999'
+        remote_src: yes

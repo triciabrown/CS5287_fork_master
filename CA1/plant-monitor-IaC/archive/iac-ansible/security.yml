@@ -4,11 +4,23 @@
   connection: local
   gather_facts: no
   tasks:
+    - name: Get VPC info by name and CIDR
+      amazon.aws.ec2_vpc_net:
+        name: plant-monitoring-vpc
+        cidr_block: "{{ vpc_cidr }}"
+        region: "{{ region }}"
+        state: present
+      register: vpc_lookup
+
+    - name: Set VPC ID fact
+      set_fact:
+        vpc_id: "{{ vpc_lookup.vpc.id }}"
+
     - name: Create or get security group for Kafka
       amazon.aws.ec2_security_group:
         name: SG-Kafka
         description: Kafka security group - VM-1 message broker for plant sensor data
-        vpc_id: "{{ vpc.vpc.id }}"
+        vpc_id: "{{ vpc_id }}"
         region: "{{ region }}"
         tags:
           Name: plant-monitoring-sg-kafka
@@ -30,7 +42,7 @@
       amazon.aws.ec2_security_group:
         name: SG-MongoDB
         description: MongoDB security group - VM-2 database with authentication for plant sensor data storage
-        vpc_id: "{{ vpc.vpc.id }}"
+        vpc_id: "{{ vpc_id }}"
         region: "{{ region }}"
         tags:
           Name: plant-monitoring-sg-mongodb
@@ -47,7 +59,7 @@
       amazon.aws.ec2_security_group:
         name: SG-Processor
         description: Processor security group - VM-3 plant care processor with automatic MQTT discovery
-        vpc_id: "{{ vpc.vpc.id }}"
+        vpc_id: "{{ vpc_id }}"
         region: "{{ region }}"
         tags:
           Name: plant-monitoring-sg-processor
@@ -74,7 +86,7 @@
       amazon.aws.ec2_security_group:
         name: SG-HomeAssistant
         description: Home Assistant security group - VM-4 dashboard + MQTT broker + plant sensors (public access)
-        vpc_id: "{{ vpc.vpc.id }}"
+        vpc_id: "{{ vpc_id }}"
         region: "{{ region }}"
         tags:
           Name: plant-monitoring-sg-homeassistant
@@ -97,7 +109,7 @@
       amazon.aws.ec2_security_group:
         name: SG-MongoDB
         description: MongoDB security group - VM-2 database with authentication for plant sensor data storage
-        vpc_id: "{{ vpc.vpc.id }}"
+        vpc_id: "{{ vpc_id }}"
         region: "{{ region }}"
         rules:
           - proto: tcp
@@ -117,7 +129,7 @@
       amazon.aws.ec2_security_group:
         name: SG-Processor
         description: Processor security group - VM-3 plant care processor with automatic MQTT discovery
-        vpc_id: "{{ vpc.vpc.id }}"
+        vpc_id: "{{ vpc_id }}"
         region: "{{ region }}"
         rules:
           - proto: tcp
@@ -162,7 +174,7 @@
       amazon.aws.ec2_security_group:
         name: SG-HomeAssistant
         description: Home Assistant security group - VM-4 dashboard + MQTT broker + plant sensors (public access)
-        vpc_id: "{{ vpc.vpc.id }}"
+        vpc_id: "{{ vpc_id }}"
         region: "{{ region }}"
         rules:
           - proto: tcp

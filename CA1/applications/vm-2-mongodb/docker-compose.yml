@@ -10,6 +10,10 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=AdminPass123!
       - MONGO_INITDB_DATABASE=plant_monitoring
+    volumes:
+      # Persistent data volume with correct ownership
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
     restart: unless-stopped
     mem_limit: 400m  # Memory limit for t2.micro
     user: "999:999"  # MongoDB user for security
@@ -22,3 +26,17 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  mongodb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/mongodb/data
+  mongodb_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/mongodb/config

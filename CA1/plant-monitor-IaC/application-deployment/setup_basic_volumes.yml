@@ -1,0 +1,105 @@
+---
+- name: Setup Basic Persistent Volumes and Directories
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    # Create persistent volume base directories
+    - name: Create persistent volume base directories
+      file:
+        path: "/opt/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+      loop:
+        - mongodb
+        - kafka
+        - homeassistant
+        - mosquitto
+        - apps
+
+    # MongoDB specific directories and ownership
+    - name: Create MongoDB data directories
+      file:
+        path: "/opt/mongodb/{{ item }}"
+        state: directory
+        mode: '0700'
+        owner: '999'  # MongoDB user ID
+        group: '999'
+      loop:
+        - data
+        - config
+      when: "'mongodb' in group_names"
+
+    # Kafka specific directories and ownership  
+    - name: Create Kafka data directories
+      file:
+        path: "/opt/kafka/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: '1001'  # Bitnami Kafka user ID
+        group: '1001'
+      loop:
+        - data
+        - logs
+      when: "'kafka' in group_names"
+
+    # Home Assistant specific directories and ownership
+    - name: Create Home Assistant data directories
+      file:
+        path: "/opt/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: '1000'  # Home Assistant user ID
+        group: '1000'
+      loop:
+        - homeassistant/config
+      when: "'homeassistant' in group_names"
+
+    # Mosquitto specific directories and ownership
+    - name: Create Mosquitto data directories
+      file:
+        path: "/opt/mosquitto/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: '1883'  # Mosquitto user ID
+        group: '1883'
+      loop:
+        - data
+        - logs
+      when: "'homeassistant' in group_names"
+
+    # Create application directories
+    - name: Create application directories for each VM
+      file:
+        path: "/opt/apps/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: ubuntu
+        group: ubuntu
+      loop:
+        - vm-1-kafka
+        - vm-2-mongodb
+        - vm-3-processor
+        - vm-4-homeassistant
+      when: item in inventory_hostname
+
+    - name: Display persistent volume setup completion
+      debug:
+        msg: |
+          ✅ Persistent volumes configured for {{ inventory_hostname }}:
+          {% if 'mongodb' in group_names %}
+          - MongoDB data: /opt/mongodb/data
+          - MongoDB config: /opt/mongodb/config
+          {% endif %}
+          {% if 'kafka' in group_names %}
+          - Kafka data: /opt/kafka/data  
+          - Kafka logs: /opt/kafka/logs
+          {% endif %}
+          {% if 'homeassistant' in group_names %}
+          - Home Assistant config: /opt/homeassistant/config
+          - Mosquitto data: /opt/mosquitto/data
+          {% endif %}
+          - Applications: /opt/apps/

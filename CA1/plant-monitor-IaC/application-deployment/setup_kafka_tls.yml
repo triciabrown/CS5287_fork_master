@@ -1,0 +1,108 @@
+---
+- name: Generate Kafka TLS Certificates and SASL Configuration
+  hosts: kafka_vm
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Generate Kafka private key
+      openssl_privatekey:
+        path: /opt/ssl/kafka/kafka-key.pem
+        size: 2048
+        mode: '0600'
+
+    - name: Generate Kafka certificate signing request
+      openssl_csr:
+        path: /opt/ssl/kafka/kafka.csr
+        privatekey_path: /opt/ssl/kafka/kafka-key.pem
+        common_name: "{{ ansible_hostname }}"
+        subject_alt_name:
+          - "DNS:{{ ansible_hostname }}"
+          - "DNS:kafka"
+          - "IP:{{ ansible_default_ipv4.address }}"
+
+    - name: Generate Kafka certificate
+      openssl_certificate:
+        path: /opt/ssl/kafka/kafka-cert.pem
+        csr_path: /opt/ssl/kafka/kafka.csr
+        ownca_path: /opt/ssl/ca/ca.pem
+        ownca_privatekey_path: /opt/ssl/ca/ca-key.pem
+        provider: ownca
+        mode: '0644'
+      delegate_to: "{{ groups['homeassistant'][0] }}"
+
+    - name: Create PKCS12 keystore
+      shell: |
+        openssl pkcs12 -export -in /opt/ssl/kafka/kafka-cert.pem -inkey /opt/ssl/kafka/kafka-key.pem \
+        -out /opt/ssl/kafka/kafka.p12 -name kafka -CAfile /opt/ssl/ca/ca.pem -caname ca \
+        -password pass:kafkastore123
+
+    - name: Convert PKCS12 to JKS keystore
+      shell: |
+        keytool -importkeystore -deststorepass kafkastore123 -destkeypass kafkastore123 \
+        -destkeystore /opt/ssl/kafka/kafka.keystore.jks -srckeystore /opt/ssl/kafka/kafka.p12 \
+        -srcstoretype PKCS12 -srcstorepass kafkastore123 -alias kafka -noprompt
+
+    - name: Import CA certificate to truststore
+      shell: |
+        keytool -keystore /opt/ssl/kafka/kafka.truststore.jks -alias ca -import -file /opt/ssl/ca/ca.pem \
+        -storepass kafkastore123 -noprompt
+
+    - name: Create Kafka certificates directory in application path
+      file:
+        path: /opt/apps/vm-1-kafka/certs
+        state: directory
+        mode: '0755'
+        owner: '1001'
+        group: '1001'
+
+    - name: Copy keystore and truststore to application directory
+      copy:
+        src: "/opt/ssl/kafka/{{ item }}"
+        dest: "/opt/apps/vm-1-kafka/certs/{{ item }}"
+        mode: '0644'
+        owner: '1001'
+        group: '1001'
+        remote_src: yes
+      loop:
+        - kafka.keystore.jks
+        - kafka.truststore.jks
+
+    - name: Create SASL configuration directory
+      file:
+        path: /opt/apps/vm-1-kafka/sasl
+        state: directory
+        mode: '0755'
+        owner: '1001'
+        group: '1001'
+
+    - name: Create Kafka SASL client configuration
+      copy:
+        content: |
+          security.protocol=SSL
+          ssl.truststore.location=/opt/bitnami/kafka/config/certs/kafka.truststore.jks
+          ssl.truststore.password=kafkastore123
+          ssl.keystore.location=/opt/bitnami/kafka/config/certs/kafka.keystore.jks
+          ssl.keystore.password=kafkastore123
+          ssl.key.password=kafkastore123
+          sasl.mechanism=PLAIN
+          sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="processor" password="processor123";
+        dest: /opt/apps/vm-1-kafka/sasl/client.properties
+        mode: '0644'
+        owner: '1001'
+        group: '1001'
+
+    - name: Create Kafka server JAAS configuration
+      copy:
+        content: |
+          KafkaServer {
+              org.apache.kafka.common.security.plain.PlainLoginModule required
+              username="kafka"
+              password="kafka123"
+              user_kafka="kafka123"
+              user_processor="processor123";
+          };
+        dest: /opt/apps/vm-1-kafka/sasl/kafka_server_jaas.conf
+        mode: '0644'
+        owner: '1001'
+        group: '1001'

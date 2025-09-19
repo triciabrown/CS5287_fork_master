@@ -1,0 +1,146 @@
+---
+- name: Setup Persistent Volumes and Security Enhancements
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    # Create persistent volume directories for all services
+    - name: Create persistent volume base directories
+      file:
+        path: "/opt/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+      loop:
+        - mongodb
+        - kafka
+        - homeassistant
+        - mosquitto
+        - ssl
+
+    # MongoDB specific directories and ownership
+    - name: Create MongoDB data directories
+      file:
+        path: "/opt/mongodb/{{ item }}"
+        state: directory
+        mode: '0700'
+        owner: '999'  # MongoDB user ID
+        group: '999'
+      loop:
+        - data
+        - config
+      when: "'mongodb' in group_names"
+
+    # Kafka specific directories and ownership  
+    - name: Create Kafka data directories
+      file:
+        path: "/opt/kafka/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: '1001'  # Bitnami Kafka user ID
+        group: '1001'
+      loop:
+        - data
+        - logs
+      when: "'kafka' in group_names"
+
+    # Home Assistant specific directories and ownership
+    - name: Create Home Assistant data directories
+      file:
+        path: "/opt/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: '1000'  # Home Assistant user ID
+        group: '1000'
+      loop:
+        - homeassistant/config
+      when: "'homeassistant' in group_names"
+
+    # Mosquitto specific directories and ownership
+    - name: Create Mosquitto data directories
+      file:
+        path: "/opt/mosquitto/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: '1883'  # Mosquitto user ID
+        group: '1883'
+      loop:
+        - data
+        - logs
+      when: "'homeassistant' in group_names"
+
+    # SSL certificate directories
+    - name: Create SSL certificate directories
+      file:
+        path: "/opt/ssl/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+      loop:
+        - ca
+        - mongodb
+        - kafka
+
+    # Install OpenSSL for certificate generation
+    - name: Install OpenSSL and Java keytool dependencies
+      package:
+        name:
+          - openssl
+          - default-jre-headless
+        state: present
+
+    # Generate CA certificate
+    - name: Generate CA private key
+      openssl_privatekey:
+        path: /opt/ssl/ca/ca-key.pem
+        size: 2048
+        mode: '0600'
+      delegate_to: "{{ groups['homeassistant'][0] }}"
+      run_once: true
+
+    - name: Generate CA certificate
+      openssl_certificate:
+        path: /opt/ssl/ca/ca.pem
+        privatekey_path: /opt/ssl/ca/ca-key.pem
+        provider: selfsigned
+        common_name: "Plant Monitoring CA"
+        country_name: "US"
+        state_or_province_name: "State"
+        locality_name: "City"
+        organization_name: "Plant Monitoring System"
+        organizational_unit_name: "Infrastructure"
+        basic_constraints:
+          - "CA:TRUE"
+        basic_constraints_critical: yes
+        key_usage:
+          - keyCertSign
+          - cRLSign
+        key_usage_critical: yes
+        mode: '0644'
+      delegate_to: "{{ groups['homeassistant'][0] }}"
+      run_once: true
+
+    # Distribute CA certificate to all nodes
+    - name: Fetch CA certificate from bastion
+      slurp:
+        src: /opt/ssl/ca/ca.pem
+      register: ca_cert_content
+      delegate_to: "{{ groups['homeassistant'][0] }}"
+      run_once: true
+
+    - name: Copy CA certificate to all nodes
+      copy:
+        content: "{{ ca_cert_content.content | b64decode }}"
+        dest: /opt/ssl/ca/ca.pem
+        mode: '0644'
+        owner: root
+        group: root
+
+  handlers:
+    - name: restart docker
+      service:
+        name: docker
+        state: restarted

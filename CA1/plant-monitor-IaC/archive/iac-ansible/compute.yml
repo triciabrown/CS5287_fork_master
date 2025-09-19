@@ -1,0 +1,122 @@
+---
+# Compute: EC2 instance creation
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    region: us-east-2
+    vpc_cidr: "10.0.0.0/16"
+  tasks:
+    # Lookup VPC by CIDR
+    - name: Lookup VPC by CIDR
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ region }}"
+        filters:
+          cidr: "{{ vpc_cidr }}"
+      register: vpc_lookup
+
+    # Set vpc_id fact for reuse
+    - name: Set vpc_id fact
+      set_fact:
+        vpc_id: "{{ vpc_lookup.vpcs[0].id }}"
+      when: vpc_lookup.vpcs is defined and vpc_lookup.vpcs|length > 0
+
+    # Lookup subnets by VPC and tags
+    - name: Lookup private subnet
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          "tag:Name": "plant-monitoring-private-subnet"
+      register: private_subnet_lookup
+
+    - name: Lookup public subnet
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          "tag:Name": "plant-monitoring-public-subnet"
+      register: public_subnet_lookup
+
+    # Lookup security groups by name and VPC
+    - name: Lookup security groups
+      amazon.aws.ec2_security_group_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          group-name: "{{ item }}"
+      register: sg_lookup
+      loop:
+        - "SG-Kafka"
+        - "SG-MongoDB" 
+        - "SG-Processor"
+        - "SG-HomeAssistant"
+
+    # Set security group facts
+    - name: Set security group facts
+      set_fact:
+        sg_kafka_id: "{{ (sg_lookup.results[0].security_groups | first).group_id }}"
+        sg_mongodb_id: "{{ (sg_lookup.results[1].security_groups | first).group_id }}"
+        sg_processor_id: "{{ (sg_lookup.results[2].security_groups | first).group_id }}"
+        sg_homeassistant_id: "{{ (sg_lookup.results[3].security_groups | first).group_id }}"
+        private_subnet_id: "{{ private_subnet_lookup.subnets[0].subnet_id }}"
+        public_subnet_id: "{{ public_subnet_lookup.subnets[0].subnet_id }}"
+    - name: Launch or get EC2 instance for Kafka (VM-1)
+      amazon.aws.ec2_instance:
+        name: VM-1-Kafka
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami }}"
+        vpc_subnet_id: "{{ private_subnet_id }}"
+        security_group: "{{ sg_kafka_id }}"
+        region: "{{ region }}"
+        wait: yes
+        tags:
+          Name: VM-1-Kafka
+        state: present
+      register: kafka_instance
+
+    - name: Launch or get EC2 instance for MongoDB (VM-2)
+      amazon.aws.ec2_instance:
+        name: VM-2-MongoDB
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami }}"
+        vpc_subnet_id: "{{ private_subnet_id }}"
+        security_group: "{{ sg_mongodb_id }}"
+        region: "{{ region }}"
+        wait: yes
+        tags:
+          Name: VM-2-MongoDB
+        state: present
+      register: mongodb_instance
+
+    - name: Launch or get EC2 instance for Processor (VM-3)
+      amazon.aws.ec2_instance:
+        name: VM-3-Processor
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami }}"
+        vpc_subnet_id: "{{ private_subnet_id }}"
+        security_group: "{{ sg_processor_id }}"
+        region: "{{ region }}"
+        wait: yes
+        tags:
+          Name: VM-3-Processor
+        state: present
+      register: processor_instance
+
+    - name: Launch or get EC2 instance for Home Assistant (VM-4)
+      amazon.aws.ec2_instance:
+        name: VM-4-HomeAssistant
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami }}"
+        vpc_subnet_id: "{{ public_subnet_id }}"
+        security_group: "{{ sg_homeassistant_id }}"
+        region: "{{ region }}"
+        wait: yes
+        tags:
+          Name: VM-4-HomeAssistant
+        state: present
+      register: ha_instance

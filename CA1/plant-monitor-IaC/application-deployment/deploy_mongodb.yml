@@ -16,7 +16,7 @@
 
     - name: Copy MongoDB docker-compose.yml
       copy:
-        src: ../applications/vm-2-mongodb/docker-compose.yml
+        src: ../../applications/vm-2-mongodb/docker-compose.yml
         dest: "{{ app_dir }}/docker-compose.yml"
         owner: ubuntu
         group: ubuntu
@@ -24,11 +24,20 @@
 
     - name: Copy MongoDB initialization script
       copy:
-        src: ../applications/vm-2-mongodb/init-db.js
+        src: ../../applications/vm-2-mongodb/init-db.js
         dest: "{{ app_dir }}/init-db.js"
         owner: ubuntu
         group: ubuntu
         mode: '0644'
+
+    - name: Ensure ubuntu user is in docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Reset SSH connection to allow user group changes to take effect
+      meta: reset_connection
 
     - name: Stop any existing MongoDB containers
       command: docker compose down
@@ -54,21 +63,29 @@
       pause:
         seconds: 30
 
-    - name: Initialize MongoDB database
+    - name: Create plant monitoring database and user
       command: >
-        docker compose exec -T mongodb mongosh 
-        --file /usr/src/app/init-db.js
+        docker compose exec -T mongodb mongosh --eval "
+        use plant_monitoring;
+        db.createUser({
+          user: 'plantuser',
+          pwd: 'PlantUserPass123!',
+          roles: [
+            { role: 'readWrite', db: 'plant_monitoring' },
+            { role: 'dbAdmin', db: 'plant_monitoring' }
+          ]
+        });
+        db.createCollection('plants');
+        db.createCollection('sensor_readings');
+        db.createCollection('alerts');
+        db.createCollection('care_events');
+        "
       args:
         chdir: "{{ app_dir }}"
       become_user: ubuntu
       ignore_errors: yes
 
-    - name: Copy initialization script into container
-      command: >
-        docker cp {{ app_dir }}/init-db.js mongodb:/usr/src/app/init-db.js
-      become_user: ubuntu
-
-    - name: Run MongoDB initialization script
+    - name: Verify MongoDB initialization
       command: >
         docker compose exec -T mongodb mongosh 
         --file /usr/src/app/init-db.js

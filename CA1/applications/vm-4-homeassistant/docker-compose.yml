@@ -55,5 +55,20 @@ services:
 
 volumes:
   ha_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/homeassistant/config
   mosquitto_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/mosquitto/data
   mosquitto_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/mosquitto/logs

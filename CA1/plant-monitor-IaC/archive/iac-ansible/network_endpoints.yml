@@ -134,40 +134,86 @@
       register: private_rt
       when: nat_gw_id is defined and private_subnet_id is defined and vpc_id is defined
 
-    - name: Allocate or get Elastic IP for Home Assistant (VM-4)
+    - name: Find existing EIP for Home Assistant by tag
+      amazon.aws.ec2_eip_info:
+        region: "{{ region }}"
+        filters:
+          tag:Name: "plant-monitoring-ha-eip"
+      register: ha_eip_info
+
+    - name: Set Home Assistant EIP public_ip from existing tagged EIP
+      set_fact:
+        ha_eip_public_ip: "{{ ha_eip_info.addresses[0].public_ip }}"
+        ha_eip_allocation_id: "{{ ha_eip_info.addresses[0].allocation_id }}"
+      when: ha_eip_info.addresses is defined and ha_eip_info.addresses|length > 0
+
+    - name: Allocate new Elastic IP for Home Assistant if tagged EIP doesn't exist
       amazon.aws.ec2_eip:
         in_vpc: true
         region: "{{ region }}"
         tags:
           Name: plant-monitoring-ha-eip
         state: present
-      register: ha_eip
+      register: ha_eip_new
+      when: ha_eip_public_ip is not defined
+
+    - name: Set Home Assistant EIP details from newly created EIP
+      set_fact:
+        ha_eip_public_ip: "{{ ha_eip_new.public_ip }}"
+        ha_eip_allocation_id: "{{ ha_eip_new.allocation_id }}"
+      when: ha_eip_public_ip is not defined and ha_eip_new is defined
+
+    # Lookup EC2 instances by name
+    - name: Lookup Home Assistant instance
+      amazon.aws.ec2_instance_info:
+        region: "{{ region }}"
+        filters:
+          tag:Name: "VM-4-HomeAssistant"
+          instance-state-name: "running"
+      register: ha_instance_lookup
+
+    - name: Lookup all EC2 instances for debug output
+      amazon.aws.ec2_instance_info:
+        region: "{{ region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          instance-state-name: "running"
+      register: all_instances_lookup
+
+    - name: Set instance facts for reference
+      set_fact:
+        kafka_instance_info: "{{ all_instances_lookup.instances | selectattr('tags.Name', 'equalto', 'VM-1-Kafka') | first }}"
+        mongodb_instance_info: "{{ all_instances_lookup.instances | selectattr('tags.Name', 'equalto', 'VM-2-MongoDB') | first }}"
+        processor_instance_info: "{{ all_instances_lookup.instances | selectattr('tags.Name', 'equalto', 'VM-3-Processor') | first }}"
+        ha_instance_info: "{{ ha_instance_lookup.instances[0] }}"
+      when: ha_instance_lookup.instances is defined and ha_instance_lookup.instances|length > 0
 
     - name: Wait for Home Assistant instance to be running
       amazon.aws.ec2_instance_info:
         region: "{{ region }}"
         instance_ids:
-          - "{{ ha_instance.instances[0].instance_id }}"
+          - "{{ ha_instance_info.instance_id }}"
       register: ha_instance_state
       until: ha_instance_state.instances[0].state.name == 'running'
       retries: 12
       delay: 10
-      when: ha_instance is defined
+      when: ha_instance_info is defined
 
     - name: Associate Elastic IP with Home Assistant instance
       community.aws.ec2_eip:
         region: "{{ region }}"
-        public_ip: "{{ ha_eip.public_ip }}"
-        device_id: "{{ ha_instance.instances[0].network_interfaces[0].network_interface_id }}"
-        private_ip_address: "{{ ha_instance.instances[0].private_ip_address }}"
+        public_ip: "{{ ha_eip_public_ip }}"
+        device_id: "{{ ha_instance_info.network_interfaces[0].network_interface_id }}"
+        private_ip_address: "{{ ha_instance_info.private_ip_address }}"
         in_vpc: true
         state: present
-      when: ha_eip is defined and ha_instance is defined
+      when: ha_eip_public_ip is defined and ha_instance_info is defined
 
     - name: Show instance details
       debug:
         msg:
-          - "Kafka: {{ kafka_instance.instances[0].private_ip_address }}"
-          - "MongoDB: {{ mongodb_instance.instances[0].private_ip_address }}"
-          - "Processor: {{ processor_instance.instances[0].private_ip_address }}"
-          - "Home Assistant: {{ ha_instance.instances[0].private_ip_address }} (Elastic IP: {{ ha_eip.public_ip }})"
+          - "Kafka: {{ kafka_instance_info.private_ip_address | default('Not found') }}"
+          - "MongoDB: {{ mongodb_instance_info.private_ip_address | default('Not found') }}"
+          - "Processor: {{ processor_instance_info.private_ip_address | default('Not found') }}"
+          - "Home Assistant: {{ ha_instance_info.private_ip_address | default('Not found') }} (Elastic IP: {{ ha_eip_public_ip | default('Not assigned') }})"
+      when: all_instances_lookup.instances is defined

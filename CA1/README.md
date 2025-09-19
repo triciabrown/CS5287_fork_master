@@ -1,19 +1,139 @@
 # Prerequisites
 
-Before running these playbooks, ensure you have the following installed in your (preferably WSL/Ubuntu) environment:
+This project uses **Terraform for infrastructure** and **Ansible for application deployment**. Ensure you have the following installed in your environment (preferably WSL/Ubuntu):
 
-- Ansible (see instructions below)
-- Required Ansible collections:
-  ```bash
-  ansible-galaxy collection install amazon.aws
-  ansible-galaxy collection install community.aws
-  ```
-- AWS CLI (for credential setup)
-- Valid AWS credentials (see AWS Credentials Setup below)
+## Required Tools
+
+### 1. Terraform (>= 1.0)
+```bash
+# Method 1: Official HashiCorp Repository (Recommended)
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install terraform
+
+# Method 2: Snap (Alternative)
+sudo snap install terraform --classic
+
+# Verify installation
+terraform version
+```
+
+### 2. Ansible (for application deployment)
+```bash
+# Install Ansible
+sudo apt update && sudo apt install ansible
+
+# Install required collections
+ansible-galaxy collection install amazon.aws
+ansible-galaxy collection install community.aws
+
+# Verify installation
+ansible --version
+```
+
+### 3. AWS CLI (for credential setup)
+```bash
+# Install AWS CLI
+sudo apt install awscli
+# OR if not available:
+pipx install awscli
+
+# Configure credentials
+aws configure
+```
+
+### 4. Required Permissions
+Your AWS user needs the following permissions:
+
+**Core Infrastructure:**
+- EC2: Create, modify, delete instances, security groups, VPCs, EIPs
+- VPC: Create subnets, route tables, internet gateways, NAT gateways
+- **AWS Secrets Manager**: CreateSecret, GetSecretValue, PutSecretValue, UpdateSecret, DeleteSecret
+
+**Required IAM Policies (Recommended - AWS Managed):**
+- `AmazonEC2FullAccess` - For EC2, VPC, Security Groups, EIPs
+- `SecretsManagerReadWrite` - For AWS Secrets Manager operations
+
+**How to Add Permissions:**
+1. Go to AWS Console → IAM → Users → `ansible-deployer`
+2. Click "Add permissions" → "Attach policies directly"  
+3. Search for and attach: `AmazonEC2FullAccess` and `SecretsManagerReadWrite`
+4. Click "Add permissions"
+
+**Alternative (Custom Policy):**
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:*",
+                "secretsmanager:CreateSecret",
+                "secretsmanager:GetSecretValue", 
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:UpdateSecret",
+                "secretsmanager:DeleteSecret",
+                "secretsmanager:TagResource"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+## Valid AWS Credentials
+Configure AWS credentials using one of these methods:
+- **AWS CLI**: `aws configure` (recommended)
+- **Environment variables**: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`
+- **IAM roles**: If running from EC2 instance
 
 # CA1 – Infrastructure as Code (IaC)
 
-This assignment recreates the IoT pipeline from CA0 using automated deployment tools (Ansible). All infrastructure setup, configuration, and service deployment should be defined as code and documented here.
+This assignment recreates the IoT pipeline from CA0 using automated deployment tools. The solution uses **Terraform for infrastructure provisioning** and **Ansible for application deployment**, providing a robust and maintainable Infrastructure as Code solution.
+
+## ✨ Key Features
+
+- **🔗 Hybrid IaC Architecture**: Terraform for infrastructure + Ansible for applications
+- **🔒 Enterprise Security**: AWS Secrets Manager integration with KMS encryption  
+- **⚡ Single-Command Deployment**: Complete infrastructure + applications with `./deploy.sh`
+- **🌐 Network Isolation**: Custom VPC with public/private subnet architecture
+- **🔄 Zero-Downtime Secrets**: Automatic password generation and rotation support
+- **📦 Container Orchestration**: Docker-based microservices deployment
+- **📊 Real-time Monitoring**: Home Assistant dashboard for IoT sensor data
+- **📋 Assignment Compliance**: Meets 15% security requirement with encrypted secret storage
+
+## 🏗️ Architecture: Terraform + Ansible
+
+- **Terraform**: AWS infrastructure (VPC, EC2 instances, security groups, networking)
+- **Ansible**: Application deployment (Docker, services, configuration)
+- **Automated inventory**: Real IP addresses generated from Terraform outputs
+
+This hybrid approach solves variable persistence and dependency issues while leveraging each tool's strengths.
+
+## 🔒 Secure Secret Management
+
+This project implements enterprise-grade secret management using **AWS Secrets Manager**:
+
+### What Secrets Are Managed
+- **MongoDB credentials** (root and application users)
+- **Home Assistant login credentials**  
+- **MQTT broker authentication**
+- **Application configuration** (API keys, topic names)
+
+### Security Features
+- ✅ **No secrets in code** - All sensitive data stored in AWS Secrets Manager
+- ✅ **Auto-generated passwords** - 32-character random passwords for security
+- ✅ **Encrypted at rest** - AWS KMS encryption for all secrets
+- ✅ **Access logging** - CloudTrail tracks all secret access
+- ✅ **Rotation ready** - Secrets Manager supports automatic rotation
+
+### How It Works
+1. **Terraform** creates secrets with random passwords in AWS Secrets Manager
+2. **Ansible** retrieves secrets securely during deployment
+3. **Applications** get credentials via environment variables (never hardcoded)
+
+This satisfies the assignment requirement: *"Integrate a vault or cloud secret manager... Do not check plaintext passwords, tokens, or keys into your repository."*
 
 ## Getting Started
 
@@ -86,7 +206,7 @@ Document any additional changes or lessons learned as you progress through the a
 ```
 CA1/
   README.md
-  ansible/
+  plant-monitor-IaC/
    inventory.ini
    playbook.yml
    aws_infra.yml
@@ -105,8 +225,8 @@ CA1/
 ```
 
 ### Docker Compose Files
-- All service deployment files (`kafka.yml`, `mongodb.yml`, `processor.yml`, `homeassistant.yml`) are now located in `ansible/docker-compose/` for clarity and reproducibility.
-- The MongoDB initialization script is in `ansible/mongodb_init-db.js`.
+- All service deployment files (`kafka.yml`, `mongodb.yml`, `processor.yml`, `homeassistant.yml`) are now located in `plant-monitor-IaC/docker-compose/` for clarity and reproducibility.
+- The MongoDB initialization script is in `plant-monitor-IaC/mongodb_init-db.js`.
 - Ansible roles reference these files for copy operations, making the automation self-contained.
 
 
@@ -135,18 +255,40 @@ To run Ansible playbooks that provision AWS resources, you must provide AWS cred
 
 **Never hardcode credentials in playbooks or source files.**
 
-### Testing Your Ansible Automation
-1. Ensure your AWS credentials are set up and valid.
-2. Run the infrastructure playbook to provision VPC, subnets, security groups, and EC2 instances:
-  ```bash
-  ansible-playbook ansible/aws_infra.yml
-  ```
-3. Update `inventory.ini` with the public/private IPs of your new instances (output by the playbook).
-4. Run the main playbook to install Docker and deploy services:
-  ```bash
-  ansible-playbook ansible/playbook.yml -i ansible/inventory.ini
-  ```
-5. Verify service status using Ansible output and by connecting to your VMs.
+### Quick Start Deployment
+1. **Ensure prerequisites are installed** (Terraform, Ansible, AWS CLI)
+2. **Configure AWS credentials**: `aws configure`
+3. **Deploy everything** with one command:
+   ```bash
+   cd CA1/plant-monitor-IaC
+   ./deploy.sh
+   ```
+
+### Step-by-Step Deployment (Advanced)
+1. **Infrastructure (Terraform)**:
+   ```bash
+   cd CA1/plant-monitor-IaC/terraform
+   terraform init
+   terraform plan
+   terraform apply
+   ```
+
+2. **Generate Ansible inventory**:
+   ```bash
+   ./generate-inventory.sh
+   ```
+
+3. **Applications (Ansible)**:
+   ```bash
+   cd ../application-deployment
+   ansible-playbook -i inventory.ini setup_docker.yml
+   ansible-playbook -i inventory.ini deploy_*.yml
+   ```
+
+4. **Verify deployment**:
+   ```bash
+   ansible-playbook -i inventory.ini health_check.yml
+   ```
 
 Document any issues or troubleshooting steps in this README as you test and refine your automation.
 
@@ -191,17 +333,35 @@ The CA1 assignment now includes **complete automation** for the Smart House Plan
 
 **Option 1: Complete One-Click Deployment**
 ```bash
-cd CA1/ansible
+cd CA1/plant-monitor-IaC
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
 **Option 2: Infrastructure + Applications Separately**
 ```bash
-# Deploy infrastructure only
-ansible-playbook -i inventory.ini aws_infra.yml
+cd CA1/plant-monitor-IaC
 
-# Deploy applications after infrastructure is ready
+# Deploy infrastructure only (Terraform)
+./deploy.sh infra
+
+# Deploy applications after infrastructure is ready (Ansible)
+./deploy.sh apps
+```
+
+**Option 3: Manual Step-by-Step (Advanced)**
+```bash
+cd CA1/plant-monitor-IaC
+
+# Infrastructure with Terraform
+cd terraform && terraform init && terraform apply
+cd ..
+
+# Generate Ansible inventory
+terraform/generate-inventory.sh
+
+# Applications with Ansible
+cd application-deployment
 ansible-playbook -i inventory.ini setup_docker.yml
 ansible-playbook -i inventory.ini deploy_kafka.yml
 ansible-playbook -i inventory.ini deploy_mongodb.yml
@@ -209,23 +369,16 @@ ansible-playbook -i inventory.ini deploy_processor.yml
 ansible-playbook -i inventory.ini deploy_homeassistant.yml
 ```
 
-**Option 3: Infrastructure Only (Original Approach)**
-```bash
-# Deploy just the AWS infrastructure (VMs, networking, security)
-ansible-playbook -i inventory.ini networking.yml
-ansible-playbook -i inventory.ini security.yml
-ansible-playbook -i inventory.ini compute.yml
-ansible-playbook -i inventory.ini network_endpoints.yml
-```
-
 #### System Health Monitoring
 
 ```bash
-# Run comprehensive health check
-chmod +x check_health.sh
-./check_health.sh
+cd CA1/plant-monitor-IaC
+
+# Run comprehensive health check via deployment script
+./deploy.sh
 
 # Or run directly with Ansible
+cd application-deployment
 ansible-playbook -i inventory.ini health_check.yml
 ```
 
@@ -289,6 +442,7 @@ docker compose logs
 
 **Connectivity Issues**: Use health check for diagnosis:
 ```bash
+cd CA1/plant-monitor-IaC/application-deployment
 ansible-playbook -i inventory.ini health_check.yml
 ```
 

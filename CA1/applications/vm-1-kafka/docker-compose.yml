@@ -6,6 +6,11 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
+      - "9093:9093"
+    volumes:
+      # Persistent data volumes with correct ownership
+      - kafka_data:/bitnami/kafka/data
+      - kafka_logs:/opt/bitnami/kafka/logs
     environment:
       # KRaft mode configuration (no ZooKeeper required)
       - KAFKA_ENABLE_KRAFT=yes
@@ -17,7 +22,9 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://{{ ansible_default_ipv4.address }}:9092
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
       - KAFKA_KRAFT_CLUSTER_ID=LelM2dIFQkiUFvXCEcqRWA
+      
       - ALLOW_PLAINTEXT_LISTENER=yes
+      
       # Memory optimization for t2.micro
       - KAFKA_HEAP_OPTS=-Xmx400m -Xms400m
     restart: unless-stopped
@@ -27,3 +34,17 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  kafka_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kafka/data
+  kafka_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kafka/logs

@@ -1,6 +1,17 @@
 ---
-# Master playbook: imports all modular infra playbooks
+# Master playbook: Complete AWS infrastructure and application deployment
+# Phase 1: Infrastructure Setup
 - import_playbook: networking.yml
-- import_playbook: security.yml
+- import_playbook: security.yml  
 - import_playbook: compute.yml
 - import_playbook: network_endpoints.yml
+
+# Phase 2: Application Deployment (after infrastructure is ready)
+- import_playbook: setup_docker.yml
+- import_playbook: deploy_kafka.yml
+- import_playbook: deploy_mongodb.yml
+- import_playbook: deploy_processor.yml
+- import_playbook: deploy_homeassistant.yml
+
+# Phase 3: System Validation
+- import_playbook: health_check.yml

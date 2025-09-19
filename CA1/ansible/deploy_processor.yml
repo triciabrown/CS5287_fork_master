@@ -1,0 +1,95 @@
+---
+# Deploy Plant Processor application to VM-3
+- hosts: processor_vm
+  become: yes
+  vars:
+    app_dir: /opt/apps/processor
+    ansible_user: ubuntu
+  tasks:
+    - name: Create Processor application directory
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+      loop:
+        - "{{ app_dir }}"
+        - "{{ app_dir }}/plant-care-processor"
+
+    - name: Copy Processor docker-compose.yml with IP substitution
+      template:
+        src: ../applications/vm-3-processor/docker-compose.yml
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+      vars:
+        kafka_vm_private_ip: "{{ hostvars[groups['kafka_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        mongodb_vm_private_ip: "{{ hostvars[groups['mongodb_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        homeassistant_vm_private_ip: "{{ hostvars[groups['homeassistant_vm'][0]]['ansible_default_ipv4']['address'] }}"
+
+    - name: Copy Processor application files
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+      loop:
+        - { src: '../applications/vm-3-processor/plant-care-processor/app.js', dest: '{{ app_dir }}/plant-care-processor/app.js' }
+        - { src: '../applications/vm-3-processor/plant-care-processor/package.json', dest: '{{ app_dir }}/plant-care-processor/package.json' }
+        - { src: '../applications/vm-3-processor/plant-care-processor/Dockerfile', dest: '{{ app_dir }}/plant-care-processor/Dockerfile' }
+
+    - name: Wait for Kafka to be available
+      wait_for:
+        host: "{{ hostvars[groups['kafka_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        port: 9092
+        delay: 10
+        timeout: 300
+
+    - name: Wait for MongoDB to be available
+      wait_for:
+        host: "{{ hostvars[groups['mongodb_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        port: 27017
+        delay: 10
+        timeout: 300
+
+    - name: Stop any existing Processor containers
+      command: docker compose down
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      ignore_errors: yes
+
+    - name: Build and start Processor service
+      command: docker compose up -d --build
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+
+    - name: Wait for Processor to start
+      pause:
+        seconds: 30
+
+    - name: Check Processor container status
+      command: docker compose ps
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: processor_status
+
+    - name: Display Processor status
+      debug:
+        msg: "Processor service status: {{ processor_status.stdout_lines }}"
+
+    - name: Show Processor logs
+      command: docker compose logs --tail=20 plant-processor
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: processor_logs
+
+    - name: Display recent Processor logs
+      debug:
+        msg: "Recent Processor logs: {{ processor_logs.stdout_lines }}"

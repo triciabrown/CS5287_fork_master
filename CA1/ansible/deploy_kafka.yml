@@ -1,0 +1,83 @@
+---
+# Deploy Kafka application to VM-1
+- hosts: kafka_vm
+  become: yes
+  vars:
+    app_dir: /opt/apps/kafka
+    ansible_user: ubuntu
+  tasks:
+    - name: Create Kafka application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Copy Kafka docker-compose.yml
+      template:
+        src: ../applications/vm-1-kafka/docker-compose.yml
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Stop any existing Kafka containers
+      command: docker compose down
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      ignore_errors: yes
+
+    - name: Start Kafka services
+      command: docker compose up -d
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+
+    - name: Wait for Kafka to be ready
+      wait_for:
+        port: 9092
+        host: "{{ ansible_default_ipv4.address }}"
+        delay: 30
+        timeout: 300
+
+    - name: Create Kafka topics
+      command: >
+        docker compose exec -T kafka kafka-topics.sh 
+        --create --topic {{ item }} 
+        --bootstrap-server localhost:9092 
+        --partitions 1 --replication-factor 1 
+        --if-not-exists
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      loop:
+        - plant-sensors
+        - plant-alerts
+        - plant-actions
+      ignore_errors: yes
+
+    - name: Verify Kafka topics
+      command: >
+        docker compose exec -T kafka kafka-topics.sh 
+        --bootstrap-server localhost:9092 --list
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: kafka_topics
+
+    - name: Display Kafka topics
+      debug:
+        msg: "Kafka topics created: {{ kafka_topics.stdout_lines }}"
+
+    - name: Check Kafka container status
+      command: docker compose ps
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: kafka_status
+
+    - name: Display Kafka status
+      debug:
+        msg: "Kafka service status: {{ kafka_status.stdout_lines }}"

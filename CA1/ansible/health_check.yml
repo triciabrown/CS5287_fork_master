@@ -1,0 +1,265 @@
+---
+# Comprehensive health check and validation for the entire plant monitoring system
+- hosts: all
+  become: no
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: Gather service status from all VMs
+      block:
+        - name: Check Docker service status
+          command: systemctl is-active docker
+          register: docker_status
+          become: yes
+
+        - name: Get running containers
+          command: docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+          register: containers_status
+
+        - name: Set facts for this host
+          set_fact:
+            host_docker_status: "{{ docker_status.stdout }}"
+            host_containers: "{{ containers_status.stdout_lines }}"
+            host_ip: "{{ ansible_default_ipv4.address }}"
+
+- hosts: kafka_vm
+  become: no
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: Test Kafka connectivity
+      command: nc -z localhost 9092
+      register: kafka_port_test
+      ignore_errors: yes
+
+    - name: Check Kafka topics
+      command: >
+        docker compose exec -T kafka kafka-topics.sh 
+        --bootstrap-server localhost:9092 --list
+      args:
+        chdir: /opt/apps/kafka
+      register: kafka_topics_list
+      ignore_errors: yes
+
+    - name: Test Kafka producer/consumer
+      shell: |
+        cd /opt/apps/kafka
+        echo "test-message-$(date)" | docker compose exec -T kafka kafka-console-producer.sh --bootstrap-server localhost:9092 --topic plant-sensors
+        sleep 2
+        docker compose exec -T kafka kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic plant-sensors --from-beginning --timeout-ms 5000 | head -1
+      register: kafka_test_result
+      ignore_errors: yes
+
+    - name: Set Kafka health facts
+      set_fact:
+        kafka_port_ok: "{{ kafka_port_test.rc == 0 }}"
+        kafka_topics: "{{ kafka_topics_list.stdout_lines if kafka_topics_list.rc == 0 else [] }}"
+        kafka_messaging_ok: "{{ 'test-message' in kafka_test_result.stdout }}"
+
+- hosts: mongodb_vm
+  become: no
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: Test MongoDB connectivity
+      command: nc -z localhost 27017
+      register: mongo_port_test
+      ignore_errors: yes
+
+    - name: Check MongoDB status
+      command: >
+        docker compose exec -T mongodb mongosh 
+        --eval "db.adminCommand('ping')"
+      args:
+        chdir: /opt/apps/mongodb
+      register: mongo_ping_test
+      ignore_errors: yes
+
+    - name: Check MongoDB collections
+      command: >
+        docker compose exec -T mongodb mongosh 
+        --eval "use plant_monitoring; db.getCollectionNames()"
+      args:
+        chdir: /opt/apps/mongodb
+      register: mongo_collections_test
+      ignore_errors: yes
+
+    - name: Test MongoDB authentication
+      command: >
+        docker compose exec -T mongodb mongosh 
+        --eval "use plant_monitoring; db.auth('plantuser', 'PlantUserPass123!'); db.plants.count()"
+      args:
+        chdir: /opt/apps/mongodb
+      register: mongo_auth_test
+      ignore_errors: yes
+
+    - name: Set MongoDB health facts
+      set_fact:
+        mongo_port_ok: "{{ mongo_port_test.rc == 0 }}"
+        mongo_ping_ok: "{{ 'ok' in mongo_ping_test.stdout }}"
+        mongo_collections_ok: "{{ 'plants' in mongo_collections_test.stdout }}"
+        mongo_auth_ok: "{{ mongo_auth_test.rc == 0 }}"
+
+- hosts: processor_vm
+  become: no
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: Check Processor container health
+      command: docker compose ps plant-processor
+      args:
+        chdir: /opt/apps/processor
+      register: processor_container_status
+      ignore_errors: yes
+
+    - name: Test Kafka connectivity from Processor
+      command: >
+        nc -z {{ hostvars[groups['kafka_vm'][0]]['ansible_default_ipv4']['address'] }} 9092
+      register: processor_kafka_conn
+      ignore_errors: yes
+
+    - name: Test MongoDB connectivity from Processor
+      command: >
+        nc -z {{ hostvars[groups['mongodb_vm'][0]]['ansible_default_ipv4']['address'] }} 27017
+      register: processor_mongo_conn
+      ignore_errors: yes
+
+    - name: Test MQTT connectivity to Home Assistant
+      command: >
+        nc -z {{ hostvars[groups['homeassistant_vm'][0]]['ansible_default_ipv4']['address'] }} 1883
+      register: processor_mqtt_conn
+      ignore_errors: yes
+
+    - name: Get Processor logs
+      command: docker compose logs --tail=10 plant-processor
+      args:
+        chdir: /opt/apps/processor
+      register: processor_logs
+      ignore_errors: yes
+
+    - name: Set Processor health facts
+      set_fact:
+        processor_running: "{{ 'Up' in processor_container_status.stdout }}"
+        processor_kafka_ok: "{{ processor_kafka_conn.rc == 0 }}"
+        processor_mongo_ok: "{{ processor_mongo_conn.rc == 0 }}"
+        processor_mqtt_ok: "{{ processor_mqtt_conn.rc == 0 }}"
+        processor_has_logs: "{{ processor_logs.stdout_lines | length > 0 }}"
+
+- hosts: homeassistant_vm
+  become: no
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: Test Home Assistant web interface
+      uri:
+        url: "http://{{ ansible_default_ipv4.address }}:8123"
+        method: GET
+        status_code: 200
+        timeout: 10
+      register: ha_web_test
+      ignore_errors: yes
+
+    - name: Test MQTT broker
+      command: nc -z localhost 1883
+      register: mqtt_port_test
+      ignore_errors: yes
+
+    - name: Check sensor containers
+      command: docker compose ps
+      args:
+        chdir: /opt/apps/homeassistant
+      register: ha_containers_status
+      ignore_errors: yes
+
+    - name: Test Kafka connectivity from sensors
+      command: >
+        nc -z {{ hostvars[groups['kafka_vm'][0]]['ansible_default_ipv4']['address'] }} 9092
+      register: sensors_kafka_conn
+      ignore_errors: yes
+
+    - name: Get sensor logs
+      command: docker compose logs --tail=5 plant-sensor-001
+      args:
+        chdir: /opt/apps/homeassistant
+      register: sensor_logs
+      ignore_errors: yes
+
+    - name: Set Home Assistant health facts
+      set_fact:
+        ha_web_ok: "{{ ha_web_test.status == 200 }}"
+        mqtt_port_ok: "{{ mqtt_port_test.rc == 0 }}"
+        sensors_kafka_ok: "{{ sensors_kafka_conn.rc == 0 }}"
+        sensors_sending_data: "{{ 'Sent sensor data' in sensor_logs.stdout }}"
+        ha_containers_running: "{{ 'Up' in ha_containers_status.stdout }}"
+
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Generate Health Report
+      debug:
+        msg: |
+          ========================================
+          PLANT MONITORING SYSTEM HEALTH REPORT
+          ========================================
+          
+          🖥️  VM STATUS:
+          {% for host in groups['all'] %}
+          {{ hostvars[host]['inventory_hostname'] }} ({{ hostvars[host]['host_ip'] }}):
+            Docker: {{ hostvars[host]['host_docker_status'] }}
+            Containers: {{ hostvars[host]['host_containers'] | length - 1 }} running
+          {% endfor %}
+          
+          ☕ KAFKA SERVICE ({{ groups['kafka_vm'][0] }}):
+            Port 9092: {{ '✅ OK' if hostvars[groups['kafka_vm'][0]]['kafka_port_ok'] else '❌ FAIL' }}
+            Topics Available: {{ '✅ OK' if hostvars[groups['kafka_vm'][0]]['kafka_topics'] | length > 0 else '❌ FAIL' }}
+            Messaging: {{ '✅ OK' if hostvars[groups['kafka_vm'][0]]['kafka_messaging_ok'] else '❌ FAIL' }}
+            Topics: {{ hostvars[groups['kafka_vm'][0]]['kafka_topics'] | join(', ') }}
+          
+          🗄️  MONGODB SERVICE ({{ groups['mongodb_vm'][0] }}):
+            Port 27017: {{ '✅ OK' if hostvars[groups['mongodb_vm'][0]]['mongo_port_ok'] else '❌ FAIL' }}
+            Ping Response: {{ '✅ OK' if hostvars[groups['mongodb_vm'][0]]['mongo_ping_ok'] else '❌ FAIL' }}
+            Collections: {{ '✅ OK' if hostvars[groups['mongodb_vm'][0]]['mongo_collections_ok'] else '❌ FAIL' }}
+            Authentication: {{ '✅ OK' if hostvars[groups['mongodb_vm'][0]]['mongo_auth_ok'] else '❌ FAIL' }}
+          
+          ⚙️  PROCESSOR SERVICE ({{ groups['processor_vm'][0] }}):
+            Container Running: {{ '✅ OK' if hostvars[groups['processor_vm'][0]]['processor_running'] else '❌ FAIL' }}
+            Kafka Connection: {{ '✅ OK' if hostvars[groups['processor_vm'][0]]['processor_kafka_ok'] else '❌ FAIL' }}
+            MongoDB Connection: {{ '✅ OK' if hostvars[groups['processor_vm'][0]]['processor_mongo_ok'] else '❌ FAIL' }}
+            MQTT Connection: {{ '✅ OK' if hostvars[groups['processor_vm'][0]]['processor_mqtt_ok'] else '❌ FAIL' }}
+            Processing Logs: {{ '✅ OK' if hostvars[groups['processor_vm'][0]]['processor_has_logs'] else '❌ FAIL' }}
+          
+          🏠 HOME ASSISTANT & SENSORS ({{ groups['homeassistant_vm'][0] }}):
+            Web Interface (8123): {{ '✅ OK' if hostvars[groups['homeassistant_vm'][0]]['ha_web_ok'] else '❌ FAIL' }}
+            MQTT Broker (1883): {{ '✅ OK' if hostvars[groups['homeassistant_vm'][0]]['mqtt_port_ok'] else '❌ FAIL' }}
+            Sensors → Kafka: {{ '✅ OK' if hostvars[groups['homeassistant_vm'][0]]['sensors_kafka_ok'] else '❌ FAIL' }}
+            Sensor Data Flow: {{ '✅ OK' if hostvars[groups['homeassistant_vm'][0]]['sensors_sending_data'] else '❌ FAIL' }}
+            All Containers: {{ '✅ OK' if hostvars[groups['homeassistant_vm'][0]]['ha_containers_running'] else '❌ FAIL' }}
+          
+          🌐 ACCESS INFORMATION:
+            Home Assistant Dashboard: http://{{ hostvars[groups['homeassistant_vm'][0]]['host_ip'] }}:8123
+            SSH Access (bastion): ssh ubuntu@{{ hostvars[groups['homeassistant_vm'][0]]['host_ip'] }}
+          
+          📊 OVERALL SYSTEM STATUS:
+          {% set total_checks = 17 %}
+          {% set passed_checks = 0 %}
+          {% if hostvars[groups['kafka_vm'][0]]['kafka_port_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['kafka_vm'][0]]['kafka_topics'] | length > 0 %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['kafka_vm'][0]]['kafka_messaging_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['mongodb_vm'][0]]['mongo_port_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['mongodb_vm'][0]]['mongo_ping_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['mongodb_vm'][0]]['mongo_collections_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['mongodb_vm'][0]]['mongo_auth_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['processor_vm'][0]]['processor_running'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['processor_vm'][0]]['processor_kafka_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['processor_vm'][0]]['processor_mongo_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['processor_vm'][0]]['processor_mqtt_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['processor_vm'][0]]['processor_has_logs'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['homeassistant_vm'][0]]['ha_web_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['homeassistant_vm'][0]]['mqtt_port_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['homeassistant_vm'][0]]['sensors_kafka_ok'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['homeassistant_vm'][0]]['sensors_sending_data'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+          {% if hostvars[groups['homeassistant_vm'][0]]['ha_containers_running'] %}{% set passed_checks = passed_checks + 1 %}{% endif %}
+            System Health: {{ passed_checks }}/{{ total_checks }} checks passed
+            Status: {{ '🎉 SYSTEM FULLY OPERATIONAL' if passed_checks == total_checks else '⚠️  SYSTEM NEEDS ATTENTION' if passed_checks >= 12 else '🚨 SYSTEM CRITICAL' }}
+          ========================================

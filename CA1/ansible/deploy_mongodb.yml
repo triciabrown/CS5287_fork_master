@@ -1,0 +1,108 @@
+---
+# Deploy MongoDB application to VM-2
+- hosts: mongodb_vm
+  become: yes
+  vars:
+    app_dir: /opt/apps/mongodb
+    ansible_user: ubuntu
+  tasks:
+    - name: Create MongoDB application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Copy MongoDB docker-compose.yml
+      copy:
+        src: ../applications/vm-2-mongodb/docker-compose.yml
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Copy MongoDB initialization script
+      copy:
+        src: ../applications/vm-2-mongodb/init-db.js
+        dest: "{{ app_dir }}/init-db.js"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Stop any existing MongoDB containers
+      command: docker compose down
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      ignore_errors: yes
+
+    - name: Start MongoDB service
+      command: docker compose up -d
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+
+    - name: Wait for MongoDB to be ready
+      wait_for:
+        port: 27017
+        host: "{{ ansible_default_ipv4.address }}"
+        delay: 30
+        timeout: 300
+
+    - name: Wait additional time for MongoDB initialization
+      pause:
+        seconds: 30
+
+    - name: Initialize MongoDB database
+      command: >
+        docker compose exec -T mongodb mongosh 
+        --file /usr/src/app/init-db.js
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      ignore_errors: yes
+
+    - name: Copy initialization script into container
+      command: >
+        docker cp {{ app_dir }}/init-db.js mongodb:/usr/src/app/init-db.js
+      become_user: ubuntu
+
+    - name: Run MongoDB initialization script
+      command: >
+        docker compose exec -T mongodb mongosh 
+        --file /usr/src/app/init-db.js
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: mongo_init_result
+      ignore_errors: yes
+
+    - name: Display MongoDB initialization result
+      debug:
+        msg: "MongoDB initialization: {{ mongo_init_result.stdout_lines if mongo_init_result.stdout_lines is defined else 'Failed or no output' }}"
+
+    - name: Test MongoDB connection
+      command: >
+        docker compose exec -T mongodb mongosh 
+        --eval "db.adminCommand('ping')"
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: mongo_ping
+      ignore_errors: yes
+
+    - name: Display MongoDB ping result
+      debug:
+        msg: "MongoDB ping test: {{ mongo_ping.stdout_lines if mongo_ping.stdout_lines is defined else 'Failed' }}"
+
+    - name: Check MongoDB container status
+      command: docker compose ps
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: mongodb_status
+
+    - name: Display MongoDB status
+      debug:
+        msg: "MongoDB service status: {{ mongodb_status.stdout_lines }}"

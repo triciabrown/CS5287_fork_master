@@ -172,38 +172,7 @@ resource "aws_security_group_rule" "processor_from_homeassistant" {
   security_group_id        = aws_security_group.processor.id
 }
 
-# Processor MongoDB client access
-resource "aws_security_group_rule" "processor_to_mongodb" {
-  description              = "MongoDB client access to store processed plant data"
-  type                     = "ingress"
-  from_port                = 27017
-  to_port                  = 27017
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.mongodb.id
-  security_group_id        = aws_security_group.processor.id
-}
 
-# Processor MQTT publisher access to Home Assistant
-resource "aws_security_group_rule" "processor_to_homeassistant_mqtt" {
-  description              = "MQTT publisher access to send plant care alerts to Home Assistant"
-  type                     = "ingress"
-  from_port                = 1883
-  to_port                  = 1883
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.homeassistant.id
-  security_group_id        = aws_security_group.processor.id
-}
-
-# Processor Kafka consumer access
-resource "aws_security_group_rule" "processor_to_kafka" {
-  description              = "Kafka consumer access to receive plant sensor messages"
-  type                     = "ingress"
-  from_port                = 9092
-  to_port                  = 9092
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.kafka.id
-  security_group_id        = aws_security_group.processor.id
-}
 
 # Home Assistant MQTT broker access from processor
 resource "aws_security_group_rule" "homeassistant_from_processor_mqtt" {
@@ -214,4 +183,15 @@ resource "aws_security_group_rule" "homeassistant_from_processor_mqtt" {
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.processor.id
   security_group_id        = aws_security_group.homeassistant.id
+}
+
+# Home Assistant MQTT broker public access for browser-based MQTT integration
+resource "aws_security_group_rule" "homeassistant_mqtt_public" {
+  description       = "MQTT broker public access for Home Assistant integration setup from browsers"
+  type              = "ingress"
+  from_port         = 1883
+  to_port           = 1883
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.homeassistant.id
 }

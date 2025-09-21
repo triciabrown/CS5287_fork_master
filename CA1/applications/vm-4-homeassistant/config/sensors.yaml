@@ -1,0 +1,15 @@
+# Plant Monitoring System - MQTT Sensors
+# Auto-discovered sensors from the Plant Care Processor
+
+# These sensors will be automatically discovered via MQTT
+# The Plant Care Processor publishes discovery messages for:
+# - plant-001 (Monstera) sensors: moisture, light, temperature, humidity, status
+# - plant-002 (Sansevieria) sensors: moisture, light, temperature, humidity, status
+# - Health status and care recommendations
+
+# Manual sensors can be added here if needed
+# Example:
+# - platform: mqtt
+#   name: "Plant System Status"
+#   state_topic: "homeassistant/sensor/plant_system/state"
+#   icon: mdi:leaf

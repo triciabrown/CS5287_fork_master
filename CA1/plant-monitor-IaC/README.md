@@ -74,6 +74,18 @@ CA1/plant-monitor-IaC/
    chmod 400 ~/.ssh/plant-monitoring-key.pem
    ```
 
+### First-Time Setup
+
+⚠️ **IMPORTANT**: Before running any deployment commands, initialize Terraform:
+
+```bash
+cd terraform
+terraform init
+cd ..
+```
+
+This downloads the required AWS and Random providers and sets up the Terraform working directory. **You must do this once before your first deployment.**
+
 ### Deployment
 
 1. **Full Deployment** (Infrastructure + Applications)
@@ -93,8 +105,16 @@ CA1/plant-monitor-IaC/
 
 4. **Cleanup**
    ```bash
+   # Complete teardown with interactive prompts
+   ./teardown.sh
+   
+   # Quick cleanup (same as teardown.sh)
    ./deploy.sh clean
    ```
+
+   **Secret Deletion Options:**
+   - **Standard (Production)**: 7-day recovery window for AWS Secrets
+   - **Force Delete (Development)**: Immediate deletion, no recovery possible
 
 ## 🔧 Configuration
 
@@ -192,19 +212,41 @@ After deployment, access your system:
 
 ### Common Issues
 
-1. **SSH Connection Failed**
+1. **"Inconsistent dependency lock file" Error**
+   ```bash
+   # Run this if you get provider dependency errors:
+   cd terraform
+   terraform init
+   cd ..
+   # Then retry ./deploy.sh
+   ```
+
+2. **"Secret already scheduled for deletion" Error**
+   ```bash
+   # If you get AWS Secrets Manager deletion conflicts:
+   # Option 1: Use teardown script with force deletion (recommended for dev)
+   ./teardown.sh
+   # Then choose option 2 when prompted for secret deletion
+   
+   # Option 2: Manual force deletion
+   aws secretsmanager delete-secret --secret-id "plant-monitoring-dev/mongodb/credentials" --force-delete-without-recovery
+   aws secretsmanager delete-secret --secret-id "plant-monitoring-dev/homeassistant/credentials" --force-delete-without-recovery
+   aws secretsmanager delete-secret --secret-id "plant-monitoring-dev/application/config" --force-delete-without-recovery
+   ```
+
+2. **SSH Connection Failed**
    ```bash
    # Check security groups and instance state
    aws ec2 describe-instances --query 'Reservations[].Instances[].[Tags[?Key==`Name`].Value[],State.Name,PublicIpAddress]'
    ```
 
-2. **Terraform Apply Failed**
+3. **Terraform Apply Failed**
    ```bash
    # Check AWS credentials and permissions
    aws sts get-caller-identity
    ```
 
-3. **Ansible Playbook Failed**
+4. **Ansible Playbook Failed**
    ```bash
    # Test connectivity
    ansible all -i application-deployment/inventory.ini -m ping

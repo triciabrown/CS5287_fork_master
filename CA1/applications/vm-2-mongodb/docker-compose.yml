@@ -7,13 +7,15 @@ services:
     ports:
       - "27017:27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=AdminPass123!
-      - MONGO_INITDB_DATABASE=plant_monitoring
+      - MONGO_INITDB_ROOT_USERNAME={{ mongodb_root_username }}
+      - MONGO_INITDB_ROOT_PASSWORD={{ mongodb_root_password }}
+      - MONGO_INITDB_DATABASE={{ mongodb_database }}
     volumes:
       # Persistent data volume with correct ownership
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
+      # Initialization script
+      - ./init-db.js:/docker-entrypoint-initdb.d/init-db.js:ro
     restart: unless-stopped
     mem_limit: 400m  # Memory limit for t2.micro
     user: "999:999"  # MongoDB user for security

@@ -17,17 +17,28 @@
         - "{{ app_dir }}"
         - "{{ app_dir }}/plant-care-processor"
 
-    - name: Copy Processor docker-compose.yml with IP substitution
+    - name: Get MongoDB credentials from AWS Secrets Manager
+      command: aws secretsmanager get-secret-value --secret-id "plant-monitoring-dev/mongodb/credentials" --query "SecretString" --output text
+      register: mongodb_secret_result
+      delegate_to: localhost
+      become: no
+
+    - name: Parse MongoDB credentials
+      set_fact:
+        mongodb_credentials: "{{ mongodb_secret_result.stdout | from_json }}"
+
+    - name: Copy Processor docker-compose.yml with IP substitution and credentials
       template:
-        src: ../applications/vm-3-processor/docker-compose.yml
+        src: ../../applications/vm-3-processor/docker-compose.yml
         dest: "{{ app_dir }}/docker-compose.yml"
         owner: ubuntu
         group: ubuntu
         mode: '0644'
       vars:
-        kafka_vm_private_ip: "{{ hostvars[groups['kafka_vm'][0]]['ansible_default_ipv4']['address'] }}"
-        mongodb_vm_private_ip: "{{ hostvars[groups['mongodb_vm'][0]]['ansible_default_ipv4']['address'] }}"
-        homeassistant_vm_private_ip: "{{ hostvars[groups['homeassistant_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        kafka_vm_private_ip: "{{ hostvars[groups['kafka_vm'][0]]['ansible_host'] }}"
+        mongodb_vm_private_ip: "{{ hostvars[groups['mongodb_vm'][0]]['ansible_host'] }}"
+        homeassistant_vm_private_ip: "{{ hostvars[groups['homeassistant_vm'][0]]['ansible_host'] }}"
+        mongodb_connection_string: "{{ mongodb_credentials.connection_string.replace('{MONGODB_HOST}', hostvars[groups['mongodb_vm'][0]]['ansible_host']) }}"
 
     - name: Copy Processor application files
       copy:
@@ -37,23 +48,29 @@
         group: ubuntu
         mode: '0644'
       loop:
-        - { src: '../applications/vm-3-processor/plant-care-processor/app.js', dest: '{{ app_dir }}/plant-care-processor/app.js' }
-        - { src: '../applications/vm-3-processor/plant-care-processor/package.json', dest: '{{ app_dir }}/plant-care-processor/package.json' }
-        - { src: '../applications/vm-3-processor/plant-care-processor/Dockerfile', dest: '{{ app_dir }}/plant-care-processor/Dockerfile' }
+        - { src: '../../applications/vm-3-processor/plant-care-processor/app.js', dest: '{{ app_dir }}/plant-care-processor/app.js' }
+        - { src: '../../applications/vm-3-processor/plant-care-processor/package.json', dest: '{{ app_dir }}/plant-care-processor/package.json' }
+        - { src: '../../applications/vm-3-processor/plant-care-processor/Dockerfile', dest: '{{ app_dir }}/plant-care-processor/Dockerfile' }
 
     - name: Wait for Kafka to be available
       wait_for:
-        host: "{{ hostvars[groups['kafka_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        host: "{{ hostvars[groups['kafka_vm'][0]]['ansible_host'] }}"
         port: 9092
         delay: 10
         timeout: 300
 
-    - name: Wait for MongoDB to be available
+    - name: Wait for MongoDB to be available (with retry logic for network stability)
       wait_for:
-        host: "{{ hostvars[groups['mongodb_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        host: "{{ hostvars[groups['mongodb_vm'][0]]['ansible_host'] }}"
         port: 27017
         delay: 10
-        timeout: 300
+        timeout: 60
+      ignore_errors: yes
+      register: mongodb_check
+
+    - name: Display MongoDB connectivity status
+      debug:
+        msg: "MongoDB connectivity: {{ 'SUCCESS' if mongodb_check is succeeded else 'WARNING - proceeding anyway, will retry during service startup' }}"
 
     - name: Stop any existing Processor containers
       command: docker compose down

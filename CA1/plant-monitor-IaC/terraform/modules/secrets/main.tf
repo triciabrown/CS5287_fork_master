@@ -1,15 +1,19 @@
 # Secrets Module - AWS Secrets Manager Integration
 # Manages all sensitive information securely for the plant monitoring system
 
-# Generate secure random passwords
+# Generate secure random passwords (avoiding Docker Compose variable substitution chars)
 resource "random_password" "mongodb_root_password" {
   length  = 32
   special = true
+  # Exclude characters that conflict with Docker Compose variable substitution
+  override_special = "!@#%^&*()_+-={}|:<>?~"
 }
 
 resource "random_password" "mongodb_app_password" {
   length  = 32
   special = true
+  # Exclude characters that conflict with Docker Compose variable substitution
+  override_special = "!@#%^&*()_+-={}|:<>?~"
 }
 
 resource "random_password" "homeassistant_password" {

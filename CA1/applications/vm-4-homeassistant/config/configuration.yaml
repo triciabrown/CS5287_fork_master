@@ -1,0 +1,44 @@
+# Home Assistant Plant Monitoring Configuration
+# Automatically generated for the Plant Monitoring IoT System
+
+# Default configuration
+default_config:
+
+# MQTT Integration will be configured through the UI automatically
+# The MQTT broker (Mosquitto) runs on localhost:1883 and will be discovered
+
+# Home Assistant Core Configuration
+homeassistant:
+  name: Plant Monitoring System
+  latitude: 39.7392
+  longitude: -104.9903
+  elevation: 1655
+  unit_system: metric
+  currency: USD
+  country: US
+  time_zone: America/Denver
+  customize: !include customize.yaml
+
+# Logging configuration
+logger:
+  default: info
+
+# HTTP Configuration
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - ::1
+    - 10.0.0.0/16
+
+# Plant Monitoring Sensors (configured via MQTT discovery)
+sensor: !include sensors.yaml
+
+# Automation for Plant Care
+automation: !include automations.yaml
+
+# Scripts for Plant Management
+script: !include scripts.yaml
+
+# Scenes
+scene: !include scenes.yaml

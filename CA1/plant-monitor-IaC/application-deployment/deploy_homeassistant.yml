@@ -3,7 +3,7 @@
 - hosts: homeassistant_vm
   become: yes
   vars:
-    app_dir: /opt/apps/homeassistant
+    app_dir: /opt/homeassistant
     ansible_user: ubuntu
   tasks:
     - name: Create Home Assistant application directories
@@ -17,16 +17,37 @@
         - "{{ app_dir }}"
         - "{{ app_dir }}/plant-sensors"
         - "{{ app_dir }}/mosquitto/config"
+      ignore_errors: yes
+
+    - name: Create Home Assistant config and data directories with correct permissions
+      file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: '0755'
+      loop:
+        - { path: "{{ app_dir }}/config", owner: "1000", group: "1000" }
+        - { path: "/opt/mosquitto/data", owner: "1883", group: "1883" }
+        - { path: "/opt/mosquitto/logs", owner: "1883", group: "1883" }
+
+    - name: Get Kafka VM IP for sensor configuration
+      set_fact:
+        kafka_vm_private_ip: "{{ hostvars[groups['kafka_vm'][0]]['ansible_host'] }}"
+
+    - name: Display Kafka IP being used
+      debug:
+        msg: "Configuring sensors to connect to Kafka at: {{ kafka_vm_private_ip }}:9092"
 
     - name: Copy Home Assistant docker-compose.yml with IP substitution
       template:
-        src: ../applications/vm-4-homeassistant/docker-compose.yml
+        src: ../../applications/vm-4-homeassistant/docker-compose.yml
         dest: "{{ app_dir }}/docker-compose.yml"
         owner: ubuntu
         group: ubuntu
         mode: '0644'
       vars:
-        kafka_vm_private_ip: "{{ hostvars[groups['kafka_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        kafka_vm_private_ip: "{{ kafka_vm_private_ip }}"
 
     - name: Copy Plant Sensor application files
       copy:
@@ -36,30 +57,98 @@
         group: ubuntu
         mode: '0644'
       loop:
-        - { src: '../applications/vm-4-homeassistant/plant-sensors/sensor.js', dest: '{{ app_dir }}/plant-sensors/sensor.js' }
-        - { src: '../applications/vm-4-homeassistant/plant-sensors/package.json', dest: '{{ app_dir }}/plant-sensors/package.json' }
-        - { src: '../applications/vm-4-homeassistant/plant-sensors/Dockerfile', dest: '{{ app_dir }}/plant-sensors/Dockerfile' }
+        - { src: '../../applications/vm-4-homeassistant/plant-sensors/sensor.js', dest: '{{ app_dir }}/plant-sensors/sensor.js' }
+        - { src: '../../applications/vm-4-homeassistant/plant-sensors/package.json', dest: '{{ app_dir }}/plant-sensors/package.json' }
+        - { src: '../../applications/vm-4-homeassistant/plant-sensors/Dockerfile', dest: '{{ app_dir }}/plant-sensors/Dockerfile' }
+
+    - name: Copy Home Assistant configuration files (force update)
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: "1000"
+        group: "1000"
+        mode: '0644'
+        force: yes
+        backup: yes
+      loop:
+        - { src: '../../applications/vm-4-homeassistant/config/configuration.yaml', dest: '{{ app_dir }}/config/configuration.yaml' }
+        - { src: '../../applications/vm-4-homeassistant/config/sensors.yaml', dest: '{{ app_dir }}/config/sensors.yaml' }
+        - { src: '../../applications/vm-4-homeassistant/config/automations.yaml', dest: '{{ app_dir }}/config/automations.yaml' }
+        - { src: '../../applications/vm-4-homeassistant/config/scripts.yaml', dest: '{{ app_dir }}/config/scripts.yaml' }
+        - { src: '../../applications/vm-4-homeassistant/config/scenes.yaml', dest: '{{ app_dir }}/config/scenes.yaml' }
+        - { src: '../../applications/vm-4-homeassistant/config/customize.yaml', dest: '{{ app_dir }}/config/customize.yaml' }
 
     - name: Copy Mosquitto configuration
       copy:
-        src: ../applications/vm-4-homeassistant/mosquitto/config/mosquitto.conf
+        src: ../../applications/vm-4-homeassistant/mosquitto/config/mosquitto.conf
         dest: "{{ app_dir }}/mosquitto/config/mosquitto.conf"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Copy setup guide for users
+      copy:
+        src: ../../applications/vm-4-homeassistant/SETUP_GUIDE.md
+        dest: "{{ app_dir }}/SETUP_GUIDE.md"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Copy MQTT setup guide template
+      template:
+        src: ../../applications/vm-4-homeassistant/config/MQTT_SETUP_GUIDE.md
+        dest: "{{ app_dir }}/config/MQTT_SETUP_GUIDE.md"
         owner: ubuntu
         group: ubuntu
         mode: '0644'
 
     - name: Wait for Kafka to be available
       wait_for:
-        host: "{{ hostvars[groups['kafka_vm'][0]]['ansible_default_ipv4']['address'] }}"
+        host: "{{ hostvars[groups['kafka_vm'][0]]['ansible_host'] }}"
         port: 9092
         delay: 10
         timeout: 300
 
-    - name: Stop any existing Home Assistant containers
+    - name: Check if Home Assistant is already running
+      shell: docker compose ps homeassistant 2>/dev/null | grep -q "Up" || echo "not_running"
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: ha_running
+      ignore_errors: yes
+
+    - name: Reload Home Assistant configuration if running
+      shell: |
+        if docker compose ps homeassistant 2>/dev/null | grep -q "Up"; then
+          echo "Reloading Home Assistant configuration..."
+          docker compose exec homeassistant python -m homeassistant --script check_config --config /config || true
+          docker compose restart homeassistant
+        fi
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      ignore_errors: yes
+      when: "'not_running' not in ha_running.stdout"
+
+    - name: Stop any existing Home Assistant containers for fresh deployment
       command: docker compose down
       args:
         chdir: "{{ app_dir }}"
       become_user: ubuntu
+      ignore_errors: yes
+      when: "'not_running' in ha_running.stdout"
+
+    - name: Fix Docker volume permissions (if volumes exist)
+      shell: |
+        if [ -d /var/lib/docker/volumes/homeassistant_ha_config/_data ]; then
+          chown -R 1000:1000 /var/lib/docker/volumes/homeassistant_ha_config/_data
+        fi
+        if [ -d /var/lib/docker/volumes/homeassistant_mosquitto_data/_data ]; then
+          chown -R 1883:1883 /var/lib/docker/volumes/homeassistant_mosquitto_data/_data
+        fi
+        if [ -d /var/lib/docker/volumes/homeassistant_mosquitto_logs/_data ]; then
+          chown -R 1883:1883 /var/lib/docker/volumes/homeassistant_mosquitto_logs/_data
+        fi
       ignore_errors: yes
 
     - name: Build and start Home Assistant services
@@ -68,11 +157,66 @@
         chdir: "{{ app_dir }}"
       become_user: ubuntu
 
+    - name: Wait a moment for initial startup
+      pause:
+        seconds: 30
+
+    - name: Check if Home Assistant started successfully
+      shell: docker compose ps --filter "status=running" | grep homeassistant || echo "not_running"
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ubuntu
+      register: ha_check
+
+    - name: Check containers status
+      shell: "docker compose ps"
+      args:
+        chdir: "{{ app_dir }}"
+      register: ha_check
+      become_user: ubuntu
+
+    # If Home Assistant is restarting or not running, fix permissions and restart
+    - name: Fix permissions if containers not healthy
+      block:
+        - name: Create and set ownership of homeassistant config directory
+          file:
+            path: "{{ app_dir }}/config"
+            state: directory
+            owner: "1000"
+            group: "1000"
+            mode: '0755'
+        
+        - name: Create and set ownership of homeassistant deps directory
+          file:
+            path: "{{ app_dir }}/config/deps"
+            state: directory
+            owner: "1000"
+            group: "1000"
+            mode: '0755'
+        
+        - name: Set ownership of all homeassistant config files recursively
+          file:
+            path: "{{ app_dir }}/config"
+            owner: "1000"
+            group: "1000"
+            recurse: yes
+        
+        - name: Restart containers after permission fix
+          command: docker compose restart homeassistant
+          args:
+            chdir: "{{ app_dir }}"
+          become_user: ubuntu
+          
+        - name: Wait for startup after permission fix
+          pause:
+            seconds: 30
+      when: "'Restarting' in ha_check.stdout or 'not_running' in ha_check.stdout or 'Exited' in ha_check.stdout"
+
     - name: Wait for Home Assistant to be ready
       wait_for:
         port: 8123
         host: "{{ ansible_default_ipv4.address }}"
-        delay: 60
+        delay: 30
         timeout: 600
 
     - name: Wait for MQTT broker to be ready
@@ -107,7 +251,16 @@
     - name: Display Home Assistant access information
       debug:
         msg: 
-          - "Home Assistant is ready!"
-          - "Access the dashboard at: http://{{ ansible_default_ipv4.address }}:8123"
-          - "MQTT broker is running on port 1883"
-          - "Plant sensors are sending data to Kafka"
+          - "🏠 Home Assistant is ready!"
+          - "🌐 Access the dashboard at: http://{{ ansible_default_ipv4.address }}:8123"
+          - "🔧 MQTT broker: {{ ansible_host }}:1883 (configure via integration)"
+          - "🌱 Plant sensors are sending data - configure MQTT to see them!"
+          - "📋 Setup guide: /opt/homeassistant/SETUP_GUIDE.md"
+          - "📋 MQTT setup guide: /opt/homeassistant/config/MQTT_SETUP_GUIDE.md"
+          - ""
+          - "🚀 FIRST TIME SETUP:"
+          - "  1. Open http://{{ ansible_default_ipv4.address }}:8123 in your browser"
+          - "  2. Create your Home Assistant account (first-time only)"
+          - "  3. Add MQTT integration (Settings → Devices & services)"
+          - "  4. Use broker: {{ ansible_host }}:1883 (no auth required)"
+          - "  5. Plant sensors will appear automatically after MQTT setup!"

@@ -2,19 +2,19 @@
 // Run this after MongoDB container is started
 
 // Connect as admin
-use admin
-db.auth('admin', 'AdminPass123!')
+db = db.getSiblingDB('admin');
+db.auth('{{MONGO_ROOT_USERNAME}}', '{{MONGO_ROOT_PASSWORD}}');
 
 // Create plant monitoring database and user
-use plant_monitoring
+db = db.getSiblingDB('plant_monitoring');
 db.createUser({
-  user: "plantuser",
-  pwd: "PlantUserPass123!",
+  user: "{{MONGO_APP_USERNAME}}",
+  pwd: "{{MONGO_APP_PASSWORD}}",
   roles: [
     { role: "readWrite", db: "plant_monitoring" },
     { role: "dbAdmin", db: "plant_monitoring" }
   ]
-})
+});
 
 // Create collections
 db.createCollection("plants");

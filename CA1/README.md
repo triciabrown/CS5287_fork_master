@@ -264,6 +264,32 @@ To run Ansible playbooks that provision AWS resources, you must provide AWS cred
    ./deploy.sh
    ```
 
+### Complete System Teardown
+**⚠️ IMPORTANT: Use the teardown script, NOT `terraform destroy` directly!**
+
+The teardown script handles the complete lifecycle safely:
+```bash
+cd CA1/plant-monitor-IaC
+./teardown.sh
+```
+
+**What the teardown script does:**
+1. **Gracefully stops all applications** (prevents data corruption)
+2. **Cleans up AWS Secrets Manager** secrets (with recovery options)
+3. **Destroys AWS infrastructure** using Terraform
+4. **Verifies cleanup** worked properly
+5. **Removes local files** (inventory, temp files)
+
+**Options:**
+- **Standard deletion**: Secrets have 7-day recovery window (recommended for production)
+- **Force deletion**: Immediate deletion with no recovery (for dev/testing)
+
+**Why not use `terraform destroy` directly?**
+- Only destroys infrastructure, leaves running applications
+- Doesn't clean up secrets or local files
+- No verification that cleanup worked
+- Can leave orphaned resources
+
 ### Step-by-Step Deployment (Advanced)
 1. **Infrastructure (Terraform)**:
    ```bash
@@ -390,6 +416,29 @@ ansible-playbook -i inventory.ini health_check.yml
 4. **Data Storage**: MongoDB storing all sensor readings and plant data
 5. **Complete IoT Pipeline**: End-to-end data flow from sensors → Kafka → Processor → MongoDB → Home Assistant
 
+#### 🔧 MQTT Configuration (IMPORTANT!)
+
+After deployment, **you must manually configure the MQTT integration** in Home Assistant:
+
+1. **Access Home Assistant**: Open `http://<VM-4-PUBLIC-IP>:8123` in your browser
+2. **Create Account**: Set up your Home Assistant user account (first time only)
+3. **Add MQTT Integration**:
+   - Go to **Settings** → **Devices & services**
+   - Click **"+ ADD INTEGRATION"**
+   - Search for **"MQTT"** and select it
+4. **Configure MQTT Broker**:
+   - **Broker**: `<VM-4-PUBLIC-IP>` (same IP as Home Assistant)
+   - **Port**: `1883`
+   - **Username**: Leave blank
+   - **Password**: Leave blank
+   - **Enable discovery**: ✅ (checked)
+   - **Discovery prefix**: `homeassistant` (default)
+5. **Verify Setup**: Plant sensors will appear automatically as entities after MQTT configuration
+
+**📖 Detailed Setup Guide**: A complete MQTT configuration guide is available at `/opt/homeassistant/config/MQTT_SETUP_GUIDE.md` on the Home Assistant VM.
+
+**🚨 Common Issue**: Do NOT use `localhost` as the broker address - it won't work from your browser. Always use the VM's public IP address.
+
 #### Application Files Structure
 
 All application code from CA0 has been copied to `CA1/applications/`:
@@ -422,8 +471,18 @@ CA1/applications/
 - **Dynamic IP Configuration**: All inter-service communication uses Ansible-discovered IPs
 - **Dependency Management**: Services start in proper order with health checks
 - **Container Health Monitoring**: Docker health checks ensure service reliability
-- **Automatic MQTT Discovery**: Plant sensors auto-register with Home Assistant
+- **MQTT Public Access**: Security groups configured for browser-based MQTT integration
+- **Automatic MQTT Discovery**: Plant sensors auto-register with Home Assistant (after MQTT setup)
 - **Complete Teardown**: Single command removes all resources cleanly
+
+#### Security Configuration
+
+The infrastructure includes the following security features:
+- **Network Isolation**: Private subnet for backend services (Kafka, MongoDB, Processor)
+- **Bastion Host Access**: Home Assistant VM serves as bastion for private subnet access
+- **MQTT Public Access**: Port 1883 open to public (required for browser-based Home Assistant MQTT integration)
+- **Minimal Exposure**: Only necessary ports (SSH, HTTP, MQTT) exposed to internet
+- **AWS Secrets Manager**: All credentials encrypted and managed through AWS Secrets Manager
 
 #### Troubleshooting
 
@@ -440,11 +499,39 @@ cd /opt/apps/<service-name>
 docker compose logs
 ```
 
-**Connectivity Issues**: Use health check for diagnosis:
+**MQTT Connection Issues**:
+```bash
+# Test MQTT broker connectivity (replace with actual VM IP)
+nc -z <VM-4-PUBLIC-IP> 1883
+
+# Check MQTT broker logs
+ssh ubuntu@<VM-4-PUBLIC-IP>
+cd /opt/homeassistant
+docker compose logs mosquitto
+
+# Verify plant sensor logs
+docker compose logs plant-sensor-001
+```
+
+**Home Assistant MQTT Setup Problems**:
+- ✅ **Use VM's public IP** for broker address (not `localhost`)
+- ✅ **Port 1883** is correct
+- ✅ **No authentication** required (username/password blank)
+- ✅ **Enable discovery** must be checked
+- ❌ **Don't use `localhost`** - won't work from browser
+- 📖 **Read setup guide** at `/opt/homeassistant/config/MQTT_SETUP_GUIDE.md`
+
+**System Health Check**: Use health check for comprehensive diagnosis:
 ```bash
 cd CA1/plant-monitor-IaC/application-deployment
 ansible-playbook -i inventory.ini health_check.yml
 ```
+
+**Plant Sensors Not Appearing**:
+1. Verify MQTT integration is configured correctly
+2. Check that discovery is enabled in MQTT settings
+3. Wait 1-2 minutes for auto-discovery to work
+4. Go to **Settings** → **Devices & services** → **MQTT** → **Configure** → Listen to topic `homeassistant/sensor/+/config`
 
 ---
 

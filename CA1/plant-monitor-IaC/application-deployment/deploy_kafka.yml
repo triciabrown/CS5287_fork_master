@@ -14,9 +14,20 @@
         group: ubuntu
         mode: '0755'
 
+    - name: Create Kafka data and log directories (required for Docker volumes)
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "1001"
+        group: "1001"
+        mode: '0755'
+      with_items:
+        - /opt/kafka/data
+        - /opt/kafka/logs
+
     - name: Copy Kafka docker-compose.yml
       template:
-        src: ../applications/vm-1-kafka/docker-compose.yml
+        src: ../../applications/vm-1-kafka/docker-compose.yml
         dest: "{{ app_dir }}/docker-compose.yml"
         owner: ubuntu
         group: ubuntu

@@ -1,4 +1,4 @@
-const kafka = require('kafkajs');
+const { Kafka } = require('kafkajs');
 
 class PlantSensorSimulator {
   constructor() {
@@ -7,7 +7,7 @@ class PlantSensorSimulator {
     this.location = process.env.LOCATION;
     this.interval = parseInt(process.env.SENSOR_INTERVAL) * 1000;
 
-    this.kafka = kafka({
+    this.kafka = new Kafka({
       clientId: `plant-sensor-${this.plantId}`,
       brokers: [process.env.KAFKA_BROKERS]
     });

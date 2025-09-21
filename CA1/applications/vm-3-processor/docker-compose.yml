@@ -6,7 +6,7 @@ services:
       - NODE_ENV=production
       - NODE_OPTIONS=--max-old-space-size=256  # Reduced for t2.micro
       - KAFKA_BROKER={{ kafka_vm_private_ip }}:9092
-      - MONGODB_URL=mongodb://plantuser:PlantUserPass123!@{{ mongodb_vm_private_ip }}:27017/plant_monitoring
+      - MONGODB_URL={{ mongodb_connection_string }}
       - MQTT_BROKER=mqtt://{{ homeassistant_vm_private_ip }}:1883
     restart: unless-stopped
     mem_limit: 512m  # Memory limit for t2.micro

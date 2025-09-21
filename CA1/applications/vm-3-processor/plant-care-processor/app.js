@@ -1,4 +1,4 @@
-const kafka = require('kafkajs');
+const { Kafka } = require('kafkajs');
 const { MongoClient } = require('mongodb');
 const mqtt = require('mqtt');
 
@@ -10,7 +10,7 @@ class PlantCareProcessor {
     const mqttBroker = process.env.MQTT_BROKER || 'mqtt://10.0.15.111:1883';
     
     // Kafka configuration
-    this.kafka = kafka({
+    this.kafka = new Kafka({
       clientId: 'plant-care-processor',
       brokers: [kafkaBroker]
     });
@@ -112,37 +112,45 @@ class PlantCareProcessor {
       sensors: sensorData.sensors
     });
     
-    // Store raw sensor data
-    await this.mongoClient.db('plant_monitoring')
-      .collection('sensor_readings')
-      .insertOne({
-        ...sensorData,
-        processedAt: new Date()
-      });
+    try {
+      // Store raw sensor data
+      console.log('Storing sensor data to MongoDB...');
+      const result = await this.mongoClient.db('plant_monitoring')
+        .collection('sensor_readings')
+        .insertOne({
+          ...sensorData,
+          processedAt: new Date()
+        });
+      console.log('Sensor data stored successfully:', result.insertedId);
 
-    // Analyze plant health
-    const plant = await this.mongoClient.db('plant_monitoring')
-      .collection('plants')
-      .findOne({ plantId: sensorData.plantId });
+      // Analyze plant health
+      console.log('Looking for plant configuration...');
+      const plant = await this.mongoClient.db('plant_monitoring')
+        .collection('plants')
+        .findOne({ plantId: sensorData.plantId });
+      console.log('Plant found:', plant ? 'Yes' : 'No');
 
-    if (plant) {
-      const healthAnalysis = this.analyzePlantHealth(sensorData, plant.careInstructions);
-      
-      console.log(`Health analysis for ${sensorData.plantId}:`, healthAnalysis);
-      
-      // Send alerts if needed
-      if (healthAnalysis.alerts.length > 0) {
-        await this.sendAlerts(sensorData.plantId, healthAnalysis.alerts);
+      if (plant) {
+        const healthAnalysis = this.analyzePlantHealth(sensorData, plant.careInstructions);
+        
+        console.log(`Health analysis for ${sensorData.plantId}:`, healthAnalysis);
+        
+        // Send alerts if needed
+        if (healthAnalysis.alerts.length > 0) {
+          await this.sendAlerts(sensorData.plantId, healthAnalysis.alerts);
+        }
+
+        // Update Home Assistant via MQTT
+        await this.updateHomeAssistant(sensorData.plantId, {
+          moisture: sensorData.sensors.soilMoisture,
+          health: healthAnalysis.healthScore,
+          light: sensorData.sensors.lightLevel,
+          temperature: sensorData.sensors.temperature,
+          status: healthAnalysis.status
+        });
       }
-
-      // Update Home Assistant via MQTT
-      await this.updateHomeAssistant(sensorData.plantId, {
-        moisture: sensorData.sensors.soilMoisture,
-        health: healthAnalysis.healthScore,
-        light: sensorData.sensors.lightLevel,
-        temperature: sensorData.sensors.temperature,
-        status: healthAnalysis.status
-      });
+    } catch (error) {
+      console.error('Error processing plant data:', error);
     }
   }
 

@@ -1,0 +1,16 @@
+# Plant Care Automations
+# Automated responses to plant sensor data
+
+# Example automation - Water reminder for low moisture
+# - alias: "Low Moisture Alert - Plant 001"
+#   trigger:
+#     - platform: numeric_state
+#       entity_id: sensor.plant_001_moisture
+#       below: 30
+#   action:
+#     - service: persistent_notification.create
+#       data:
+#         title: "Plant Care Alert"
+#         message: "Plant 001 (Monstera) needs watering! Moisture level is low."
+
+# Add your custom automations here

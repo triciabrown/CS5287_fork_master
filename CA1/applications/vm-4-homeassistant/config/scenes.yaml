@@ -1,0 +1,9 @@
+# Plant Monitoring Scenes
+# Pre-configured states for different scenarios
+
+# Add your scenes here
+# Example:
+# - name: "Plant Care Time"
+#   entities:
+#     light.living_room: on
+#     switch.plant_lights: on

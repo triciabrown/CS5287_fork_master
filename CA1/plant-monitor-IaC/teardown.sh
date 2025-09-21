@@ -61,6 +61,22 @@ confirm_teardown() {
         echo "❌ Teardown cancelled by user"
         exit 0
     fi
+    
+    # Ask about secret deletion strategy
+    echo ""
+    print_status "🔐 AWS Secrets Manager Cleanup Strategy:"
+    echo "  1) Standard deletion (7-day recovery window) - RECOMMENDED for production"
+    echo "  2) Force deletion (immediate, no recovery) - For development/testing"
+    echo ""
+    read -p "❓ Choose deletion method (1 or 2): " secret_deletion
+    
+    if [[ "$secret_deletion" == "2" ]]; then
+        FORCE_DELETE_SECRETS=true
+        print_warning "⚡ Secrets will be permanently deleted immediately (no recovery possible)"
+    else
+        FORCE_DELETE_SECRETS=false
+        print_status "📅 Secrets will be scheduled for deletion with 7-day recovery window"
+    fi
 }
 
 stop_applications() {
@@ -96,6 +112,34 @@ stop_applications() {
         print_success "Applications stopped gracefully"
     else
         print_warning "No inventory found - skipping application cleanup"
+    fi
+}
+
+force_delete_secrets() {
+    if [ "$FORCE_DELETE_SECRETS" = true ]; then
+        print_status "Phase 2a: Force deleting AWS Secrets Manager secrets..."
+        
+        # Get project name from Terraform variables
+        PROJECT_NAME=$(grep 'default.*=.*".*"' "$TERRAFORM_DIR/variables.tf" | head -1 | sed 's/.*"\(.*\)".*/\1/' || echo "plant-monitoring")
+        ENVIRONMENT="dev"
+        
+        # List of secrets to delete
+        SECRETS=(
+            "${PROJECT_NAME}-${ENVIRONMENT}/mongodb/credentials"
+            "${PROJECT_NAME}-${ENVIRONMENT}/homeassistant/credentials"
+            "${PROJECT_NAME}-${ENVIRONMENT}/application/config"
+        )
+        
+        for secret in "${SECRETS[@]}"; do
+            print_status "Force deleting secret: $secret"
+            if aws secretsmanager delete-secret --secret-id "$secret" --force-delete-without-recovery 2>/dev/null; then
+                print_success "✅ Deleted: $secret"
+            else
+                print_warning "⚠️ Secret not found or already deleted: $secret"
+            fi
+        done
+        
+        print_success "Secret force deletion completed"
     fi
 }
 
@@ -170,6 +214,7 @@ main() {
     confirm_teardown
     
     stop_applications
+    force_delete_secrets
     destroy_infrastructure  
     verify_cleanup
     cleanup_local_files
@@ -179,6 +224,11 @@ main() {
     echo ""
     print_status "Summary:"
     echo "  ✅ Applications stopped gracefully"
+    if [ "$FORCE_DELETE_SECRETS" = true ]; then
+        echo "  ✅ Secrets force deleted (no recovery)"
+    else
+        echo "  ✅ Secrets scheduled for deletion (7-day recovery)"
+    fi
     echo "  ✅ AWS infrastructure destroyed"
     echo "  ✅ Terraform state cleaned"
     echo "  ✅ Local files cleaned"

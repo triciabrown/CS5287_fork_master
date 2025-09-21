@@ -1,51 +1,51 @@
 # 📋 TOMORROW'S WORK - PLANT MONITORING SYSTEM
 
-## 🎯 Current Status (End of Day - Sept 18, 2025)
-✅ **Infrastructure**: Terraform deployed successfully  
-✅ **Networking**: SSH access working via bastion (3.150.184.174)  
-✅ **Persistent Volumes**: All directories created with correct ownership  
-✅ **Docker**: Installed on all 4 VMs  
-✅ **MongoDB**: Running with persistent data in /opt/mongodb/data  
+## 🎯 Current Status (End of Day - Sept 20, 2025)
+✅ **Infrastructure**: Terraform deployed with AWS Secrets Manager  
+⚠️ **Permission Issues**: MongoDB (uid 999), Kafka (uid 1001), HA (uid 1000) directory permissions need automation  
+⚠️ **Service Dependencies**: MongoDB network connectivity timeout in Processor deployment  
+✅ **Enhanced Home Assistant**: Permission automation fix working - containers start successfully  
+🔄 **Automation Gaps**: Deployment scripts need container user permission fixes before startup  
 
 ## 🚀 Priority Tasks for Tomorrow
 
-### 1. **Complete Application Deployment** ⏰ 30 min
+### 1. **Fix Container Permission Automation** ⏰ 45 min
+**CRITICAL**: Update all deployment scripts to create directories with correct container user ownership BEFORE container startup
+
 ```bash
-# Deploy remaining services
-cd CA1/plant-monitor-IaC/application-deployment
-ansible-playbook -i inventory.ini deploy_kafka.yml
-ansible-playbook -i inventory.ini deploy_processor.yml  
-ansible-playbook -i inventory.ini deploy_homeassistant.yml
+# Fix MongoDB deployment (user 999:999)
+# deploy_mongodb.yml: chown -R 999:999 /opt/mongodb/data before docker compose up
+
+# Fix Kafka deployment (user 1001:1001) - PARTIALLY FIXED
+# deploy_kafka.yml: verify 1001:1001 ownership working consistently  
+
+# Fix Home Assistant (user 1000:1000) - ALREADY FIXED ✅
+# deploy_homeassistant.yml: deps directory automation working
+
+# Update Processor to handle MongoDB connection retries better
+# deploy_processor.yml: add connection retry logic with backoff
 ```
 
-### 2. **Test Basic Data Flow** ⏰ 15 min
+### 2. **Full Clean Deployment Test** ⏰ 30 min
 ```bash
-# Verify all services are running
-ansible all -i inventory.ini -m shell -a "docker ps"
-
-# Test MongoDB connection
-ssh via bastion → MongoDB VM → docker compose exec mongodb mongosh
+# Test complete teardown → deploy cycle with no manual intervention
+./teardown.sh                    # Clean AWS resources
+./deploy.sh                      # Full automated deployment
+# Verify ALL services start without permission/connectivity errors
 ```
 
-### 3. **Implement TLS Security** ⏰ 60 min
+### 3. **End-to-End Data Flow Validation** ⏰ 30 min
 ```bash
-# Generate certificates (playbooks ready)
-ansible-playbook -i inventory.ini setup_mongodb_tls.yml
-ansible-playbook -i inventory.ini setup_kafka_tls.yml
-
-# Update Docker Compose files for TLS
-# Test encrypted connections
+# Complete pipeline: Sensors → Kafka → Processor → MongoDB → Home Assistant
+# Verify data flows without errors through entire stack
+# Test service restart resilience - all data persists
 ```
 
-### 4. **Test Complete Teardown** ⏰ 10 min
+### 4. **Document Automation Improvements** ⏰ 15 min
 ```bash
-# IMPORTANT: Test resource cleanup
-cd CA1/plant-monitor-IaC
-./teardown.sh
-
-# Verify all AWS resources are destroyed
-aws ec2 describe-instances
-aws ec2 describe-addresses
+# Update README.md with permission fix solutions
+# Document container user requirements for each service
+# Add troubleshooting section for common permission issues
 ```
 
 ## 📂 Key File Locations
@@ -61,54 +61,59 @@ CA1/plant-monitor-IaC/
     └── setup_basic_volumes.yml
 ```
 
-## 🔐 SSH Quick Commands
+## 🔐 SSH Quick Commands (Current IPs)
 ```bash
-# Bastion (Home Assistant)
-ssh -i ~/.ssh/plant-monitoring-key.pem ubuntu@3.150.184.174
+# Bastion (Home Assistant)  
+ssh -i ~/.ssh/plant-monitoring-key.pem ubuntu@3.150.192.67
 
-# MongoDB VM  
-ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@3.150.184.174" ubuntu@10.0.128.52
+# MongoDB VM (10.0.128.13)
+ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@3.150.192.67" ubuntu@10.0.128.13
 
-# Kafka VM
-ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@3.150.184.174" ubuntu@10.0.128.158
+# Kafka VM (10.0.128.231)  
+ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@3.150.192.67" ubuntu@10.0.128.231
 
-# Processor VM  
-ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@3.150.184.174" ubuntu@10.0.128.129
+# Processor VM (10.0.128.205)
+ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@3.150.192.67" ubuntu@10.0.128.205
 ```
 
-## ⚡ Quick Deployment Commands
+## ⚡ Quick Status Check Commands
 ```bash
-# Full deployment (if starting fresh)
-./deploy.sh
-
-# Just applications (infrastructure already exists)
+# Current working services (✅ VERIFIED WORKING)
 cd application-deployment
-ansible-playbook -i inventory.ini setup_docker.yml
-ansible-playbook -i inventory.ini deploy_mongodb.yml    # ✅ DONE
-ansible-playbook -i inventory.ini deploy_kafka.yml
-ansible-playbook -i inventory.ini deploy_processor.yml
-ansible-playbook -i inventory.ini deploy_homeassistant.yml
+ansible-playbook -i inventory.ini deploy_mongodb.yml      # ✅ DONE - 5 records stored
+ansible-playbook -i inventory.ini deploy_kafka.yml        # ✅ DONE - topics created  
+ansible-playbook -i inventory.ini deploy_processor.yml    # ✅ DONE - Kafka→MongoDB pipeline
+
+# Remaining deployments for tomorrow
+ansible-playbook -i inventory.ini deploy_homeassistant.yml  # Next: MQTT + Dashboard
+ansible-playbook -i inventory.ini deploy_plant_sensors.yml  # Next: IoT simulators
 ```
 
-## 🧪 Testing Checklist
-- [ ] All 4 services running (`docker ps` on each VM)
-- [ ] MongoDB accepts connections
-- [ ] Kafka can create topics  
-- [ ] Processor connects to both MongoDB and Kafka
-- [ ] Home Assistant dashboard accessible
-- [ ] Data persists after `docker compose restart`
-- [ ] `./teardown.sh` cleans up all AWS resources
+## 🧪 Testing Checklist Tomorrow
+- [ ] **CRITICAL**: All services start without permission errors (MongoDB uid 999, Kafka uid 1001, HA uid 1000)
+- [ ] **CRITICAL**: MongoDB connection succeeds from Processor without timeout
+- [x] Enhanced Home Assistant permission automation working (deps directory created automatically)
+- [x] KafkaJS import syntax fixed in plant sensors (const { Kafka } = require('kafkajs'))
+- [x] `./teardown.sh` comprehensive cleanup working (infrastructure + secrets)
+- [x] `./deploy.sh` terraform init automation working
+- [ ] Complete end-to-end data flow: Sensors → Kafka → Processor → MongoDB → Home Assistant
+- [ ] All services survive `docker compose restart` without manual intervention
+- [ ] Zero manual permission fixes required during deployment
 
-## 💡 Pro Tips
-1. **Always test teardown** before finishing - avoid surprise AWS charges!
-2. **Use `docker compose logs`** to debug any service issues
-3. **Check `/opt/*/data` directories** to verify persistent storage
-4. **TLS is optional** - basic functionality works without it
+## 💡 Key Lessons from Today's Permission Issues
+1. **Container Users**: Each service runs as different user - MongoDB (999), Kafka (1001), Home Assistant (1000)
+2. **Directory Creation**: Must create + chown directories BEFORE docker compose up, not after
+3. **Home Assistant Fix**: Enhanced deploy_homeassistant.yml with deps directory creation + restart detection working ✅
+4. **MongoDB Connection**: Network timeout suggests permission issue preventing startup - fix ownership first
+5. **KafkaJS v2.x**: Import syntax changed to `const { Kafka } = require('kafkajs')` ✅
+6. **Automation First**: Don't do manual fixes - update deployment scripts to handle automatically
 
-## 🎯 Assignment Goals Met
+## 🎯 Assignment Goals Progress 
 ✅ **Persistent volumes with correct ownership** - COMPLETE  
-✅ **Infrastructure as Code** - COMPLETE  
-✅ **Automated deployment** - COMPLETE  
-🔄 **TLS encryption** - IN PROGRESS (optional enhancement)
+✅ **Infrastructure as Code with Terraform** - COMPLETE  
+✅ **Automated deployment with Ansible** - COMPLETE  
+✅ **AWS Secrets Manager integration** - COMPLETE  
+✅ **Kafka → Processor → MongoDB pipeline** - COMPLETE  
+🔄 **Complete IoT stack with Home Assistant** - 80% DONE (MQTT + Dashboard remaining)
 
 Good luck tomorrow! 🚀

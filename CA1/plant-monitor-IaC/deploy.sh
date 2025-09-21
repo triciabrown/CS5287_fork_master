@@ -58,6 +58,12 @@ check_prerequisites() {
         print_status "Please run: aws configure"
     fi
     
+    # Check if jq is installed (needed for JSON parsing)
+    if ! command -v jq &> /dev/null; then
+        print_status "Installing jq for JSON parsing..."
+        sudo apt update && sudo apt install -y jq
+    fi
+    
     # Check if SSH key exists
     if [ ! -f ~/.ssh/plant-monitoring-key.pem ]; then
         print_warning "SSH key not found at ~/.ssh/plant-monitoring-key.pem"
@@ -68,30 +74,114 @@ check_prerequisites() {
     print_success "Prerequisites checked"
 }
 
+# Function to handle existing secrets in AWS
+handle_existing_secrets() {
+    print_status "Checking for existing AWS Secrets Manager secrets..."
+    
+    local project_name="plant-monitoring"
+    local environment="dev"
+    local secrets=(
+        "${project_name}-${environment}/mongodb/credentials"
+        "${project_name}-${environment}/homeassistant/credentials"
+        "${project_name}-${environment}/application/config"
+    )
+    
+    local secrets_found=false
+    
+    for secret_name in "${secrets[@]}"; do
+        # Check if secret exists and get its status
+        if aws secretsmanager describe-secret --secret-id "$secret_name" &>/dev/null; then
+            secrets_found=true
+            local secret_info
+            secret_info=$(aws secretsmanager describe-secret --secret-id "$secret_name" 2>/dev/null)
+            
+            # Secret exists, check if it's deleted
+            if echo "$secret_info" | jq -e '.DeletedDate' &>/dev/null; then
+                print_warning "Secret '$secret_name' exists but is in deleted state"
+                print_status "Restoring secret '$secret_name' from deleted state..."
+                aws secretsmanager restore-secret --secret-id "$secret_name"
+            else
+                print_warning "Secret '$secret_name' already exists and is active"
+            fi
+            
+            # Check if it's in Terraform state
+            local tf_resource=""
+            case "$secret_name" in
+                *mongodb*)
+                    tf_resource="module.secrets.aws_secretsmanager_secret.mongodb_credentials"
+                    ;;
+                *homeassistant*)
+                    tf_resource="module.secrets.aws_secretsmanager_secret.homeassistant_credentials"
+                    ;;
+                *application*)
+                    tf_resource="module.secrets.aws_secretsmanager_secret.application_config"
+                    ;;
+            esac
+            
+            # Import if not in state (after restoration if needed)
+            if ! terraform state show "$tf_resource" &>/dev/null; then
+                print_status "Importing secret '$secret_name' into Terraform state..."
+                terraform import "$tf_resource" "$secret_name"
+            else
+                print_status "Secret '$secret_name' already managed by Terraform"
+            fi
+        fi
+    done
+    
+    if [ "$secrets_found" = false ]; then
+        print_status "No existing secrets found - fresh deployment with new credentials will proceed"
+    fi
+}
+
 # Function to deploy infrastructure
 deploy_infrastructure() {
     print_status "Deploying infrastructure with Terraform..."
     
     cd "$TERRAFORM_DIR"
     
-    # Initialize Terraform if not already done
-    if [ ! -d ".terraform" ]; then
-        print_status "Initializing Terraform..."
-        terraform init
-    fi
+    # ALWAYS initialize Terraform first (ensures providers are available)
+    print_status "Initializing Terraform..."
+    terraform init
     
-    # Plan the deployment
+    # Handle existing secrets before deployment
+    handle_existing_secrets
+    
+    # Check for drift and plan the deployment
+    print_status "Checking for infrastructure drift..."
+    terraform refresh
+    
     print_status "Planning Terraform deployment..."
     terraform plan -out=tfplan
+    
+    # Check if there are any changes that might affect security groups
+    if terraform show tfplan | grep -q "aws_security_group\|security_group_rule"; then
+        print_status "⚠️  Security group changes detected - applying with enhanced validation..."
+    fi
     
     # Apply the deployment
     print_status "Applying Terraform configuration..."
     terraform apply tfplan
     
+    # Validate security group rules after apply
+    print_status "Validating security group rules after deployment..."
+    sleep 5  # Allow AWS eventual consistency
+    terraform refresh
+    
+    # Check if we need to reapply due to missing rules
+    if terraform plan | grep -q "aws_security_group_rule.*will be created"; then
+        print_status "⚠️  Detected missing security group rules - reapplying..."
+        terraform plan -out=tfplan-fix
+        terraform apply tfplan-fix
+        rm -f tfplan-fix
+    fi
+    
     if [ $? -eq 0 ]; then
         print_success "Infrastructure deployed successfully"
+        # Clean up plan files
+        rm -f tfplan
     else
         print_error "Infrastructure deployment failed"
+        rm -f tfplan
         exit 1
     fi
 }
@@ -160,10 +250,12 @@ deploy_applications() {
     
     cd "$ANSIBLE_DIR"
     
-    # Check if inventory exists
+    # Check if inventory exists, if not generate it
     if [ ! -f "inventory.ini" ]; then
-        print_error "Ansible inventory not found. Please generate it first."
-        exit 1
+        print_warning "Ansible inventory not found. Generating it now..."
+        cd "$SCRIPT_DIR"
+        generate_inventory
+        cd "$ANSIBLE_DIR"
     fi
     
     # Install Docker on all VMs
@@ -172,6 +264,15 @@ deploy_applications() {
         print_success "Docker installation completed"
     else
         print_error "Docker installation failed"
+        exit 1
+    fi
+    
+    # Set up persistent volumes
+    print_status "Setting up persistent volumes on all VMs..."
+    if ansible-playbook -i inventory.ini setup_basic_volumes.yml; then
+        print_success "Persistent volumes setup completed"
+    else
+        print_error "Persistent volumes setup failed"
         exit 1
     fi
     
@@ -203,27 +304,23 @@ show_summary() {
     # Show connection info
     echo ""
     print_status "🔗 Connection Information:"
-    terraform output connection_info | jq -r '
-        "Bastion Host (Home Assistant): \(.bastion_host.command)",
-        "",
-        "Private Instance Access:",
-        "  Kafka:     \(.private_instances.kafka)",
-        "  MongoDB:   \(.private_instances.mongodb)", 
-        "  Processor: \(.private_instances.processor)"
-    '
+    terraform output -json connection_info | jq -r '"Bastion Host (Home Assistant): " + .bastion_host.command'
+    echo ""
+    echo "Private Instance Access:"
+    terraform output -json connection_info | jq -r '"  Kafka:     " + .private_instances.kafka'
+    terraform output -json connection_info | jq -r '"  MongoDB:   " + .private_instances.mongodb'
+    terraform output -json connection_info | jq -r '"  Processor: " + .private_instances.processor'
     
     # Show instance details  
     echo ""
     print_status "🖥️  Instance Details:"
-    terraform output instance_details | jq -r '
-        "Kafka:        \(.kafka.private_ip)",
-        "MongoDB:      \(.mongodb.private_ip)",
-        "Processor:    \(.processor.private_ip)",
-        "Home Assistant: \(.homeassistant.private_ip) (Public: \(.homeassistant.public_ip))"
-    '
+    terraform output -json instance_details | jq -r '"Kafka:        " + .kafka.private_ip'
+    terraform output -json instance_details | jq -r '"MongoDB:      " + .mongodb.private_ip'
+    terraform output -json instance_details | jq -r '"Processor:    " + .processor.private_ip'
+    terraform output -json instance_details | jq -r '"Home Assistant: " + .homeassistant.private_ip + " (Public: " + .homeassistant.public_ip + ")"'
     
     # Show Home Assistant URL
-    HA_PUBLIC_IP=$(terraform output -raw instance_details | jq -r '.homeassistant.public_ip')
+    HA_PUBLIC_IP=$(terraform output -json instance_details | jq -r '.homeassistant.public_ip')
     echo ""
     print_success "🌱 Plant Monitoring Dashboard: http://$HA_PUBLIC_IP:8123"
     echo ""
@@ -265,6 +362,7 @@ case "${1:-}" in
     "apps")
         print_status "Deploying applications only..."
         check_prerequisites
+        generate_inventory
         wait_for_instances
         deploy_applications
         ;;

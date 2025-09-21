@@ -1,0 +1,154 @@
+
+PLAY [all] *********************************************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'vm-3-processor' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-4-homeassistant' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-2-mongodb' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-1-kafka' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+ok: [vm-3-processor]
+ok: [vm-4-homeassistant]
+ok: [vm-2-mongodb]
+ok: [vm-1-kafka]
+
+TASK [Check Docker service status] *********************************************
+changed: [vm-4-homeassistant]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+changed: [vm-1-kafka]
+
+TASK [Get running containers] **************************************************
+changed: [vm-4-homeassistant]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+changed: [vm-1-kafka]
+
+TASK [Set facts for this host] *************************************************
+ok: [vm-1-kafka]
+ok: [vm-2-mongodb]
+ok: [vm-3-processor]
+ok: [vm-4-homeassistant]
+
+PLAY [kafka_vm] ****************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm-1-kafka]
+
+TASK [Test Kafka connectivity] *************************************************
+changed: [vm-1-kafka]
+
+TASK [Check Kafka topics] ******************************************************
+changed: [vm-1-kafka]
+
+TASK [Test Kafka producer/consumer] ********************************************
+changed: [vm-1-kafka]
+
+TASK [Set Kafka health facts] **************************************************
+ok: [vm-1-kafka]
+
+PLAY [mongodb_vm] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm-2-mongodb]
+
+TASK [Test MongoDB connectivity] ***********************************************
+changed: [vm-2-mongodb]
+
+TASK [Check MongoDB status] ****************************************************
+changed: [vm-2-mongodb]
+
+TASK [Check MongoDB collections and data] **************************************
+changed: [vm-2-mongodb]
+
+TASK [Test MongoDB authentication] *********************************************
+changed: [vm-2-mongodb]
+
+TASK [Set MongoDB health facts] ************************************************
+ok: [vm-2-mongodb]
+
+PLAY [processor_vm] ************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm-3-processor]
+
+TASK [Check Processor container health] ****************************************
+changed: [vm-3-processor]
+
+TASK [Test Kafka connectivity from Processor] **********************************
+changed: [vm-3-processor]
+
+TASK [Test MongoDB connectivity from Processor] ********************************
+[ERROR]: Task failed: process object is closed
+Origin: /home/tricia/dev/CS5287_fork_master/CA1/plant-monitor-IaC/application-deployment/health_check.yml:128:7
+
+126       ignore_errors: yes
+127
+128     - name: Test MongoDB connectivity from Processor
+          ^ column 7
+
+fatal: [vm-3-processor]: FAILED! => {"changed": false, "msg": "Task failed: process object is closed"}
+...ignoring
+
+TASK [Test MQTT connectivity to Home Assistant] ********************************
+[ERROR]: Task failed: process object is closed
+Origin: /home/tricia/dev/CS5287_fork_master/CA1/plant-monitor-IaC/application-deployment/health_check.yml:134:7
+
+132       ignore_errors: yes
+133
+134     - name: Test MQTT connectivity to Home Assistant
+          ^ column 7
+
+fatal: [vm-3-processor]: FAILED! => {"changed": false, "msg": "Task failed: process object is closed"}
+...ignoring
+
+TASK [Get Processor logs] ******************************************************
+[ERROR]: Task failed: process object is closed
+Origin: /home/tricia/dev/CS5287_fork_master/CA1/plant-monitor-IaC/application-deployment/health_check.yml:140:7
+
+138       ignore_errors: yes
+139
+140     - name: Get Processor logs
+          ^ column 7
+
+fatal: [vm-3-processor]: FAILED! => {"changed": false, "msg": "Task failed: process object is closed"}
+...ignoring
+
+TASK [Set Processor health facts] **********************************************
+[ERROR]: Task failed: Finalization of task args for 'ansible.builtin.set_fact' failed: Error while resolving value for 'processor_has_logs': object of type 'dict' has no attribute 'stdout_lines'
+
+Task failed.
+Origin: /home/tricia/dev/CS5287_fork_master/CA1/plant-monitor-IaC/application-deployment/health_check.yml:147:7
+
+145       ignore_errors: yes
+146
+147     - name: Set Processor health facts
+          ^ column 7
+
+<<< caused by >>>
+
+Finalization of task args for 'ansible.builtin.set_fact' failed.
+Origin: /home/tricia/dev/CS5287_fork_master/CA1/plant-monitor-IaC/application-deployment/health_check.yml:148:7
+
+146
+147     - name: Set Processor health facts
+148       set_fact:
+          ^ column 7
+
+<<< caused by >>>
+
+Error while resolving value for 'processor_has_logs': object of type 'dict' has no attribute 'stdout_lines'
+Origin: /home/tricia/dev/CS5287_fork_master/CA1/plant-monitor-IaC/application-deployment/health_check.yml:153:29
+
+151         processor_mongo_ok: "{{ processor_mongo_conn.rc == 0 }}"
+152         processor_mqtt_ok: "{{ processor_mqtt_conn.rc == 0 }}"
+153         processor_has_logs: "{{ processor_logs.stdout_lines | length > 0 }}"
+                                ^ column 29
+
+fatal: [vm-3-processor]: FAILED! => {"changed": false, "msg": "Task failed: Finalization of task args for 'ansible.builtin.set_fact' failed: Error while resolving value for 'processor_has_logs': object of type 'dict' has no attribute 'stdout_lines'"}
+
+PLAY RECAP *********************************************************************
+vm-1-kafka                 : ok=9    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-2-mongodb               : ok=10   changed=6    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-3-processor             : ok=10   changed=4    unreachable=0    failed=1    skipped=0    rescued=0    ignored=3   
+vm-4-homeassistant         : ok=4    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+

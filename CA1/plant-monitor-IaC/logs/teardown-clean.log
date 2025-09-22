@@ -1,0 +1,1602 @@
+
+============================================
+🗑️  PLANT MONITORING SYSTEM TEARDOWN
+🔧 Terraform Infrastructure Cleanup
+============================================
+
+[WARNING] ⚠️  DESTRUCTIVE ACTION WARNING ⚠️
+This will permanently destroy ALL AWS resources including:
+  • EC2 instances (4 VMs)
+  • VPC and networking components
+  • Security groups
+  • Elastic IPs
+  • AWS Secrets Manager secrets
+  • NAT Gateway (incurs charges)
+
+💾 All application data on VMs will be LOST!
+
+❓ Are you sure you want to proceed? (type 'yes' to confirm): 
+[INFO] 🔐 AWS Secrets Manager Cleanup Strategy:
+  1) Standard deletion (7-day recovery window) - RECOMMENDED for production
+  2) Force deletion (immediate, no recovery) - For development/testing
+
+❓ Choose deletion method (1 or 2): [WARNING] ⚡ Secrets will be permanently deleted immediately (no recovery possible)
+[INFO] Phase 1: Stopping applications gracefully...
+[INFO] Stopping Docker containers on all VMs...
+[INFO] Stopping MongoDB...
+[WARNING]: Host 'vm-2-mongodb' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+vm-2-mongodb | CHANGED | rc=0 >>
+time="2025-09-21T23:59:53Z" level=warning msg="/opt/apps/mongodb/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container mongodb  Stopping
+ Container mongodb  Stopped
+ Container mongodb  Removing
+ Container mongodb  Removed
+ Volume mongodb_mongodb_config  Removing
+ Network mongodb_default  Removing
+ Volume mongodb_mongodb_data  Removing
+ Volume mongodb_mongodb_config  Removed
+ Volume mongodb_mongodb_data  Removed
+ Network mongodb_default  Removed
+[INFO] Stopping Kafka...
+[WARNING]: Host 'vm-1-kafka' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+vm-1-kafka | CHANGED | rc=0 >>
+time="2025-09-21T23:59:59Z" level=warning msg="/opt/apps/kafka/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container kafka  Stopping
+ Container kafka  Stopped
+ Container kafka  Removing
+ Container kafka  Removed
+ Volume kafka_kafka_data  Removing
+ Volume kafka_kafka_logs  Removing
+ Network kafka_default  Removing
+ Volume kafka_kafka_data  Removed
+ Volume kafka_kafka_logs  Removed
+ Network kafka_default  Removed
+[INFO] Stopping Home Assistant...
+[WARNING]: Host 'vm-4-homeassistant' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+vm-4-homeassistant | CHANGED | rc=0 >>
+
+[INFO] Stopping Processor...
+[WARNING]: Host 'vm-3-processor' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+vm-3-processor | CHANGED | rc=0 >>
+time="2025-09-22T00:00:06Z" level=warning msg="/opt/apps/processor/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container processor-plant-processor-1  Stopping
+ Container processor-plant-processor-1  Stopped
+ Container processor-plant-processor-1  Removing
+ Container processor-plant-processor-1  Removed
+ Container processor-kafka-health-check-1  Stopping
+ Container processor-mongo-health-check-1  Stopping
+ Container processor-kafka-health-check-1  Stopped
+ Container processor-kafka-health-check-1  Removing
+ Container processor-mongo-health-check-1  Stopped
+ Container processor-mongo-health-check-1  Removing
+ Container processor-mongo-health-check-1  Removed
+ Container processor-kafka-health-check-1  Removed
+ Network processor_default  Removing
+ Network processor_default  Removed
+[SUCCESS] Applications stopped gracefully
+[INFO] Phase 2a: Force deleting AWS Secrets Manager secrets...
+[INFO] Force deleting secret: us-east-2-dev/mongodb/credentials
+{
+    "ARN": "arn:aws:secretsmanager:us-east-2:442042542151:secret:us-east-2-dev/mongodb/credentials-mw9Ysy",
+    "Name": "us-east-2-dev/mongodb/credentials",
+    "DeletionDate": 1758499210.208
+}
+[SUCCESS] ✅ Deleted: us-east-2-dev/mongodb/credentials
+[INFO] Force deleting secret: us-east-2-dev/homeassistant/credentials
+{
+    "ARN": "arn:aws:secretsmanager:us-east-2:442042542151:secret:us-east-2-dev/homeassistant/credentials-0YeCCH",
+    "Name": "us-east-2-dev/homeassistant/credentials",
+    "DeletionDate": 1758499210.973
+}
+[SUCCESS] ✅ Deleted: us-east-2-dev/homeassistant/credentials
+[INFO] Force deleting secret: us-east-2-dev/application/config
+{
+    "ARN": "arn:aws:secretsmanager:us-east-2:442042542151:secret:us-east-2-dev/application/config-EEIMHK",
+    "Name": "us-east-2-dev/application/config",
+    "DeletionDate": 1758499211.559
+}
+[SUCCESS] ✅ Deleted: us-east-2-dev/application/config
+[SUCCESS] Secret force deletion completed
+[INFO] Phase 2: Destroying AWS infrastructure with Terraform...
+[INFO] Planning infrastructure destruction...
+module.secrets.random_password.homeassistant_password: Refreshing state... [id=none]
+module.secrets.random_password.mongodb_root_password: Refreshing state... [id=none]
+module.secrets.random_password.mongodb_app_password: Refreshing state... [id=none]
+module.networking.aws_vpc.main: Refreshing state... [id=vpc-01395335fa13fcd3c]
+module.secrets.aws_secretsmanager_secret.application_config: Refreshing state... [id=plant-monitoring-dev/application/config]
+module.secrets.aws_secretsmanager_secret.homeassistant_credentials: Refreshing state... [id=plant-monitoring-dev/homeassistant/credentials]
+module.secrets.aws_secretsmanager_secret.mongodb_credentials: Refreshing state... [id=plant-monitoring-dev/mongodb/credentials]
+module.secrets.aws_secretsmanager_secret_version.mongodb_credentials: Refreshing state... [id=plant-monitoring-dev/mongodb/credentials|terraform-20250921223805400800000003]
+module.secrets.aws_secretsmanager_secret_version.homeassistant_credentials: Refreshing state... [id=plant-monitoring-dev/homeassistant/credentials|terraform-20250921223805380000000001]
+module.secrets.aws_secretsmanager_secret_version.application_config: Refreshing state... [id=plant-monitoring-dev/application/config|terraform-20250921223805400800000002]
+module.networking.aws_internet_gateway.main: Refreshing state... [id=igw-0e2d90da260ee391f]
+module.networking.aws_subnet.public: Refreshing state... [id=subnet-089d117b06c22c49b]
+module.networking.aws_subnet.private: Refreshing state... [id=subnet-08ee070dba38cf4ba]
+module.security.aws_security_group.mongodb: Refreshing state... [id=sg-04ed94c569ec114c1]
+module.security.aws_security_group.processor: Refreshing state... [id=sg-01b1a691ae10b8e2d]
+module.security.aws_security_group.homeassistant: Refreshing state... [id=sg-0d76d158c96310149]
+module.security.aws_security_group.kafka: Refreshing state... [id=sg-0804652662f59d639]
+module.networking.aws_route_table.public: Refreshing state... [id=rtb-07116af1f12c32892]
+module.networking.aws_eip.nat: Refreshing state... [id=eipalloc-025cd0c6c5baf04f2]
+module.security.aws_security_group_rule.mongodb_from_processor: Refreshing state... [id=sgrule-1590009575]
+module.security.aws_security_group_rule.homeassistant_mqtt_public: Refreshing state... [id=sgrule-587677466]
+module.security.aws_security_group_rule.processor_from_homeassistant: Refreshing state... [id=sgrule-2441426542]
+module.security.aws_security_group_rule.homeassistant_from_processor_mqtt: Refreshing state... [id=sgrule-1900794028]
+module.compute.aws_instance.homeassistant: Refreshing state... [id=i-04f0a8d18aab38ad3]
+module.compute.aws_instance.mongodb: Refreshing state... [id=i-0481de7a7d0d228f7]
+module.compute.aws_instance.kafka: Refreshing state... [id=i-012c7a80d5f8d7a66]
+module.compute.aws_instance.processor: Refreshing state... [id=i-0935458bdc5a91398]
+module.networking.aws_route_table_association.public: Refreshing state... [id=rtbassoc-01bbc28eb0232aabf]
+module.networking.aws_nat_gateway.main: Refreshing state... [id=nat-0106ba98a113d8bc3]
+module.networking.aws_route_table.private: Refreshing state... [id=rtb-0b54819c72459d040]
+module.networking.aws_route_table_association.private: Refreshing state... [id=rtbassoc-01742e1c3b5563b01]
+module.compute.aws_eip.homeassistant: Refreshing state... [id=eipalloc-024b09b6453130d35]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # module.compute.aws_eip.homeassistant will be destroyed
+  - resource "aws_eip" "homeassistant" {
+      - allocation_id            = "eipalloc-024b09b6453130d35" -> null
+      - arn                      = "arn:aws:ec2:us-east-2:442042542151:elastic-ip/eipalloc-024b09b6453130d35" -> null
+      - association_id           = "eipassoc-05658f4f68712ad2b" -> null
+      - domain                   = "vpc" -> null
+      - id                       = "eipalloc-024b09b6453130d35" -> null
+      - instance                 = "i-04f0a8d18aab38ad3" -> null
+      - network_border_group     = "us-east-2" -> null
+      - network_interface        = "eni-0e9773e0b0f20a129" -> null
+      - private_dns              = "ip-10-0-0-102.us-east-2.compute.internal" -> null
+      - private_ip               = "10.0.0.102" -> null
+      - public_dns               = "ec2-18-217-105-248.us-east-2.compute.amazonaws.com" -> null
+      - public_ip                = "18.217.105.248" -> null
+      - public_ipv4_pool         = "amazon" -> null
+      - tags                     = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-ha-eip"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all                 = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-ha-eip"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc                      = true -> null
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.compute.aws_instance.homeassistant will be destroyed
+  - resource "aws_instance" "homeassistant" {
+      - ami                                  = "ami-0cfde0ea8edd312d4" -> null
+      - arn                                  = "arn:aws:ec2:us-east-2:442042542151:instance/i-04f0a8d18aab38ad3" -> null
+      - associate_public_ip_address          = true -> null
+      - availability_zone                    = "us-east-2a" -> null
+      - cpu_core_count                       = 1 -> null
+      - cpu_threads_per_core                 = 1 -> null
+      - disable_api_stop                     = false -> null
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - get_password_data                    = false -> null
+      - hibernation                          = false -> null
+      - id                                   = "i-04f0a8d18aab38ad3" -> null
+      - instance_initiated_shutdown_behavior = "stop" -> null
+      - instance_state                       = "running" -> null
+      - instance_type                        = "t2.micro" -> null
+      - ipv6_address_count                   = 0 -> null
+      - ipv6_addresses                       = [] -> null
+      - key_name                             = "plant-monitoring-key" -> null
+      - monitoring                           = false -> null
+      - placement_partition_number           = 0 -> null
+      - primary_network_interface_id         = "eni-0e9773e0b0f20a129" -> null
+      - private_dns                          = "ip-10-0-0-102.us-east-2.compute.internal" -> null
+      - private_ip                           = "10.0.0.102" -> null
+      - public_dns                           = "ec2-18-217-105-248.us-east-2.compute.amazonaws.com" -> null
+      - public_ip                            = "18.217.105.248" -> null
+      - secondary_private_ips                = [] -> null
+      - security_groups                      = [] -> null
+      - source_dest_check                    = true -> null
+      - subnet_id                            = "subnet-089d117b06c22c49b" -> null
+      - tags                                 = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "VM-4-HomeAssistant"
+          - "Project"     = "plant-monitoring"
+          - "Role"        = "homeassistant"
+        } -> null
+      - tags_all                             = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "VM-4-HomeAssistant"
+          - "Project"     = "plant-monitoring"
+          - "Role"        = "homeassistant"
+        } -> null
+      - tenancy                              = "default" -> null
+      - user_data_replace_on_change          = false -> null
+      - vpc_security_group_ids               = [
+          - "sg-0d76d158c96310149",
+        ] -> null
+        # (7 unchanged attributes hidden)
+
+      - capacity_reservation_specification {
+          - capacity_reservation_preference = "open" -> null
+        }
+
+      - cpu_options {
+          - core_count       = 1 -> null
+          - threads_per_core = 1 -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      - enclave_options {
+          - enabled = false -> null
+        }
+
+      - maintenance_options {
+          - auto_recovery = "default" -> null
+        }
+
+      - metadata_options {
+          - http_endpoint               = "enabled" -> null
+          - http_protocol_ipv6          = "disabled" -> null
+          - http_put_response_hop_limit = 2 -> null
+          - http_tokens                 = "required" -> null
+          - instance_metadata_tags      = "disabled" -> null
+        }
+
+      - private_dns_name_options {
+          - enable_resource_name_dns_a_record    = false -> null
+          - enable_resource_name_dns_aaaa_record = false -> null
+          - hostname_type                        = "ip-name" -> null
+        }
+
+      - root_block_device {
+          - delete_on_termination = true -> null
+          - device_name           = "/dev/sda1" -> null
+          - encrypted             = false -> null
+          - iops                  = 3000 -> null
+          - tags                  = {} -> null
+          - tags_all              = {} -> null
+          - throughput            = 125 -> null
+          - volume_id             = "vol-0b0774cce17811865" -> null
+          - volume_size           = 8 -> null
+          - volume_type           = "gp3" -> null
+            # (1 unchanged attribute hidden)
+        }
+    }
+
+  # module.compute.aws_instance.kafka will be destroyed
+  - resource "aws_instance" "kafka" {
+      - ami                                  = "ami-0cfde0ea8edd312d4" -> null
+      - arn                                  = "arn:aws:ec2:us-east-2:442042542151:instance/i-012c7a80d5f8d7a66" -> null
+      - associate_public_ip_address          = false -> null
+      - availability_zone                    = "us-east-2a" -> null
+      - cpu_core_count                       = 1 -> null
+      - cpu_threads_per_core                 = 1 -> null
+      - disable_api_stop                     = false -> null
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - get_password_data                    = false -> null
+      - hibernation                          = false -> null
+      - id                                   = "i-012c7a80d5f8d7a66" -> null
+      - instance_initiated_shutdown_behavior = "stop" -> null
+      - instance_state                       = "running" -> null
+      - instance_type                        = "t2.micro" -> null
+      - ipv6_address_count                   = 0 -> null
+      - ipv6_addresses                       = [] -> null
+      - key_name                             = "plant-monitoring-key" -> null
+      - monitoring                           = false -> null
+      - placement_partition_number           = 0 -> null
+      - primary_network_interface_id         = "eni-0fa2cc5695faaf594" -> null
+      - private_dns                          = "ip-10-0-128-140.us-east-2.compute.internal" -> null
+      - private_ip                           = "10.0.128.140" -> null
+      - secondary_private_ips                = [] -> null
+      - security_groups                      = [] -> null
+      - source_dest_check                    = true -> null
+      - subnet_id                            = "subnet-08ee070dba38cf4ba" -> null
+      - tags                                 = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "VM-1-Kafka"
+          - "Project"     = "plant-monitoring"
+          - "Role"        = "kafka"
+        } -> null
+      - tags_all                             = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "VM-1-Kafka"
+          - "Project"     = "plant-monitoring"
+          - "Role"        = "kafka"
+        } -> null
+      - tenancy                              = "default" -> null
+      - user_data_replace_on_change          = false -> null
+      - vpc_security_group_ids               = [
+          - "sg-0804652662f59d639",
+        ] -> null
+        # (9 unchanged attributes hidden)
+
+      - capacity_reservation_specification {
+          - capacity_reservation_preference = "open" -> null
+        }
+
+      - cpu_options {
+          - core_count       = 1 -> null
+          - threads_per_core = 1 -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      - enclave_options {
+          - enabled = false -> null
+        }
+
+      - maintenance_options {
+          - auto_recovery = "default" -> null
+        }
+
+      - metadata_options {
+          - http_endpoint               = "enabled" -> null
+          - http_protocol_ipv6          = "disabled" -> null
+          - http_put_response_hop_limit = 2 -> null
+          - http_tokens                 = "required" -> null
+          - instance_metadata_tags      = "disabled" -> null
+        }
+
+      - private_dns_name_options {
+          - enable_resource_name_dns_a_record    = false -> null
+          - enable_resource_name_dns_aaaa_record = false -> null
+          - hostname_type                        = "ip-name" -> null
+        }
+
+      - root_block_device {
+          - delete_on_termination = true -> null
+          - device_name           = "/dev/sda1" -> null
+          - encrypted             = false -> null
+          - iops                  = 3000 -> null
+          - tags                  = {} -> null
+          - tags_all              = {} -> null
+          - throughput            = 125 -> null
+          - volume_id             = "vol-0c799c84367f3d6a5" -> null
+          - volume_size           = 8 -> null
+          - volume_type           = "gp3" -> null
+            # (1 unchanged attribute hidden)
+        }
+    }
+
+  # module.compute.aws_instance.mongodb will be destroyed
+  - resource "aws_instance" "mongodb" {
+      - ami                                  = "ami-0cfde0ea8edd312d4" -> null
+      - arn                                  = "arn:aws:ec2:us-east-2:442042542151:instance/i-0481de7a7d0d228f7" -> null
+      - associate_public_ip_address          = false -> null
+      - availability_zone                    = "us-east-2a" -> null
+      - cpu_core_count                       = 1 -> null
+      - cpu_threads_per_core                 = 1 -> null
+      - disable_api_stop                     = false -> null
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - get_password_data                    = false -> null
+      - hibernation                          = false -> null
+      - id                                   = "i-0481de7a7d0d228f7" -> null
+      - instance_initiated_shutdown_behavior = "stop" -> null
+      - instance_state                       = "running" -> null
+      - instance_type                        = "t2.micro" -> null
+      - ipv6_address_count                   = 0 -> null
+      - ipv6_addresses                       = [] -> null
+      - key_name                             = "plant-monitoring-key" -> null
+      - monitoring                           = false -> null
+      - placement_partition_number           = 0 -> null
+      - primary_network_interface_id         = "eni-079a8d0bec9cdcf70" -> null
+      - private_dns                          = "ip-10-0-128-214.us-east-2.compute.internal" -> null
+      - private_ip                           = "10.0.128.214" -> null
+      - secondary_private_ips                = [] -> null
+      - security_groups                      = [] -> null
+      - source_dest_check                    = true -> null
+      - subnet_id                            = "subnet-08ee070dba38cf4ba" -> null
+      - tags                                 = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "VM-2-MongoDB"
+          - "Project"     = "plant-monitoring"
+          - "Role"        = "mongodb"
+        } -> null
+      - tags_all                             = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "VM-2-MongoDB"
+          - "Project"     = "plant-monitoring"
+          - "Role"        = "mongodb"
+        } -> null
+      - tenancy                              = "default" -> null
+      - user_data_replace_on_change          = false -> null
+      - vpc_security_group_ids               = [
+          - "sg-04ed94c569ec114c1",
+        ] -> null
+        # (9 unchanged attributes hidden)
+
+      - capacity_reservation_specification {
+          - capacity_reservation_preference = "open" -> null
+        }
+
+      - cpu_options {
+          - core_count       = 1 -> null
+          - threads_per_core = 1 -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      - enclave_options {
+          - enabled = false -> null
+        }
+
+      - maintenance_options {
+          - auto_recovery = "default" -> null
+        }
+
+      - metadata_options {
+          - http_endpoint               = "enabled" -> null
+          - http_protocol_ipv6          = "disabled" -> null
+          - http_put_response_hop_limit = 2 -> null
+          - http_tokens                 = "required" -> null
+          - instance_metadata_tags      = "disabled" -> null
+        }
+
+      - private_dns_name_options {
+          - enable_resource_name_dns_a_record    = false -> null
+          - enable_resource_name_dns_aaaa_record = false -> null
+          - hostname_type                        = "ip-name" -> null
+        }
+
+      - root_block_device {
+          - delete_on_termination = true -> null
+          - device_name           = "/dev/sda1" -> null
+          - encrypted             = false -> null
+          - iops                  = 3000 -> null
+          - tags                  = {} -> null
+          - tags_all              = {} -> null
+          - throughput            = 125 -> null
+          - volume_id             = "vol-0615ad80f97fb1e3f" -> null
+          - volume_size           = 8 -> null
+          - volume_type           = "gp3" -> null
+            # (1 unchanged attribute hidden)
+        }
+    }
+
+  # module.compute.aws_instance.processor will be destroyed
+  - resource "aws_instance" "processor" {
+      - ami                                  = "ami-0cfde0ea8edd312d4" -> null
+      - arn                                  = "arn:aws:ec2:us-east-2:442042542151:instance/i-0935458bdc5a91398" -> null
+      - associate_public_ip_address          = false -> null
+      - availability_zone                    = "us-east-2a" -> null
+      - cpu_core_count                       = 1 -> null
+      - cpu_threads_per_core                 = 1 -> null
+      - disable_api_stop                     = false -> null
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - get_password_data                    = false -> null
+      - hibernation                          = false -> null
+      - id                                   = "i-0935458bdc5a91398" -> null
+      - instance_initiated_shutdown_behavior = "stop" -> null
+      - instance_state                       = "running" -> null
+      - instance_type                        = "t2.micro" -> null
+      - ipv6_address_count                   = 0 -> null
+      - ipv6_addresses                       = [] -> null
+      - key_name                             = "plant-monitoring-key" -> null
+      - monitoring                           = false -> null
+      - placement_partition_number           = 0 -> null
+      - primary_network_interface_id         = "eni-0836989d490b6138a" -> null
+      - private_dns                          = "ip-10-0-128-156.us-east-2.compute.internal" -> null
+      - private_ip                           = "10.0.128.156" -> null
+      - secondary_private_ips                = [] -> null
+      - security_groups                      = [] -> null
+      - source_dest_check                    = true -> null
+      - subnet_id                            = "subnet-08ee070dba38cf4ba" -> null
+      - tags                                 = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "VM-3-Processor"
+          - "Project"     = "plant-monitoring"
+          - "Role"        = "processor"
+        } -> null
+      - tags_all                             = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "VM-3-Processor"
+          - "Project"     = "plant-monitoring"
+          - "Role"        = "processor"
+        } -> null
+      - tenancy                              = "default" -> null
+      - user_data_replace_on_change          = false -> null
+      - vpc_security_group_ids               = [
+          - "sg-01b1a691ae10b8e2d",
+        ] -> null
+        # (9 unchanged attributes hidden)
+
+      - capacity_reservation_specification {
+          - capacity_reservation_preference = "open" -> null
+        }
+
+      - cpu_options {
+          - core_count       = 1 -> null
+          - threads_per_core = 1 -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      - enclave_options {
+          - enabled = false -> null
+        }
+
+      - maintenance_options {
+          - auto_recovery = "default" -> null
+        }
+
+      - metadata_options {
+          - http_endpoint               = "enabled" -> null
+          - http_protocol_ipv6          = "disabled" -> null
+          - http_put_response_hop_limit = 2 -> null
+          - http_tokens                 = "required" -> null
+          - instance_metadata_tags      = "disabled" -> null
+        }
+
+      - private_dns_name_options {
+          - enable_resource_name_dns_a_record    = false -> null
+          - enable_resource_name_dns_aaaa_record = false -> null
+          - hostname_type                        = "ip-name" -> null
+        }
+
+      - root_block_device {
+          - delete_on_termination = true -> null
+          - device_name           = "/dev/sda1" -> null
+          - encrypted             = false -> null
+          - iops                  = 3000 -> null
+          - tags                  = {} -> null
+          - tags_all              = {} -> null
+          - throughput            = 125 -> null
+          - volume_id             = "vol-04fd24d44d0899c8f" -> null
+          - volume_size           = 8 -> null
+          - volume_type           = "gp3" -> null
+            # (1 unchanged attribute hidden)
+        }
+    }
+
+  # module.networking.aws_eip.nat will be destroyed
+  - resource "aws_eip" "nat" {
+      - allocation_id            = "eipalloc-025cd0c6c5baf04f2" -> null
+      - arn                      = "arn:aws:ec2:us-east-2:442042542151:elastic-ip/eipalloc-025cd0c6c5baf04f2" -> null
+      - association_id           = "eipassoc-0a50ddce69543ee5d" -> null
+      - domain                   = "vpc" -> null
+      - id                       = "eipalloc-025cd0c6c5baf04f2" -> null
+      - network_border_group     = "us-east-2" -> null
+      - network_interface        = "eni-0355e9d184d704267" -> null
+      - private_dns              = "ip-10-0-0-107.us-east-2.compute.internal" -> null
+      - private_ip               = "10.0.0.107" -> null
+      - public_dns               = "ec2-18-189-169-237.us-east-2.compute.amazonaws.com" -> null
+      - public_ip                = "18.189.169.237" -> null
+      - public_ipv4_pool         = "amazon" -> null
+      - tags                     = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-nat-eip"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all                 = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-nat-eip"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc                      = true -> null
+        # (5 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_internet_gateway.main will be destroyed
+  - resource "aws_internet_gateway" "main" {
+      - arn      = "arn:aws:ec2:us-east-2:442042542151:internet-gateway/igw-0e2d90da260ee391f" -> null
+      - id       = "igw-0e2d90da260ee391f" -> null
+      - owner_id = "442042542151" -> null
+      - tags     = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-igw"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-igw"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc_id   = "vpc-01395335fa13fcd3c" -> null
+    }
+
+  # module.networking.aws_nat_gateway.main will be destroyed
+  - resource "aws_nat_gateway" "main" {
+      - allocation_id                      = "eipalloc-025cd0c6c5baf04f2" -> null
+      - association_id                     = "eipassoc-0a50ddce69543ee5d" -> null
+      - connectivity_type                  = "public" -> null
+      - id                                 = "nat-0106ba98a113d8bc3" -> null
+      - network_interface_id               = "eni-0355e9d184d704267" -> null
+      - private_ip                         = "10.0.0.107" -> null
+      - public_ip                          = "18.189.169.237" -> null
+      - secondary_allocation_ids           = [] -> null
+      - secondary_private_ip_address_count = 0 -> null
+      - secondary_private_ip_addresses     = [] -> null
+      - subnet_id                          = "subnet-089d117b06c22c49b" -> null
+      - tags                               = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-nat-gw"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all                           = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-nat-gw"
+          - "Project"     = "plant-monitoring"
+        } -> null
+    }
+
+  # module.networking.aws_route_table.private will be destroyed
+  - resource "aws_route_table" "private" {
+      - arn              = "arn:aws:ec2:us-east-2:442042542151:route-table/rtb-0b54819c72459d040" -> null
+      - id               = "rtb-0b54819c72459d040" -> null
+      - owner_id         = "442042542151" -> null
+      - propagating_vgws = [] -> null
+      - route            = [
+          - {
+              - cidr_block                 = "0.0.0.0/0"
+              - nat_gateway_id             = "nat-0106ba98a113d8bc3"
+                # (11 unchanged attributes hidden)
+            },
+        ] -> null
+      - tags             = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-private-rt"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all         = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-private-rt"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc_id           = "vpc-01395335fa13fcd3c" -> null
+    }
+
+  # module.networking.aws_route_table.public will be destroyed
+  - resource "aws_route_table" "public" {
+      - arn              = "arn:aws:ec2:us-east-2:442042542151:route-table/rtb-07116af1f12c32892" -> null
+      - id               = "rtb-07116af1f12c32892" -> null
+      - owner_id         = "442042542151" -> null
+      - propagating_vgws = [] -> null
+      - route            = [
+          - {
+              - cidr_block                 = "0.0.0.0/0"
+              - gateway_id                 = "igw-0e2d90da260ee391f"
+                # (11 unchanged attributes hidden)
+            },
+        ] -> null
+      - tags             = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-public-rt"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all         = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-public-rt"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc_id           = "vpc-01395335fa13fcd3c" -> null
+    }
+
+  # module.networking.aws_route_table_association.private will be destroyed
+  - resource "aws_route_table_association" "private" {
+      - id             = "rtbassoc-01742e1c3b5563b01" -> null
+      - route_table_id = "rtb-0b54819c72459d040" -> null
+      - subnet_id      = "subnet-08ee070dba38cf4ba" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.networking.aws_route_table_association.public will be destroyed
+  - resource "aws_route_table_association" "public" {
+      - id             = "rtbassoc-01bbc28eb0232aabf" -> null
+      - route_table_id = "rtb-07116af1f12c32892" -> null
+      - subnet_id      = "subnet-089d117b06c22c49b" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.networking.aws_subnet.private will be destroyed
+  - resource "aws_subnet" "private" {
+      - arn                                            = "arn:aws:ec2:us-east-2:442042542151:subnet/subnet-08ee070dba38cf4ba" -> null
+      - assign_ipv6_address_on_creation                = false -> null
+      - availability_zone                              = "us-east-2a" -> null
+      - availability_zone_id                           = "use2-az1" -> null
+      - cidr_block                                     = "10.0.128.0/24" -> null
+      - enable_dns64                                   = false -> null
+      - enable_lni_at_device_index                     = 0 -> null
+      - enable_resource_name_dns_a_record_on_launch    = false -> null
+      - enable_resource_name_dns_aaaa_record_on_launch = false -> null
+      - id                                             = "subnet-08ee070dba38cf4ba" -> null
+      - ipv6_native                                    = false -> null
+      - map_customer_owned_ip_on_launch                = false -> null
+      - map_public_ip_on_launch                        = false -> null
+      - owner_id                                       = "442042542151" -> null
+      - private_dns_hostname_type_on_launch            = "ip-name" -> null
+      - tags                                           = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-private-subnet"
+          - "Project"     = "plant-monitoring"
+          - "Type"        = "Private"
+        } -> null
+      - tags_all                                       = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-private-subnet"
+          - "Project"     = "plant-monitoring"
+          - "Type"        = "Private"
+        } -> null
+      - vpc_id                                         = "vpc-01395335fa13fcd3c" -> null
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_subnet.public will be destroyed
+  - resource "aws_subnet" "public" {
+      - arn                                            = "arn:aws:ec2:us-east-2:442042542151:subnet/subnet-089d117b06c22c49b" -> null
+      - assign_ipv6_address_on_creation                = false -> null
+      - availability_zone                              = "us-east-2a" -> null
+      - availability_zone_id                           = "use2-az1" -> null
+      - cidr_block                                     = "10.0.0.0/24" -> null
+      - enable_dns64                                   = false -> null
+      - enable_lni_at_device_index                     = 0 -> null
+      - enable_resource_name_dns_a_record_on_launch    = false -> null
+      - enable_resource_name_dns_aaaa_record_on_launch = false -> null
+      - id                                             = "subnet-089d117b06c22c49b" -> null
+      - ipv6_native                                    = false -> null
+      - map_customer_owned_ip_on_launch                = false -> null
+      - map_public_ip_on_launch                        = true -> null
+      - owner_id                                       = "442042542151" -> null
+      - private_dns_hostname_type_on_launch            = "ip-name" -> null
+      - tags                                           = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-public-subnet"
+          - "Project"     = "plant-monitoring"
+          - "Type"        = "Public"
+        } -> null
+      - tags_all                                       = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-public-subnet"
+          - "Project"     = "plant-monitoring"
+          - "Type"        = "Public"
+        } -> null
+      - vpc_id                                         = "vpc-01395335fa13fcd3c" -> null
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_vpc.main will be destroyed
+  - resource "aws_vpc" "main" {
+      - arn                                  = "arn:aws:ec2:us-east-2:442042542151:vpc/vpc-01395335fa13fcd3c" -> null
+      - assign_generated_ipv6_cidr_block     = false -> null
+      - cidr_block                           = "10.0.0.0/16" -> null
+      - default_network_acl_id               = "acl-01956905404c4a105" -> null
+      - default_route_table_id               = "rtb-05465973a19eb0770" -> null
+      - default_security_group_id            = "sg-02972bdcb31a63548" -> null
+      - dhcp_options_id                      = "dopt-0ae08ec1673ff2919" -> null
+      - enable_dns_hostnames                 = true -> null
+      - enable_dns_support                   = true -> null
+      - enable_network_address_usage_metrics = false -> null
+      - id                                   = "vpc-01395335fa13fcd3c" -> null
+      - instance_tenancy                     = "default" -> null
+      - ipv6_netmask_length                  = 0 -> null
+      - main_route_table_id                  = "rtb-05465973a19eb0770" -> null
+      - owner_id                             = "442042542151" -> null
+      - tags                                 = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-vpc"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all                             = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-vpc"
+          - "Project"     = "plant-monitoring"
+        } -> null
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.secrets.aws_secretsmanager_secret.application_config will be destroyed
+  - resource "aws_secretsmanager_secret" "application_config" {
+      - arn                            = "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/application/config-FoylIJ" -> null
+      - description                    = "Application configuration and API keys" -> null
+      - force_overwrite_replica_secret = false -> null
+      - id                             = "plant-monitoring-dev/application/config" -> null
+      - name                           = "plant-monitoring-dev/application/config" -> null
+      - recovery_window_in_days        = 7 -> null
+      - tags                           = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-application-config"
+          - "Project"     = "plant-monitoring"
+          - "SecretType"  = "application-config"
+          - "Service"     = "processor"
+        } -> null
+      - tags_all                       = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-application-config"
+          - "Project"     = "plant-monitoring"
+          - "SecretType"  = "application-config"
+          - "Service"     = "processor"
+        } -> null
+        # (3 unchanged attributes hidden)
+    }
+
+  # module.secrets.aws_secretsmanager_secret.homeassistant_credentials will be destroyed
+  - resource "aws_secretsmanager_secret" "homeassistant_credentials" {
+      - arn                            = "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/homeassistant/credentials-qXJ6vu" -> null
+      - description                    = "Home Assistant login credentials and MQTT settings" -> null
+      - force_overwrite_replica_secret = false -> null
+      - id                             = "plant-monitoring-dev/homeassistant/credentials" -> null
+      - name                           = "plant-monitoring-dev/homeassistant/credentials" -> null
+      - recovery_window_in_days        = 7 -> null
+      - tags                           = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-homeassistant-credentials"
+          - "Project"     = "plant-monitoring"
+          - "SecretType"  = "application-credentials"
+          - "Service"     = "homeassistant"
+        } -> null
+      - tags_all                       = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-homeassistant-credentials"
+          - "Project"     = "plant-monitoring"
+          - "SecretType"  = "application-credentials"
+          - "Service"     = "homeassistant"
+        } -> null
+        # (3 unchanged attributes hidden)
+    }
+
+  # module.secrets.aws_secretsmanager_secret.mongodb_credentials will be destroyed
+  - resource "aws_secretsmanager_secret" "mongodb_credentials" {
+      - arn                            = "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/mongodb/credentials-uZ2XMw" -> null
+      - description                    = "MongoDB root and application user credentials for plant monitoring system" -> null
+      - force_overwrite_replica_secret = false -> null
+      - id                             = "plant-monitoring-dev/mongodb/credentials" -> null
+      - name                           = "plant-monitoring-dev/mongodb/credentials" -> null
+      - recovery_window_in_days        = 7 -> null
+      - tags                           = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-mongodb-credentials"
+          - "Project"     = "plant-monitoring"
+          - "SecretType"  = "database-credentials"
+          - "Service"     = "mongodb"
+        } -> null
+      - tags_all                       = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-mongodb-credentials"
+          - "Project"     = "plant-monitoring"
+          - "SecretType"  = "database-credentials"
+          - "Service"     = "mongodb"
+        } -> null
+        # (3 unchanged attributes hidden)
+    }
+
+  # module.secrets.aws_secretsmanager_secret_version.application_config will be destroyed
+  - resource "aws_secretsmanager_secret_version" "application_config" {
+      - arn              = "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/application/config-FoylIJ" -> null
+      - id               = "plant-monitoring-dev/application/config|terraform-20250921223805400800000002" -> null
+      - secret_id        = "plant-monitoring-dev/application/config" -> null
+      - secret_string    = (sensitive value) -> null
+      - secret_string_wo = (write-only attribute) -> null
+      - version_id       = "terraform-20250921223805400800000002" -> null
+      - version_stages   = [
+          - "AWSCURRENT",
+        ] -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.secrets.aws_secretsmanager_secret_version.homeassistant_credentials will be destroyed
+  - resource "aws_secretsmanager_secret_version" "homeassistant_credentials" {
+      - arn              = "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/homeassistant/credentials-qXJ6vu" -> null
+      - id               = "plant-monitoring-dev/homeassistant/credentials|terraform-20250921223805380000000001" -> null
+      - secret_id        = "plant-monitoring-dev/homeassistant/credentials" -> null
+      - secret_string    = (sensitive value) -> null
+      - secret_string_wo = (write-only attribute) -> null
+      - version_id       = "terraform-20250921223805380000000001" -> null
+      - version_stages   = [
+          - "AWSCURRENT",
+        ] -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.secrets.aws_secretsmanager_secret_version.mongodb_credentials will be destroyed
+  - resource "aws_secretsmanager_secret_version" "mongodb_credentials" {
+      - arn              = "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/mongodb/credentials-uZ2XMw" -> null
+      - id               = "plant-monitoring-dev/mongodb/credentials|terraform-20250921223805400800000003" -> null
+      - secret_id        = "plant-monitoring-dev/mongodb/credentials" -> null
+      - secret_string    = (sensitive value) -> null
+      - secret_string_wo = (write-only attribute) -> null
+      - version_id       = "terraform-20250921223805400800000003" -> null
+      - version_stages   = [
+          - "AWSCURRENT",
+        ] -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.secrets.random_password.homeassistant_password will be destroyed
+  - resource "random_password" "homeassistant_password" {
+      - bcrypt_hash = (sensitive value) -> null
+      - id          = "none" -> null
+      - length      = 16 -> null
+      - lower       = true -> null
+      - min_lower   = 0 -> null
+      - min_numeric = 0 -> null
+      - min_special = 0 -> null
+      - min_upper   = 0 -> null
+      - number      = true -> null
+      - numeric     = true -> null
+      - result      = (sensitive value) -> null
+      - special     = false -> null
+      - upper       = true -> null
+    }
+
+  # module.secrets.random_password.mongodb_app_password will be destroyed
+  - resource "random_password" "mongodb_app_password" {
+      - bcrypt_hash      = (sensitive value) -> null
+      - id               = "none" -> null
+      - length           = 32 -> null
+      - lower            = true -> null
+      - min_lower        = 0 -> null
+      - min_numeric      = 0 -> null
+      - min_special      = 0 -> null
+      - min_upper        = 0 -> null
+      - number           = true -> null
+      - numeric          = true -> null
+      - override_special = "!@#%^&*()_+-={}|:<>?~" -> null
+      - result           = (sensitive value) -> null
+      - special          = true -> null
+      - upper            = true -> null
+    }
+
+  # module.secrets.random_password.mongodb_root_password will be destroyed
+  - resource "random_password" "mongodb_root_password" {
+      - bcrypt_hash      = (sensitive value) -> null
+      - id               = "none" -> null
+      - length           = 32 -> null
+      - lower            = true -> null
+      - min_lower        = 0 -> null
+      - min_numeric      = 0 -> null
+      - min_special      = 0 -> null
+      - min_upper        = 0 -> null
+      - number           = true -> null
+      - numeric          = true -> null
+      - override_special = "!@#%^&*()_+-={}|:<>?~" -> null
+      - result           = (sensitive value) -> null
+      - special          = true -> null
+      - upper            = true -> null
+    }
+
+  # module.security.aws_security_group.homeassistant will be destroyed
+  - resource "aws_security_group" "homeassistant" {
+      - arn                    = "arn:aws:ec2:us-east-2:442042542151:security-group/sg-0d76d158c96310149" -> null
+      - description            = "Home Assistant security group - VM-4 dashboard + MQTT broker + plant sensors (public access)" -> null
+      - egress                 = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - from_port        = 0
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "-1"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 0
+                # (1 unchanged attribute hidden)
+            },
+        ] -> null
+      - id                     = "sg-0d76d158c96310149" -> null
+      - ingress                = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "Home Assistant dashboard public access for plant monitoring interface"
+              - from_port        = 8123
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 8123
+            },
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "MQTT broker public access for Home Assistant integration setup from browsers"
+              - from_port        = 1883
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 1883
+            },
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "SSH access for administrative tasks (also serves as bastion host for private subnet access)"
+              - from_port        = 22
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 22
+            },
+          - {
+              - cidr_blocks      = []
+              - description      = "MQTT broker access from processor service for plant care alerts and sensor data"
+              - from_port        = 1883
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = [
+                  - "sg-01b1a691ae10b8e2d",
+                ]
+              - self             = false
+              - to_port          = 1883
+            },
+        ] -> null
+      - name                   = "SG-HomeAssistant" -> null
+      - owner_id               = "442042542151" -> null
+      - revoke_rules_on_delete = false -> null
+      - tags                   = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-sg-homeassistant"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all               = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-sg-homeassistant"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc_id                 = "vpc-01395335fa13fcd3c" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.security.aws_security_group.kafka will be destroyed
+  - resource "aws_security_group" "kafka" {
+      - arn                    = "arn:aws:ec2:us-east-2:442042542151:security-group/sg-0804652662f59d639" -> null
+      - description            = "Kafka security group - VM-1 message broker for plant sensor data" -> null
+      - egress                 = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - from_port        = 0
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "-1"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 0
+                # (1 unchanged attribute hidden)
+            },
+        ] -> null
+      - id                     = "sg-0804652662f59d639" -> null
+      - ingress                = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "SSH access for administrative tasks"
+              - from_port        = 22
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 22
+            },
+          - {
+              - cidr_blocks      = [
+                  - "10.0.0.0/16",
+                ]
+              - description      = "Kafka broker access from VPC (processor and other services)"
+              - from_port        = 9092
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 9092
+            },
+        ] -> null
+      - name                   = "SG-Kafka" -> null
+      - owner_id               = "442042542151" -> null
+      - revoke_rules_on_delete = false -> null
+      - tags                   = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-sg-kafka"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all               = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-sg-kafka"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc_id                 = "vpc-01395335fa13fcd3c" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.security.aws_security_group.mongodb will be destroyed
+  - resource "aws_security_group" "mongodb" {
+      - arn                    = "arn:aws:ec2:us-east-2:442042542151:security-group/sg-04ed94c569ec114c1" -> null
+      - description            = "MongoDB security group - VM-2 database with authentication for plant sensor data storage" -> null
+      - egress                 = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - from_port        = 0
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "-1"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 0
+                # (1 unchanged attribute hidden)
+            },
+        ] -> null
+      - id                     = "sg-04ed94c569ec114c1" -> null
+      - ingress                = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "SSH access for administrative tasks and database management"
+              - from_port        = 22
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 22
+            },
+          - {
+              - cidr_blocks      = []
+              - description      = "MongoDB database access restricted to processor service only (database boundary)"
+              - from_port        = 27017
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = [
+                  - "sg-01b1a691ae10b8e2d",
+                ]
+              - self             = false
+              - to_port          = 27017
+            },
+        ] -> null
+      - name                   = "SG-MongoDB" -> null
+      - owner_id               = "442042542151" -> null
+      - revoke_rules_on_delete = false -> null
+      - tags                   = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-sg-mongodb"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all               = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-sg-mongodb"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc_id                 = "vpc-01395335fa13fcd3c" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.security.aws_security_group.processor will be destroyed
+  - resource "aws_security_group" "processor" {
+      - arn                    = "arn:aws:ec2:us-east-2:442042542151:security-group/sg-01b1a691ae10b8e2d" -> null
+      - description            = "Processor security group - VM-3 plant care processor with automatic MQTT discovery" -> null
+      - egress                 = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - from_port        = 0
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "-1"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 0
+                # (1 unchanged attribute hidden)
+            },
+        ] -> null
+      - id                     = "sg-01b1a691ae10b8e2d" -> null
+      - ingress                = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "HTTP outbound for package downloads and external API calls"
+              - from_port        = 80
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 80
+            },
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "HTTPS outbound for package downloads and external API calls"
+              - from_port        = 443
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 443
+            },
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "SSH access for administrative tasks and application deployment"
+              - from_port        = 22
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 22
+            },
+          - {
+              - cidr_blocks      = []
+              - description      = "Processor API access from Home Assistant for plant care recommendations"
+              - from_port        = 8080
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = [
+                  - "sg-0d76d158c96310149",
+                ]
+              - self             = false
+              - to_port          = 8080
+            },
+        ] -> null
+      - name                   = "SG-Processor" -> null
+      - owner_id               = "442042542151" -> null
+      - revoke_rules_on_delete = false -> null
+      - tags                   = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-sg-processor"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - tags_all               = {
+          - "Environment" = "dev"
+          - "ManagedBy"   = "terraform"
+          - "Name"        = "plant-monitoring-sg-processor"
+          - "Project"     = "plant-monitoring"
+        } -> null
+      - vpc_id                 = "vpc-01395335fa13fcd3c" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.security.aws_security_group_rule.homeassistant_from_processor_mqtt will be destroyed
+  - resource "aws_security_group_rule" "homeassistant_from_processor_mqtt" {
+      - description              = "MQTT broker access from processor service for plant care alerts and sensor data" -> null
+      - from_port                = 1883 -> null
+      - id                       = "sgrule-1900794028" -> null
+      - protocol                 = "tcp" -> null
+      - security_group_id        = "sg-0d76d158c96310149" -> null
+      - security_group_rule_id   = "sgr-03d1f74d9e078928e" -> null
+      - self                     = false -> null
+      - source_security_group_id = "sg-01b1a691ae10b8e2d" -> null
+      - to_port                  = 1883 -> null
+      - type                     = "ingress" -> null
+    }
+
+  # module.security.aws_security_group_rule.homeassistant_mqtt_public will be destroyed
+  - resource "aws_security_group_rule" "homeassistant_mqtt_public" {
+      - cidr_blocks            = [
+          - "0.0.0.0/0",
+        ] -> null
+      - description            = "MQTT broker public access for Home Assistant integration setup from browsers" -> null
+      - from_port              = 1883 -> null
+      - id                     = "sgrule-587677466" -> null
+      - protocol               = "tcp" -> null
+      - security_group_id      = "sg-0d76d158c96310149" -> null
+      - security_group_rule_id = "sgr-0c4de869fe2f70e2b" -> null
+      - self                   = false -> null
+      - to_port                = 1883 -> null
+      - type                   = "ingress" -> null
+    }
+
+  # module.security.aws_security_group_rule.mongodb_from_processor will be destroyed
+  - resource "aws_security_group_rule" "mongodb_from_processor" {
+      - description              = "MongoDB database access restricted to processor service only (database boundary)" -> null
+      - from_port                = 27017 -> null
+      - id                       = "sgrule-1590009575" -> null
+      - protocol                 = "tcp" -> null
+      - security_group_id        = "sg-04ed94c569ec114c1" -> null
+      - security_group_rule_id   = "sgr-0c40b758ce156be8c" -> null
+      - self                     = false -> null
+      - source_security_group_id = "sg-01b1a691ae10b8e2d" -> null
+      - to_port                  = 27017 -> null
+      - type                     = "ingress" -> null
+    }
+
+  # module.security.aws_security_group_rule.processor_from_homeassistant will be destroyed
+  - resource "aws_security_group_rule" "processor_from_homeassistant" {
+      - description              = "Processor API access from Home Assistant for plant care recommendations" -> null
+      - from_port                = 8080 -> null
+      - id                       = "sgrule-2441426542" -> null
+      - protocol                 = "tcp" -> null
+      - security_group_id        = "sg-01b1a691ae10b8e2d" -> null
+      - security_group_rule_id   = "sgr-0c5c29d91f93ed1fa" -> null
+      - self                     = false -> null
+      - source_security_group_id = "sg-0d76d158c96310149" -> null
+      - to_port                  = 8080 -> null
+      - type                     = "ingress" -> null
+    }
+
+Plan: 0 to add, 0 to change, 32 to destroy.
+
+Changes to Outputs:
+  - ansible_inventory  = <<-EOT
+        # Plant Monitoring System Infrastructure Inventory
+        # Generated automatically by Terraform
+        
+        [kafka_vm]
+        vm-1-kafka ansible_host=10.0.128.140
+        
+        [mongodb_vm]
+        vm-2-mongodb ansible_host=10.0.128.214
+        
+        [processor_vm]
+        vm-3-processor ansible_host=10.0.128.156
+        
+        [homeassistant_vm]
+        vm-4-homeassistant ansible_host=18.217.105.248
+        
+        # Legacy group names for backwards compatibility
+        [kafka]
+        vm-1-kafka ansible_host=10.0.128.140
+        
+        [mongodb]
+        vm-2-mongodb ansible_host=10.0.128.214
+        
+        [processor]
+        vm-3-processor ansible_host=10.0.128.156
+        
+        [homeassistant]
+        vm-4-homeassistant ansible_host=18.217.105.248
+        
+        # Private subnet VMs (accessible via bastion host)
+        [private_vms]
+        vm-1-kafka ansible_host=10.0.128.140
+        vm-2-mongodb ansible_host=10.0.128.214
+        vm-3-processor ansible_host=10.0.128.156
+        
+        # Public subnet VMs (direct access)
+        [public_vms]
+        vm-4-homeassistant ansible_host=18.217.105.248
+        
+        # SSH configuration for private VMs (through bastion)
+        [private_vms:vars]
+        ansible_ssh_common_args='-o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@18.217.105.248"'
+        
+        [all:vars]
+        ansible_user=ubuntu
+        ansible_ssh_private_key_file=~/.ssh/plant-monitoring-key.pem
+        ansible_ssh_host_key_checking=False
+        ansible_ssh_port=22
+        
+        # AWS Secrets Manager secret names (populated by Terraform)
+        mongodb_credentials_secret=plant-monitoring-dev/mongodb/credentials
+        homeassistant_credentials_secret=plant-monitoring-dev/homeassistant/credentials
+        application_config_secret=plant-monitoring-dev/application/config
+    EOT -> null
+  - connection_info    = {
+      - bastion_host      = {
+          - command   = "ssh -i ~/.ssh/plant-monitoring-key.pem ubuntu@18.217.105.248"
+          - public_ip = "18.217.105.248"
+        }
+      - private_instances = {
+          - kafka     = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.217.105.248' ubuntu@10.0.128.140"
+          - mongodb   = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.217.105.248' ubuntu@10.0.128.214"
+          - processor = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.217.105.248' ubuntu@10.0.128.156"
+        }
+    } -> null
+  - instance_details   = {
+      - homeassistant = {
+          - instance_id = "i-04f0a8d18aab38ad3"
+          - private_ip  = "10.0.0.102"
+          - public_ip   = "18.217.105.248"
+        }
+      - kafka         = {
+          - instance_id = "i-012c7a80d5f8d7a66"
+          - private_ip  = "10.0.128.140"
+        }
+      - mongodb       = {
+          - instance_id = "i-0481de7a7d0d228f7"
+          - private_ip  = "10.0.128.214"
+        }
+      - processor     = {
+          - instance_id = "i-0935458bdc5a91398"
+          - private_ip  = "10.0.128.156"
+        }
+    } -> null
+  - private_subnet_id  = "subnet-08ee070dba38cf4ba" -> null
+  - public_subnet_id   = "subnet-089d117b06c22c49b" -> null
+  - secrets_info       = (sensitive value) -> null
+  - security_group_ids = {
+      - homeassistant = "sg-0d76d158c96310149"
+      - kafka         = "sg-0804652662f59d639"
+      - mongodb       = "sg-04ed94c569ec114c1"
+      - processor     = "sg-01b1a691ae10b8e2d"
+    } -> null
+  - vpc_id             = "vpc-01395335fa13fcd3c" -> null
+
+─────────────────────────────────────────────────────────────────────────────
+
+Saved the plan to: destroy.tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "destroy.tfplan"
+[INFO] Executing infrastructure destruction...
+module.security.aws_security_group_rule.homeassistant_from_processor_mqtt: Destroying... [id=sgrule-1900794028]
+module.networking.aws_route_table_association.public: Destroying... [id=rtbassoc-01bbc28eb0232aabf]
+module.networking.aws_route_table_association.private: Destroying... [id=rtbassoc-01742e1c3b5563b01]
+module.compute.aws_instance.kafka: Destroying... [id=i-012c7a80d5f8d7a66]
+module.secrets.aws_secretsmanager_secret_version.homeassistant_credentials: Destroying... [id=plant-monitoring-dev/homeassistant/credentials|terraform-20250921223805380000000001]
+module.compute.aws_eip.homeassistant: Destroying... [id=eipalloc-024b09b6453130d35]
+module.secrets.aws_secretsmanager_secret_version.mongodb_credentials: Destroying... [id=plant-monitoring-dev/mongodb/credentials|terraform-20250921223805400800000003]
+module.secrets.aws_secretsmanager_secret_version.application_config: Destroying... [id=plant-monitoring-dev/application/config|terraform-20250921223805400800000002]
+module.compute.aws_instance.mongodb: Destroying... [id=i-0481de7a7d0d228f7]
+module.compute.aws_instance.processor: Destroying... [id=i-0935458bdc5a91398]
+module.secrets.aws_secretsmanager_secret_version.application_config: Destruction complete after 0s
+module.secrets.aws_secretsmanager_secret_version.homeassistant_credentials: Destruction complete after 0s
+module.secrets.aws_secretsmanager_secret_version.mongodb_credentials: Destruction complete after 0s
+module.security.aws_security_group_rule.mongodb_from_processor: Destroying... [id=sgrule-1590009575]
+module.security.aws_security_group_rule.processor_from_homeassistant: Destroying... [id=sgrule-2441426542]
+module.security.aws_security_group_rule.homeassistant_mqtt_public: Destroying... [id=sgrule-587677466]
+module.security.aws_security_group_rule.homeassistant_from_processor_mqtt: Destruction complete after 0s
+module.secrets.aws_secretsmanager_secret.application_config: Destroying... [id=plant-monitoring-dev/application/config]
+module.networking.aws_route_table_association.public: Destruction complete after 0s
+module.secrets.aws_secretsmanager_secret.homeassistant_credentials: Destroying... [id=plant-monitoring-dev/homeassistant/credentials]
+module.networking.aws_route_table_association.private: Destruction complete after 0s
+module.secrets.random_password.homeassistant_password: Destroying... [id=none]
+module.secrets.random_password.homeassistant_password: Destruction complete after 0s
+module.secrets.aws_secretsmanager_secret.mongodb_credentials: Destroying... [id=plant-monitoring-dev/mongodb/credentials]
+module.secrets.aws_secretsmanager_secret.application_config: Destruction complete after 0s
+module.secrets.random_password.mongodb_app_password: Destroying... [id=none]
+module.secrets.random_password.mongodb_app_password: Destruction complete after 0s
+module.secrets.random_password.mongodb_root_password: Destroying... [id=none]
+module.secrets.random_password.mongodb_root_password: Destruction complete after 0s
+module.secrets.aws_secretsmanager_secret.homeassistant_credentials: Destruction complete after 0s
+module.networking.aws_route_table.private: Destroying... [id=rtb-0b54819c72459d040]
+module.networking.aws_route_table.public: Destroying... [id=rtb-07116af1f12c32892]
+module.secrets.aws_secretsmanager_secret.mongodb_credentials: Destruction complete after 0s
+module.security.aws_security_group_rule.processor_from_homeassistant: Destruction complete after 0s
+module.security.aws_security_group_rule.homeassistant_mqtt_public: Destruction complete after 0s
+module.security.aws_security_group_rule.mongodb_from_processor: Destruction complete after 0s
+module.networking.aws_route_table.public: Destruction complete after 1s
+module.networking.aws_route_table.private: Destruction complete after 1s
+module.networking.aws_nat_gateway.main: Destroying... [id=nat-0106ba98a113d8bc3]
+module.compute.aws_eip.homeassistant: Destruction complete after 1s
+module.compute.aws_instance.homeassistant: Destroying... [id=i-04f0a8d18aab38ad3]
+module.compute.aws_instance.kafka: Still destroying... [id=i-012c7a80d5f8d7a66, 00m10s elapsed]
+module.compute.aws_instance.mongodb: Still destroying... [id=i-0481de7a7d0d228f7, 00m10s elapsed]
+module.compute.aws_instance.processor: Still destroying... [id=i-0935458bdc5a91398, 00m10s elapsed]
+module.networking.aws_nat_gateway.main: Still destroying... [id=nat-0106ba98a113d8bc3, 00m10s elapsed]
+module.compute.aws_instance.homeassistant: Still destroying... [id=i-04f0a8d18aab38ad3, 00m10s elapsed]
+module.compute.aws_instance.kafka: Still destroying... [id=i-012c7a80d5f8d7a66, 00m20s elapsed]
+module.compute.aws_instance.mongodb: Still destroying... [id=i-0481de7a7d0d228f7, 00m20s elapsed]
+module.compute.aws_instance.processor: Still destroying... [id=i-0935458bdc5a91398, 00m20s elapsed]
+module.networking.aws_nat_gateway.main: Still destroying... [id=nat-0106ba98a113d8bc3, 00m20s elapsed]
+module.compute.aws_instance.homeassistant: Still destroying... [id=i-04f0a8d18aab38ad3, 00m20s elapsed]
+module.compute.aws_instance.kafka: Still destroying... [id=i-012c7a80d5f8d7a66, 00m30s elapsed]
+module.compute.aws_instance.processor: Still destroying... [id=i-0935458bdc5a91398, 00m30s elapsed]
+module.compute.aws_instance.mongodb: Still destroying... [id=i-0481de7a7d0d228f7, 00m30s elapsed]
+module.compute.aws_instance.processor: Destruction complete after 30s
+module.security.aws_security_group.processor: Destroying... [id=sg-01b1a691ae10b8e2d]
+module.security.aws_security_group.processor: Destruction complete after 0s
+module.networking.aws_nat_gateway.main: Still destroying... [id=nat-0106ba98a113d8bc3, 00m30s elapsed]
+module.compute.aws_instance.homeassistant: Still destroying... [id=i-04f0a8d18aab38ad3, 00m30s elapsed]
+module.compute.aws_instance.kafka: Still destroying... [id=i-012c7a80d5f8d7a66, 00m40s elapsed]
+module.compute.aws_instance.mongodb: Still destroying... [id=i-0481de7a7d0d228f7, 00m40s elapsed]
+module.networking.aws_nat_gateway.main: Still destroying... [id=nat-0106ba98a113d8bc3, 00m40s elapsed]
+module.compute.aws_instance.homeassistant: Still destroying... [id=i-04f0a8d18aab38ad3, 00m40s elapsed]
+module.compute.aws_instance.homeassistant: Destruction complete after 41s
+module.security.aws_security_group.homeassistant: Destroying... [id=sg-0d76d158c96310149]
+module.security.aws_security_group.homeassistant: Destruction complete after 0s
+module.compute.aws_instance.kafka: Still destroying... [id=i-012c7a80d5f8d7a66, 00m50s elapsed]
+module.compute.aws_instance.mongodb: Still destroying... [id=i-0481de7a7d0d228f7, 00m50s elapsed]
+module.networking.aws_nat_gateway.main: Still destroying... [id=nat-0106ba98a113d8bc3, 00m50s elapsed]
+module.networking.aws_nat_gateway.main: Destruction complete after 50s
+module.networking.aws_eip.nat: Destroying... [id=eipalloc-025cd0c6c5baf04f2]
+module.networking.aws_subnet.public: Destroying... [id=subnet-089d117b06c22c49b]
+module.networking.aws_subnet.public: Destruction complete after 1s
+module.networking.aws_eip.nat: Destruction complete after 1s
+module.networking.aws_internet_gateway.main: Destroying... [id=igw-0e2d90da260ee391f]
+module.networking.aws_internet_gateway.main: Destruction complete after 0s
+module.compute.aws_instance.kafka: Still destroying... [id=i-012c7a80d5f8d7a66, 01m00s elapsed]
+module.compute.aws_instance.mongodb: Still destroying... [id=i-0481de7a7d0d228f7, 01m00s elapsed]
+module.compute.aws_instance.kafka: Destruction complete after 1m0s
+module.security.aws_security_group.kafka: Destroying... [id=sg-0804652662f59d639]
+module.security.aws_security_group.kafka: Destruction complete after 1s
+module.compute.aws_instance.mongodb: Still destroying... [id=i-0481de7a7d0d228f7, 01m10s elapsed]
+module.compute.aws_instance.mongodb: Destruction complete after 1m11s
+module.networking.aws_subnet.private: Destroying... [id=subnet-08ee070dba38cf4ba]
+module.security.aws_security_group.mongodb: Destroying... [id=sg-04ed94c569ec114c1]
+module.networking.aws_subnet.private: Destruction complete after 0s
+module.security.aws_security_group.mongodb: Destruction complete after 0s
+module.networking.aws_vpc.main: Destroying... [id=vpc-01395335fa13fcd3c]
+module.networking.aws_vpc.main: Destruction complete after 1s
+
+Apply complete! Resources: 0 added, 0 changed, 32 destroyed.
+[INFO] Cleaning up Terraform state files...
+[SUCCESS] Infrastructure destroyed successfully
+[INFO] Phase 3: Verifying cleanup...
+[INFO] Checking for remaining EC2 instances...
+[SUCCESS] No active EC2 instances found
+[INFO] Checking for remaining Elastic IPs...
+[SUCCESS] No unassociated Elastic IPs found
+[INFO] Phase 4: Cleaning up local files...
+[INFO] Removing generated inventory file...
+[INFO] Removing temporary files...
+[SUCCESS] Local cleanup completed
+
+[SUCCESS] 🎉 Teardown completed successfully!
+
+[INFO] Summary:
+  ✅ Applications stopped gracefully
+  ✅ Secrets force deleted (no recovery)
+  ✅ AWS infrastructure destroyed
+  ✅ Terraform state cleaned
+  ✅ Local files cleaned
+
+[WARNING] 💡 Remember to check your AWS billing console to confirm no resources are still running
+[INFO] 💾 Any local backups in /opt/* directories on your local machine have been preserved
+

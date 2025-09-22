@@ -1,0 +1,2418 @@
+==========================================
+🚀 PLANT MONITORING SYSTEM DEPLOYMENT
+🔧 Terraform + Ansible Architecture
+==========================================
+[0;34m[INFO][0m Checking prerequisites...
+[0;32m[SUCCESS][0m Prerequisites checked
+[0;34m[INFO][0m Phase 1: Infrastructure Deployment (Terraform)
+[0;34m[INFO][0m Deploying infrastructure with Terraform...
+[0;34m[INFO][0m Initializing Terraform...
+[0m[1mInitializing the backend...[0m
+[0m[1mInitializing modules...[0m
+[0m[1mInitializing provider plugins...[0m
+- Finding hashicorp/random versions matching "~> 3.1"...
+- Finding hashicorp/aws versions matching "~> 5.0"...
+- Installing hashicorp/random v3.7.2...
+- Installed hashicorp/random v3.7.2 (signed by HashiCorp)
+- Installing hashicorp/aws v5.100.0...
+- Installed hashicorp/aws v5.100.0 (signed by HashiCorp)
+Terraform has created a lock file [1m.terraform.lock.hcl[0m to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.[0m
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
+[0;34m[INFO][0m Checking for existing AWS Secrets Manager secrets...
+[1;33m[WARNING][0m Secret 'plant-monitoring-dev/mongodb/credentials' exists but is in deleted state
+[0;34m[INFO][0m Restoring secret 'plant-monitoring-dev/mongodb/credentials' from deleted state...
+{
+    "ARN": "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/mongodb/credentials-RRpiju",
+    "Name": "plant-monitoring-dev/mongodb/credentials"
+}
+[0;34m[INFO][0m Importing secret 'plant-monitoring-dev/mongodb/credentials' into Terraform state...
+[0m[1mmodule.secrets.aws_secretsmanager_secret.mongodb_credentials: Importing from ID "plant-monitoring-dev/mongodb/credentials"...[0m
+[0m[1m[32mmodule.secrets.aws_secretsmanager_secret.mongodb_credentials: Import prepared![0m
+[0m[32m  Prepared aws_secretsmanager_secret for import[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.mongodb_credentials: Refreshing state... [id=plant-monitoring-dev/mongodb/credentials][0m
+[0m[32m
+Import successful!
+
+The resources that were imported are shown above. These resources are now in
+your Terraform state and will henceforth be managed by Terraform.
+[0m
+[1;33m[WARNING][0m Secret 'plant-monitoring-dev/homeassistant/credentials' exists but is in deleted state
+[0;34m[INFO][0m Restoring secret 'plant-monitoring-dev/homeassistant/credentials' from deleted state...
+{
+    "ARN": "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/homeassistant/credentials-3PmwQv",
+    "Name": "plant-monitoring-dev/homeassistant/credentials"
+}
+[0;34m[INFO][0m Importing secret 'plant-monitoring-dev/homeassistant/credentials' into Terraform state...
+[0m[1mmodule.secrets.aws_secretsmanager_secret.homeassistant_credentials: Importing from ID "plant-monitoring-dev/homeassistant/credentials"...[0m
+[0m[1m[32mmodule.secrets.aws_secretsmanager_secret.homeassistant_credentials: Import prepared![0m
+[0m[32m  Prepared aws_secretsmanager_secret for import[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.homeassistant_credentials: Refreshing state... [id=plant-monitoring-dev/homeassistant/credentials][0m
+[0m[32m
+Import successful!
+
+The resources that were imported are shown above. These resources are now in
+your Terraform state and will henceforth be managed by Terraform.
+[0m
+[1;33m[WARNING][0m Secret 'plant-monitoring-dev/application/config' exists but is in deleted state
+[0;34m[INFO][0m Restoring secret 'plant-monitoring-dev/application/config' from deleted state...
+{
+    "ARN": "arn:aws:secretsmanager:us-east-2:442042542151:secret:plant-monitoring-dev/application/config-RRpiju",
+    "Name": "plant-monitoring-dev/application/config"
+}
+[0;34m[INFO][0m Importing secret 'plant-monitoring-dev/application/config' into Terraform state...
+[0m[1mmodule.secrets.aws_secretsmanager_secret.application_config: Importing from ID "plant-monitoring-dev/application/config"...[0m
+[0m[1m[32mmodule.secrets.aws_secretsmanager_secret.application_config: Import prepared![0m
+[0m[32m  Prepared aws_secretsmanager_secret for import[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.application_config: Refreshing state... [id=plant-monitoring-dev/application/config][0m
+[0m[32m
+Import successful!
+
+The resources that were imported are shown above. These resources are now in
+your Terraform state and will henceforth be managed by Terraform.
+[0m
+[0;34m[INFO][0m Checking for infrastructure drift...
+[0m[1mmodule.secrets.aws_secretsmanager_secret.mongodb_credentials: Refreshing state... [id=plant-monitoring-dev/mongodb/credentials][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.application_config: Refreshing state... [id=plant-monitoring-dev/application/config][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.homeassistant_credentials: Refreshing state... [id=plant-monitoring-dev/homeassistant/credentials][0m
+[0m[1m[32m
+Outputs:
+
+[0mansible_inventory = tostring(null)
+connection_info = {
+  "bastion_host" = {
+    "command" = tostring(null)
+    "public_ip" = tostring(null)
+  }
+  "private_instances" = {
+    "kafka" = tostring(null)
+    "mongodb" = tostring(null)
+    "processor" = tostring(null)
+  }
+}
+instance_details = {
+  "homeassistant" = {
+    "instance_id" = tostring(null)
+    "private_ip" = tostring(null)
+    "public_ip" = tostring(null)
+  }
+  "kafka" = {
+    "instance_id" = tostring(null)
+    "private_ip" = tostring(null)
+  }
+  "mongodb" = {
+    "instance_id" = tostring(null)
+    "private_ip" = tostring(null)
+  }
+  "processor" = {
+    "instance_id" = tostring(null)
+    "private_ip" = tostring(null)
+  }
+}
+private_subnet_id = tostring(null)
+public_subnet_id = tostring(null)
+secrets_info = <sensitive>
+security_group_ids = {
+  "homeassistant" = tostring(null)
+  "kafka" = tostring(null)
+  "mongodb" = tostring(null)
+  "processor" = tostring(null)
+}
+vpc_id = tostring(null)
+[0;34m[INFO][0m Planning Terraform deployment...
+[0m[1mmodule.secrets.aws_secretsmanager_secret.application_config: Refreshing state... [id=plant-monitoring-dev/application/config][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.homeassistant_credentials: Refreshing state... [id=plant-monitoring-dev/homeassistant/credentials][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.mongodb_credentials: Refreshing state... [id=plant-monitoring-dev/mongodb/credentials][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+  [33m~[0m update in-place[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.compute.aws_eip.homeassistant[0m will be created
+[0m  [32m+[0m[0m resource "aws_eip" "homeassistant" {
+      [32m+[0m[0m allocation_id        = (known after apply)
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m association_id       = (known after apply)
+      [32m+[0m[0m carrier_ip           = (known after apply)
+      [32m+[0m[0m customer_owned_ip    = (known after apply)
+      [32m+[0m[0m domain               = "vpc"
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m instance             = (known after apply)
+      [32m+[0m[0m ipam_pool_id         = (known after apply)
+      [32m+[0m[0m network_border_group = (known after apply)
+      [32m+[0m[0m network_interface    = (known after apply)
+      [32m+[0m[0m private_dns          = (known after apply)
+      [32m+[0m[0m private_ip           = (known after apply)
+      [32m+[0m[0m ptr_record           = (known after apply)
+      [32m+[0m[0m public_dns           = (known after apply)
+      [32m+[0m[0m public_ip            = (known after apply)
+      [32m+[0m[0m public_ipv4_pool     = (known after apply)
+      [32m+[0m[0m tags                 = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-ha-eip"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-ha-eip"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc                  = (known after apply)
+    }
+
+[1m  # module.compute.aws_instance.homeassistant[0m will be created
+[0m  [32m+[0m[0m resource "aws_instance" "homeassistant" {
+      [32m+[0m[0m ami                                  = "ami-0cfde0ea8edd312d4"
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m associate_public_ip_address          = true
+      [32m+[0m[0m availability_zone                    = (known after apply)
+      [32m+[0m[0m cpu_core_count                       = (known after apply)
+      [32m+[0m[0m cpu_threads_per_core                 = (known after apply)
+      [32m+[0m[0m disable_api_stop                     = (known after apply)
+      [32m+[0m[0m disable_api_termination              = (known after apply)
+      [32m+[0m[0m ebs_optimized                        = (known after apply)
+      [32m+[0m[0m enable_primary_ipv6                  = (known after apply)
+      [32m+[0m[0m get_password_data                    = false
+      [32m+[0m[0m host_id                              = (known after apply)
+      [32m+[0m[0m host_resource_group_arn              = (known after apply)
+      [32m+[0m[0m iam_instance_profile                 = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_initiated_shutdown_behavior = (known after apply)
+      [32m+[0m[0m instance_lifecycle                   = (known after apply)
+      [32m+[0m[0m instance_state                       = (known after apply)
+      [32m+[0m[0m instance_type                        = "t2.micro"
+      [32m+[0m[0m ipv6_address_count                   = (known after apply)
+      [32m+[0m[0m ipv6_addresses                       = (known after apply)
+      [32m+[0m[0m key_name                             = "plant-monitoring-key"
+      [32m+[0m[0m monitoring                           = (known after apply)
+      [32m+[0m[0m outpost_arn                          = (known after apply)
+      [32m+[0m[0m password_data                        = (known after apply)
+      [32m+[0m[0m placement_group                      = (known after apply)
+      [32m+[0m[0m placement_partition_number           = (known after apply)
+      [32m+[0m[0m primary_network_interface_id         = (known after apply)
+      [32m+[0m[0m private_dns                          = (known after apply)
+      [32m+[0m[0m private_ip                           = (known after apply)
+      [32m+[0m[0m public_dns                           = (known after apply)
+      [32m+[0m[0m public_ip                            = (known after apply)
+      [32m+[0m[0m secondary_private_ips                = (known after apply)
+      [32m+[0m[0m security_groups                      = (known after apply)
+      [32m+[0m[0m source_dest_check                    = true
+      [32m+[0m[0m spot_instance_request_id             = (known after apply)
+      [32m+[0m[0m subnet_id                            = (known after apply)
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "VM-4-HomeAssistant"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Role"        = "homeassistant"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "VM-4-HomeAssistant"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Role"        = "homeassistant"
+        }
+      [32m+[0m[0m tenancy                              = (known after apply)
+      [32m+[0m[0m user_data                            = (known after apply)
+      [32m+[0m[0m user_data_base64                     = (known after apply)
+      [32m+[0m[0m user_data_replace_on_change          = false
+      [32m+[0m[0m vpc_security_group_ids               = (known after apply)
+
+      [32m+[0m[0m capacity_reservation_specification (known after apply)
+
+      [32m+[0m[0m cpu_options (known after apply)
+
+      [32m+[0m[0m ebs_block_device (known after apply)
+
+      [32m+[0m[0m enclave_options (known after apply)
+
+      [32m+[0m[0m ephemeral_block_device (known after apply)
+
+      [32m+[0m[0m instance_market_options (known after apply)
+
+      [32m+[0m[0m maintenance_options (known after apply)
+
+      [32m+[0m[0m metadata_options (known after apply)
+
+      [32m+[0m[0m network_interface (known after apply)
+
+      [32m+[0m[0m private_dns_name_options (known after apply)
+
+      [32m+[0m[0m root_block_device (known after apply)
+    }
+
+[1m  # module.compute.aws_instance.kafka[0m will be created
+[0m  [32m+[0m[0m resource "aws_instance" "kafka" {
+      [32m+[0m[0m ami                                  = "ami-0cfde0ea8edd312d4"
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m associate_public_ip_address          = (known after apply)
+      [32m+[0m[0m availability_zone                    = (known after apply)
+      [32m+[0m[0m cpu_core_count                       = (known after apply)
+      [32m+[0m[0m cpu_threads_per_core                 = (known after apply)
+      [32m+[0m[0m disable_api_stop                     = (known after apply)
+      [32m+[0m[0m disable_api_termination              = (known after apply)
+      [32m+[0m[0m ebs_optimized                        = (known after apply)
+      [32m+[0m[0m enable_primary_ipv6                  = (known after apply)
+      [32m+[0m[0m get_password_data                    = false
+      [32m+[0m[0m host_id                              = (known after apply)
+      [32m+[0m[0m host_resource_group_arn              = (known after apply)
+      [32m+[0m[0m iam_instance_profile                 = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_initiated_shutdown_behavior = (known after apply)
+      [32m+[0m[0m instance_lifecycle                   = (known after apply)
+      [32m+[0m[0m instance_state                       = (known after apply)
+      [32m+[0m[0m instance_type                        = "t2.micro"
+      [32m+[0m[0m ipv6_address_count                   = (known after apply)
+      [32m+[0m[0m ipv6_addresses                       = (known after apply)
+      [32m+[0m[0m key_name                             = "plant-monitoring-key"
+      [32m+[0m[0m monitoring                           = (known after apply)
+      [32m+[0m[0m outpost_arn                          = (known after apply)
+      [32m+[0m[0m password_data                        = (known after apply)
+      [32m+[0m[0m placement_group                      = (known after apply)
+      [32m+[0m[0m placement_partition_number           = (known after apply)
+      [32m+[0m[0m primary_network_interface_id         = (known after apply)
+      [32m+[0m[0m private_dns                          = (known after apply)
+      [32m+[0m[0m private_ip                           = (known after apply)
+      [32m+[0m[0m public_dns                           = (known after apply)
+      [32m+[0m[0m public_ip                            = (known after apply)
+      [32m+[0m[0m secondary_private_ips                = (known after apply)
+      [32m+[0m[0m security_groups                      = (known after apply)
+      [32m+[0m[0m source_dest_check                    = true
+      [32m+[0m[0m spot_instance_request_id             = (known after apply)
+      [32m+[0m[0m subnet_id                            = (known after apply)
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "VM-1-Kafka"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Role"        = "kafka"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "VM-1-Kafka"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Role"        = "kafka"
+        }
+      [32m+[0m[0m tenancy                              = (known after apply)
+      [32m+[0m[0m user_data                            = (known after apply)
+      [32m+[0m[0m user_data_base64                     = (known after apply)
+      [32m+[0m[0m user_data_replace_on_change          = false
+      [32m+[0m[0m vpc_security_group_ids               = (known after apply)
+
+      [32m+[0m[0m capacity_reservation_specification (known after apply)
+
+      [32m+[0m[0m cpu_options (known after apply)
+
+      [32m+[0m[0m ebs_block_device (known after apply)
+
+      [32m+[0m[0m enclave_options (known after apply)
+
+      [32m+[0m[0m ephemeral_block_device (known after apply)
+
+      [32m+[0m[0m instance_market_options (known after apply)
+
+      [32m+[0m[0m maintenance_options (known after apply)
+
+      [32m+[0m[0m metadata_options (known after apply)
+
+      [32m+[0m[0m network_interface (known after apply)
+
+      [32m+[0m[0m private_dns_name_options (known after apply)
+
+      [32m+[0m[0m root_block_device (known after apply)
+    }
+
+[1m  # module.compute.aws_instance.mongodb[0m will be created
+[0m  [32m+[0m[0m resource "aws_instance" "mongodb" {
+      [32m+[0m[0m ami                                  = "ami-0cfde0ea8edd312d4"
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m associate_public_ip_address          = (known after apply)
+      [32m+[0m[0m availability_zone                    = (known after apply)
+      [32m+[0m[0m cpu_core_count                       = (known after apply)
+      [32m+[0m[0m cpu_threads_per_core                 = (known after apply)
+      [32m+[0m[0m disable_api_stop                     = (known after apply)
+      [32m+[0m[0m disable_api_termination              = (known after apply)
+      [32m+[0m[0m ebs_optimized                        = (known after apply)
+      [32m+[0m[0m enable_primary_ipv6                  = (known after apply)
+      [32m+[0m[0m get_password_data                    = false
+      [32m+[0m[0m host_id                              = (known after apply)
+      [32m+[0m[0m host_resource_group_arn              = (known after apply)
+      [32m+[0m[0m iam_instance_profile                 = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_initiated_shutdown_behavior = (known after apply)
+      [32m+[0m[0m instance_lifecycle                   = (known after apply)
+      [32m+[0m[0m instance_state                       = (known after apply)
+      [32m+[0m[0m instance_type                        = "t2.micro"
+      [32m+[0m[0m ipv6_address_count                   = (known after apply)
+      [32m+[0m[0m ipv6_addresses                       = (known after apply)
+      [32m+[0m[0m key_name                             = "plant-monitoring-key"
+      [32m+[0m[0m monitoring                           = (known after apply)
+      [32m+[0m[0m outpost_arn                          = (known after apply)
+      [32m+[0m[0m password_data                        = (known after apply)
+      [32m+[0m[0m placement_group                      = (known after apply)
+      [32m+[0m[0m placement_partition_number           = (known after apply)
+      [32m+[0m[0m primary_network_interface_id         = (known after apply)
+      [32m+[0m[0m private_dns                          = (known after apply)
+      [32m+[0m[0m private_ip                           = (known after apply)
+      [32m+[0m[0m public_dns                           = (known after apply)
+      [32m+[0m[0m public_ip                            = (known after apply)
+      [32m+[0m[0m secondary_private_ips                = (known after apply)
+      [32m+[0m[0m security_groups                      = (known after apply)
+      [32m+[0m[0m source_dest_check                    = true
+      [32m+[0m[0m spot_instance_request_id             = (known after apply)
+      [32m+[0m[0m subnet_id                            = (known after apply)
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "VM-2-MongoDB"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Role"        = "mongodb"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "VM-2-MongoDB"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Role"        = "mongodb"
+        }
+      [32m+[0m[0m tenancy                              = (known after apply)
+      [32m+[0m[0m user_data                            = (known after apply)
+      [32m+[0m[0m user_data_base64                     = (known after apply)
+      [32m+[0m[0m user_data_replace_on_change          = false
+      [32m+[0m[0m vpc_security_group_ids               = (known after apply)
+
+      [32m+[0m[0m capacity_reservation_specification (known after apply)
+
+      [32m+[0m[0m cpu_options (known after apply)
+
+      [32m+[0m[0m ebs_block_device (known after apply)
+
+      [32m+[0m[0m enclave_options (known after apply)
+
+      [32m+[0m[0m ephemeral_block_device (known after apply)
+
+      [32m+[0m[0m instance_market_options (known after apply)
+
+      [32m+[0m[0m maintenance_options (known after apply)
+
+      [32m+[0m[0m metadata_options (known after apply)
+
+      [32m+[0m[0m network_interface (known after apply)
+
+      [32m+[0m[0m private_dns_name_options (known after apply)
+
+      [32m+[0m[0m root_block_device (known after apply)
+    }
+
+[1m  # module.compute.aws_instance.processor[0m will be created
+[0m  [32m+[0m[0m resource "aws_instance" "processor" {
+      [32m+[0m[0m ami                                  = "ami-0cfde0ea8edd312d4"
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m associate_public_ip_address          = (known after apply)
+      [32m+[0m[0m availability_zone                    = (known after apply)
+      [32m+[0m[0m cpu_core_count                       = (known after apply)
+      [32m+[0m[0m cpu_threads_per_core                 = (known after apply)
+      [32m+[0m[0m disable_api_stop                     = (known after apply)
+      [32m+[0m[0m disable_api_termination              = (known after apply)
+      [32m+[0m[0m ebs_optimized                        = (known after apply)
+      [32m+[0m[0m enable_primary_ipv6                  = (known after apply)
+      [32m+[0m[0m get_password_data                    = false
+      [32m+[0m[0m host_id                              = (known after apply)
+      [32m+[0m[0m host_resource_group_arn              = (known after apply)
+      [32m+[0m[0m iam_instance_profile                 = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_initiated_shutdown_behavior = (known after apply)
+      [32m+[0m[0m instance_lifecycle                   = (known after apply)
+      [32m+[0m[0m instance_state                       = (known after apply)
+      [32m+[0m[0m instance_type                        = "t2.micro"
+      [32m+[0m[0m ipv6_address_count                   = (known after apply)
+      [32m+[0m[0m ipv6_addresses                       = (known after apply)
+      [32m+[0m[0m key_name                             = "plant-monitoring-key"
+      [32m+[0m[0m monitoring                           = (known after apply)
+      [32m+[0m[0m outpost_arn                          = (known after apply)
+      [32m+[0m[0m password_data                        = (known after apply)
+      [32m+[0m[0m placement_group                      = (known after apply)
+      [32m+[0m[0m placement_partition_number           = (known after apply)
+      [32m+[0m[0m primary_network_interface_id         = (known after apply)
+      [32m+[0m[0m private_dns                          = (known after apply)
+      [32m+[0m[0m private_ip                           = (known after apply)
+      [32m+[0m[0m public_dns                           = (known after apply)
+      [32m+[0m[0m public_ip                            = (known after apply)
+      [32m+[0m[0m secondary_private_ips                = (known after apply)
+      [32m+[0m[0m security_groups                      = (known after apply)
+      [32m+[0m[0m source_dest_check                    = true
+      [32m+[0m[0m spot_instance_request_id             = (known after apply)
+      [32m+[0m[0m subnet_id                            = (known after apply)
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "VM-3-Processor"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Role"        = "processor"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "VM-3-Processor"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Role"        = "processor"
+        }
+      [32m+[0m[0m tenancy                              = (known after apply)
+      [32m+[0m[0m user_data                            = (known after apply)
+      [32m+[0m[0m user_data_base64                     = (known after apply)
+      [32m+[0m[0m user_data_replace_on_change          = false
+      [32m+[0m[0m vpc_security_group_ids               = (known after apply)
+
+      [32m+[0m[0m capacity_reservation_specification (known after apply)
+
+      [32m+[0m[0m cpu_options (known after apply)
+
+      [32m+[0m[0m ebs_block_device (known after apply)
+
+      [32m+[0m[0m enclave_options (known after apply)
+
+      [32m+[0m[0m ephemeral_block_device (known after apply)
+
+      [32m+[0m[0m instance_market_options (known after apply)
+
+      [32m+[0m[0m maintenance_options (known after apply)
+
+      [32m+[0m[0m metadata_options (known after apply)
+
+      [32m+[0m[0m network_interface (known after apply)
+
+      [32m+[0m[0m private_dns_name_options (known after apply)
+
+      [32m+[0m[0m root_block_device (known after apply)
+    }
+
+[1m  # module.networking.aws_eip.nat[0m will be created
+[0m  [32m+[0m[0m resource "aws_eip" "nat" {
+      [32m+[0m[0m allocation_id        = (known after apply)
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m association_id       = (known after apply)
+      [32m+[0m[0m carrier_ip           = (known after apply)
+      [32m+[0m[0m customer_owned_ip    = (known after apply)
+      [32m+[0m[0m domain               = "vpc"
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m instance             = (known after apply)
+      [32m+[0m[0m ipam_pool_id         = (known after apply)
+      [32m+[0m[0m network_border_group = (known after apply)
+      [32m+[0m[0m network_interface    = (known after apply)
+      [32m+[0m[0m private_dns          = (known after apply)
+      [32m+[0m[0m private_ip           = (known after apply)
+      [32m+[0m[0m ptr_record           = (known after apply)
+      [32m+[0m[0m public_dns           = (known after apply)
+      [32m+[0m[0m public_ip            = (known after apply)
+      [32m+[0m[0m public_ipv4_pool     = (known after apply)
+      [32m+[0m[0m tags                 = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-nat-eip"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-nat-eip"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc                  = (known after apply)
+    }
+
+[1m  # module.networking.aws_internet_gateway.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_internet_gateway" "main" {
+      [32m+[0m[0m arn      = (known after apply)
+      [32m+[0m[0m id       = (known after apply)
+      [32m+[0m[0m owner_id = (known after apply)
+      [32m+[0m[0m tags     = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-igw"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-igw"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc_id   = (known after apply)
+    }
+
+[1m  # module.networking.aws_nat_gateway.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_nat_gateway" "main" {
+      [32m+[0m[0m allocation_id                      = (known after apply)
+      [32m+[0m[0m association_id                     = (known after apply)
+      [32m+[0m[0m connectivity_type                  = "public"
+      [32m+[0m[0m id                                 = (known after apply)
+      [32m+[0m[0m network_interface_id               = (known after apply)
+      [32m+[0m[0m private_ip                         = (known after apply)
+      [32m+[0m[0m public_ip                          = (known after apply)
+      [32m+[0m[0m secondary_private_ip_address_count = (known after apply)
+      [32m+[0m[0m secondary_private_ip_addresses     = (known after apply)
+      [32m+[0m[0m subnet_id                          = (known after apply)
+      [32m+[0m[0m tags                               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-nat-gw"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all                           = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-nat-gw"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+    }
+
+[1m  # module.networking.aws_route_table.private[0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table" "private" {
+      [32m+[0m[0m arn              = (known after apply)
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m owner_id         = (known after apply)
+      [32m+[0m[0m propagating_vgws = (known after apply)
+      [32m+[0m[0m route            = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_block                 = "0.0.0.0/0"
+              [32m+[0m[0m nat_gateway_id             = (known after apply)
+                [90m# (11 unchanged attributes hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m tags             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-private-rt"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all         = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-private-rt"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc_id           = (known after apply)
+    }
+
+[1m  # module.networking.aws_route_table.public[0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table" "public" {
+      [32m+[0m[0m arn              = (known after apply)
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m owner_id         = (known after apply)
+      [32m+[0m[0m propagating_vgws = (known after apply)
+      [32m+[0m[0m route            = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_block                 = "0.0.0.0/0"
+              [32m+[0m[0m gateway_id                 = (known after apply)
+                [90m# (11 unchanged attributes hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m tags             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-public-rt"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all         = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-public-rt"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc_id           = (known after apply)
+    }
+
+[1m  # module.networking.aws_route_table_association.private[0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table_association" "private" {
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m route_table_id = (known after apply)
+      [32m+[0m[0m subnet_id      = (known after apply)
+    }
+
+[1m  # module.networking.aws_route_table_association.public[0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table_association" "public" {
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m route_table_id = (known after apply)
+      [32m+[0m[0m subnet_id      = (known after apply)
+    }
+
+[1m  # module.networking.aws_subnet.private[0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "private" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-2a"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.128.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = false
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-private-subnet"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Type"        = "Private"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-private-subnet"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Type"        = "Private"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # module.networking.aws_subnet.public[0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "public" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-2a"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.0.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = true
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-public-subnet"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Type"        = "Public"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-public-subnet"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+          [32m+[0m[0m "Type"        = "Public"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # module.networking.aws_vpc.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_vpc" "main" {
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m cidr_block                           = "10.0.0.0/16"
+      [32m+[0m[0m default_network_acl_id               = (known after apply)
+      [32m+[0m[0m default_route_table_id               = (known after apply)
+      [32m+[0m[0m default_security_group_id            = (known after apply)
+      [32m+[0m[0m dhcp_options_id                      = (known after apply)
+      [32m+[0m[0m enable_dns_hostnames                 = true
+      [32m+[0m[0m enable_dns_support                   = true
+      [32m+[0m[0m enable_network_address_usage_metrics = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_tenancy                     = "default"
+      [32m+[0m[0m ipv6_association_id                  = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block                      = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_network_border_group = (known after apply)
+      [32m+[0m[0m main_route_table_id                  = (known after apply)
+      [32m+[0m[0m owner_id                             = (known after apply)
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-vpc"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-vpc"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+    }
+
+[1m  # module.secrets.aws_secretsmanager_secret.application_config[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_secretsmanager_secret" "application_config" {
+      [32m+[0m[0m force_overwrite_replica_secret = false
+        id                             = "plant-monitoring-dev/application/config"
+        name                           = "plant-monitoring-dev/application/config"
+      [32m+[0m[0m recovery_window_in_days        = 7
+        tags                           = {
+            "Environment" = "dev"
+            "ManagedBy"   = "terraform"
+            "Name"        = "plant-monitoring-application-config"
+            "Project"     = "plant-monitoring"
+            "SecretType"  = "application-config"
+            "Service"     = "processor"
+        }
+        [90m# (6 unchanged attributes hidden)[0m[0m
+    }
+
+[1m  # module.secrets.aws_secretsmanager_secret.homeassistant_credentials[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_secretsmanager_secret" "homeassistant_credentials" {
+      [32m+[0m[0m force_overwrite_replica_secret = false
+        id                             = "plant-monitoring-dev/homeassistant/credentials"
+        name                           = "plant-monitoring-dev/homeassistant/credentials"
+      [32m+[0m[0m recovery_window_in_days        = 7
+        tags                           = {
+            "Environment" = "dev"
+            "ManagedBy"   = "terraform"
+            "Name"        = "plant-monitoring-homeassistant-credentials"
+            "Project"     = "plant-monitoring"
+            "SecretType"  = "application-credentials"
+            "Service"     = "homeassistant"
+        }
+        [90m# (6 unchanged attributes hidden)[0m[0m
+    }
+
+[1m  # module.secrets.aws_secretsmanager_secret.mongodb_credentials[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_secretsmanager_secret" "mongodb_credentials" {
+      [32m+[0m[0m force_overwrite_replica_secret = false
+        id                             = "plant-monitoring-dev/mongodb/credentials"
+        name                           = "plant-monitoring-dev/mongodb/credentials"
+      [32m+[0m[0m recovery_window_in_days        = 7
+        tags                           = {
+            "Environment" = "dev"
+            "ManagedBy"   = "terraform"
+            "Name"        = "plant-monitoring-mongodb-credentials"
+            "Project"     = "plant-monitoring"
+            "SecretType"  = "database-credentials"
+            "Service"     = "mongodb"
+        }
+        [90m# (6 unchanged attributes hidden)[0m[0m
+    }
+
+[1m  # module.secrets.aws_secretsmanager_secret_version.application_config[0m will be created
+[0m  [32m+[0m[0m resource "aws_secretsmanager_secret_version" "application_config" {
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m has_secret_string_wo = (known after apply)
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m secret_id            = "plant-monitoring-dev/application/config"
+      [32m+[0m[0m secret_string        = (sensitive value)
+      [32m+[0m[0m secret_string_wo     = (write-only attribute)
+      [32m+[0m[0m version_id           = (known after apply)
+      [32m+[0m[0m version_stages       = (known after apply)
+    }
+
+[1m  # module.secrets.aws_secretsmanager_secret_version.homeassistant_credentials[0m will be created
+[0m  [32m+[0m[0m resource "aws_secretsmanager_secret_version" "homeassistant_credentials" {
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m has_secret_string_wo = (known after apply)
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m secret_id            = "plant-monitoring-dev/homeassistant/credentials"
+      [32m+[0m[0m secret_string        = (sensitive value)
+      [32m+[0m[0m secret_string_wo     = (write-only attribute)
+      [32m+[0m[0m version_id           = (known after apply)
+      [32m+[0m[0m version_stages       = (known after apply)
+    }
+
+[1m  # module.secrets.aws_secretsmanager_secret_version.mongodb_credentials[0m will be created
+[0m  [32m+[0m[0m resource "aws_secretsmanager_secret_version" "mongodb_credentials" {
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m has_secret_string_wo = (known after apply)
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m secret_id            = "plant-monitoring-dev/mongodb/credentials"
+      [32m+[0m[0m secret_string        = (sensitive value)
+      [32m+[0m[0m secret_string_wo     = (write-only attribute)
+      [32m+[0m[0m version_id           = (known after apply)
+      [32m+[0m[0m version_stages       = (known after apply)
+    }
+
+[1m  # module.secrets.random_password.homeassistant_password[0m will be created
+[0m  [32m+[0m[0m resource "random_password" "homeassistant_password" {
+      [32m+[0m[0m bcrypt_hash = (sensitive value)
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m length      = 16
+      [32m+[0m[0m lower       = true
+      [32m+[0m[0m min_lower   = 0
+      [32m+[0m[0m min_numeric = 0
+      [32m+[0m[0m min_special = 0
+      [32m+[0m[0m min_upper   = 0
+      [32m+[0m[0m number      = true
+      [32m+[0m[0m numeric     = true
+      [32m+[0m[0m result      = (sensitive value)
+      [32m+[0m[0m special     = false
+      [32m+[0m[0m upper       = true
+    }
+
+[1m  # module.secrets.random_password.mongodb_app_password[0m will be created
+[0m  [32m+[0m[0m resource "random_password" "mongodb_app_password" {
+      [32m+[0m[0m bcrypt_hash      = (sensitive value)
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m length           = 32
+      [32m+[0m[0m lower            = true
+      [32m+[0m[0m min_lower        = 0
+      [32m+[0m[0m min_numeric      = 0
+      [32m+[0m[0m min_special      = 0
+      [32m+[0m[0m min_upper        = 0
+      [32m+[0m[0m number           = true
+      [32m+[0m[0m numeric          = true
+      [32m+[0m[0m override_special = "!@#%^&*()_+-={}|:<>?~"
+      [32m+[0m[0m result           = (sensitive value)
+      [32m+[0m[0m special          = true
+      [32m+[0m[0m upper            = true
+    }
+
+[1m  # module.secrets.random_password.mongodb_root_password[0m will be created
+[0m  [32m+[0m[0m resource "random_password" "mongodb_root_password" {
+      [32m+[0m[0m bcrypt_hash      = (sensitive value)
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m length           = 32
+      [32m+[0m[0m lower            = true
+      [32m+[0m[0m min_lower        = 0
+      [32m+[0m[0m min_numeric      = 0
+      [32m+[0m[0m min_special      = 0
+      [32m+[0m[0m min_upper        = 0
+      [32m+[0m[0m number           = true
+      [32m+[0m[0m numeric          = true
+      [32m+[0m[0m override_special = "!@#%^&*()_+-={}|:<>?~"
+      [32m+[0m[0m result           = (sensitive value)
+      [32m+[0m[0m special          = true
+      [32m+[0m[0m upper            = true
+    }
+
+[1m  # module.security.aws_security_group.homeassistant[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "homeassistant" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Home Assistant security group - VM-4 dashboard + MQTT broker + plant sensors (public access)"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "Home Assistant dashboard public access for plant monitoring interface"
+              [32m+[0m[0m from_port        = 8123
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 8123
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "SSH access for administrative tasks (also serves as bastion host for private subnet access)"
+              [32m+[0m[0m from_port        = 22
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 22
+            },
+        ]
+      [32m+[0m[0m name                   = "SG-HomeAssistant"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-sg-homeassistant"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-sg-homeassistant"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # module.security.aws_security_group.kafka[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "kafka" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Kafka security group - VM-1 message broker for plant sensor data"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "SSH access for administrative tasks"
+              [32m+[0m[0m from_port        = 22
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 22
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "10.0.0.0/16",
+                ]
+              [32m+[0m[0m description      = "Kafka broker access from VPC (processor and other services)"
+              [32m+[0m[0m from_port        = 9092
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 9092
+            },
+        ]
+      [32m+[0m[0m name                   = "SG-Kafka"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-sg-kafka"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-sg-kafka"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # module.security.aws_security_group.mongodb[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "mongodb" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "MongoDB security group - VM-2 database with authentication for plant sensor data storage"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "SSH access for administrative tasks and database management"
+              [32m+[0m[0m from_port        = 22
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 22
+            },
+        ]
+      [32m+[0m[0m name                   = "SG-MongoDB"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-sg-mongodb"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-sg-mongodb"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # module.security.aws_security_group.processor[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "processor" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Processor security group - VM-3 plant care processor with automatic MQTT discovery"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "HTTP outbound for package downloads and external API calls"
+              [32m+[0m[0m from_port        = 80
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 80
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "HTTPS outbound for package downloads and external API calls"
+              [32m+[0m[0m from_port        = 443
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 443
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "SSH access for administrative tasks and application deployment"
+              [32m+[0m[0m from_port        = 22
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 22
+            },
+        ]
+      [32m+[0m[0m name                   = "SG-Processor"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-sg-processor"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "plant-monitoring-sg-processor"
+          [32m+[0m[0m "Project"     = "plant-monitoring"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # module.security.aws_security_group_rule.homeassistant_from_processor_mqtt[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group_rule" "homeassistant_from_processor_mqtt" {
+      [32m+[0m[0m description              = "MQTT broker access from processor service for plant care alerts and sensor data"
+      [32m+[0m[0m from_port                = 1883
+      [32m+[0m[0m id                       = (known after apply)
+      [32m+[0m[0m protocol                 = "tcp"
+      [32m+[0m[0m security_group_id        = (known after apply)
+      [32m+[0m[0m security_group_rule_id   = (known after apply)
+      [32m+[0m[0m self                     = false
+      [32m+[0m[0m source_security_group_id = (known after apply)
+      [32m+[0m[0m to_port                  = 1883
+      [32m+[0m[0m type                     = "ingress"
+    }
+
+[1m  # module.security.aws_security_group_rule.homeassistant_mqtt_public[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group_rule" "homeassistant_mqtt_public" {
+      [32m+[0m[0m cidr_blocks              = [
+          [32m+[0m[0m "0.0.0.0/0",
+        ]
+      [32m+[0m[0m description              = "MQTT broker public access for Home Assistant integration setup from browsers"
+      [32m+[0m[0m from_port                = 1883
+      [32m+[0m[0m id                       = (known after apply)
+      [32m+[0m[0m protocol                 = "tcp"
+      [32m+[0m[0m security_group_id        = (known after apply)
+      [32m+[0m[0m security_group_rule_id   = (known after apply)
+      [32m+[0m[0m self                     = false
+      [32m+[0m[0m source_security_group_id = (known after apply)
+      [32m+[0m[0m to_port                  = 1883
+      [32m+[0m[0m type                     = "ingress"
+    }
+
+[1m  # module.security.aws_security_group_rule.mongodb_from_processor[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group_rule" "mongodb_from_processor" {
+      [32m+[0m[0m description              = "MongoDB database access restricted to processor service only (database boundary)"
+      [32m+[0m[0m from_port                = 27017
+      [32m+[0m[0m id                       = (known after apply)
+      [32m+[0m[0m protocol                 = "tcp"
+      [32m+[0m[0m security_group_id        = (known after apply)
+      [32m+[0m[0m security_group_rule_id   = (known after apply)
+      [32m+[0m[0m self                     = false
+      [32m+[0m[0m source_security_group_id = (known after apply)
+      [32m+[0m[0m to_port                  = 27017
+      [32m+[0m[0m type                     = "ingress"
+    }
+
+[1m  # module.security.aws_security_group_rule.processor_from_homeassistant[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group_rule" "processor_from_homeassistant" {
+      [32m+[0m[0m description              = "Processor API access from Home Assistant for plant care recommendations"
+      [32m+[0m[0m from_port                = 8080
+      [32m+[0m[0m id                       = (known after apply)
+      [32m+[0m[0m protocol                 = "tcp"
+      [32m+[0m[0m security_group_id        = (known after apply)
+      [32m+[0m[0m security_group_rule_id   = (known after apply)
+      [32m+[0m[0m self                     = false
+      [32m+[0m[0m source_security_group_id = (known after apply)
+      [32m+[0m[0m to_port                  = 8080
+      [32m+[0m[0m type                     = "ingress"
+    }
+
+[1mPlan:[0m 29 to add, 3 to change, 0 to destroy.
+[0m
+Changes to Outputs:
+  [32m+[0m[0m ansible_inventory  = (known after apply)
+  [33m~[0m[0m connection_info    = {
+      [33m~[0m[0m bastion_host      = {
+          [32m+[0m[0m command   = (known after apply)
+          [32m+[0m[0m public_ip = (known after apply)
+        }
+      [33m~[0m[0m private_instances = {
+          [32m+[0m[0m kafka     = (known after apply)
+          [32m+[0m[0m mongodb   = (known after apply)
+          [32m+[0m[0m processor = (known after apply)
+        }
+    }
+  [33m~[0m[0m instance_details   = {
+      [33m~[0m[0m homeassistant = {
+          [32m+[0m[0m instance_id = (known after apply)
+          [32m+[0m[0m private_ip  = (known after apply)
+          [32m+[0m[0m public_ip   = (known after apply)
+        }
+      [33m~[0m[0m kafka         = {
+          [32m+[0m[0m instance_id = (known after apply)
+          [32m+[0m[0m private_ip  = (known after apply)
+        }
+      [33m~[0m[0m mongodb       = {
+          [32m+[0m[0m instance_id = (known after apply)
+          [32m+[0m[0m private_ip  = (known after apply)
+        }
+      [33m~[0m[0m processor     = {
+          [32m+[0m[0m instance_id = (known after apply)
+          [32m+[0m[0m private_ip  = (known after apply)
+        }
+    }
+  [32m+[0m[0m private_subnet_id  = (known after apply)
+  [32m+[0m[0m public_subnet_id   = (known after apply)
+  [33m~[0m[0m secrets_info       = (sensitive value)
+  [33m~[0m[0m security_group_ids = {
+      [32m+[0m[0m homeassistant = (known after apply)
+      [32m+[0m[0m kafka         = (known after apply)
+      [32m+[0m[0m mongodb       = (known after apply)
+      [32m+[0m[0m processor     = (known after apply)
+    }
+  [32m+[0m[0m vpc_id             = (known after apply)
+[90m
+─────────────────────────────────────────────────────────────────────────────[0m
+
+Saved the plan to: tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfplan"
+[0;34m[INFO][0m ⚠️  Security group changes detected - applying with enhanced validation...
+[0;34m[INFO][0m Applying Terraform configuration...
+[0m[1mmodule.secrets.random_password.mongodb_root_password: Creating...[0m[0m
+[0m[1mmodule.secrets.random_password.mongodb_app_password: Creating...[0m[0m
+[0m[1mmodule.secrets.random_password.homeassistant_password: Creating...[0m[0m
+[0m[1mmodule.secrets.random_password.mongodb_root_password: Creation complete after 0s [id=none][0m
+[0m[1mmodule.secrets.random_password.mongodb_app_password: Creation complete after 0s [id=none][0m
+[0m[1mmodule.secrets.random_password.homeassistant_password: Creation complete after 0s [id=none][0m
+[0m[1mmodule.networking.aws_vpc.main: Creating...[0m[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.application_config: Modifying... [id=plant-monitoring-dev/application/config][0m[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.homeassistant_credentials: Modifying... [id=plant-monitoring-dev/homeassistant/credentials][0m[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.mongodb_credentials: Modifying... [id=plant-monitoring-dev/mongodb/credentials][0m[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.mongodb_credentials: Modifications complete after 0s [id=plant-monitoring-dev/mongodb/credentials][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.mongodb_credentials: Creating...[0m[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.application_config: Modifications complete after 0s [id=plant-monitoring-dev/application/config][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.homeassistant_credentials: Modifications complete after 0s [id=plant-monitoring-dev/homeassistant/credentials][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.homeassistant_credentials: Creating...[0m[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.application_config: Creating...[0m[0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.mongodb_credentials: Creation complete after 0s [id=plant-monitoring-dev/mongodb/credentials|terraform-20250922002259860100000001][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.homeassistant_credentials: Creation complete after 0s [id=plant-monitoring-dev/homeassistant/credentials|terraform-20250922002259873600000002][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.application_config: Creation complete after 0s [id=plant-monitoring-dev/application/config|terraform-20250922002259873800000003][0m
+[0m[1mmodule.networking.aws_vpc.main: Still creating... [00m10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_vpc.main: Creation complete after 11s [id=vpc-0571f9cfea1d48079][0m
+[0m[1mmodule.networking.aws_subnet.public: Creating...[0m[0m
+[0m[1mmodule.security.aws_security_group.homeassistant: Creating...[0m[0m
+[0m[1mmodule.networking.aws_internet_gateway.main: Creating...[0m[0m
+[0m[1mmodule.networking.aws_subnet.private: Creating...[0m[0m
+[0m[1mmodule.security.aws_security_group.processor: Creating...[0m[0m
+[0m[1mmodule.security.aws_security_group.mongodb: Creating...[0m[0m
+[0m[1mmodule.security.aws_security_group.kafka: Creating...[0m[0m
+[0m[1mmodule.networking.aws_internet_gateway.main: Creation complete after 1s [id=igw-0b5bb9ae9f22312e3][0m
+[0m[1mmodule.networking.aws_eip.nat: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table.public: Creating...[0m[0m
+[0m[1mmodule.networking.aws_subnet.private: Creation complete after 1s [id=subnet-00029ec224a93c91d][0m
+[0m[1mmodule.networking.aws_eip.nat: Creation complete after 0s [id=eipalloc-0aa49a54460fb9853][0m
+[0m[1mmodule.networking.aws_route_table.public: Creation complete after 1s [id=rtb-0827b7ced9d9da69c][0m
+[0m[1mmodule.security.aws_security_group.homeassistant: Creation complete after 2s [id=sg-0cdb63f9c19101731][0m
+[0m[1mmodule.security.aws_security_group_rule.homeassistant_mqtt_public: Creating...[0m[0m
+[0m[1mmodule.security.aws_security_group.processor: Creation complete after 2s [id=sg-09b1ff2ccf4488f97][0m
+[0m[1mmodule.security.aws_security_group.kafka: Creation complete after 2s [id=sg-05506893919644fbb][0m
+[0m[1mmodule.security.aws_security_group_rule.processor_from_homeassistant: Creating...[0m[0m
+[0m[1mmodule.security.aws_security_group_rule.homeassistant_from_processor_mqtt: Creating...[0m[0m
+[0m[1mmodule.compute.aws_instance.processor: Creating...[0m[0m
+[0m[1mmodule.compute.aws_instance.kafka: Creating...[0m[0m
+[0m[1mmodule.security.aws_security_group.mongodb: Creation complete after 2s [id=sg-0c9a64f55e66604e1][0m
+[0m[1mmodule.security.aws_security_group_rule.mongodb_from_processor: Creating...[0m[0m
+[0m[1mmodule.compute.aws_instance.mongodb: Creating...[0m[0m
+[0m[1mmodule.security.aws_security_group_rule.homeassistant_mqtt_public: Creation complete after 1s [id=sgrule-201093071][0m
+[0m[1mmodule.security.aws_security_group_rule.processor_from_homeassistant: Creation complete after 1s [id=sgrule-2065794645][0m
+[0m[1mmodule.security.aws_security_group_rule.mongodb_from_processor: Creation complete after 1s [id=sgrule-1040885321][0m
+[0m[1mmodule.security.aws_security_group_rule.homeassistant_from_processor_mqtt: Creation complete after 1s [id=sgrule-2227542956][0m
+[0m[1mmodule.networking.aws_subnet.public: Still creating... [00m10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_subnet.public: Creation complete after 11s [id=subnet-001842073f094133d][0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table_association.public: Creating...[0m[0m
+[0m[1mmodule.compute.aws_instance.homeassistant: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table_association.public: Creation complete after 1s [id=rtbassoc-0577e72d8082b8fed][0m
+[0m[1mmodule.compute.aws_instance.processor: Still creating... [00m10s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.kafka: Still creating... [00m10s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.mongodb: Still creating... [00m10s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.kafka: Creation complete after 13s [id=i-032fb2b179123da22][0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [00m10s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.homeassistant: Still creating... [00m10s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.processor: Still creating... [00m20s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.mongodb: Still creating... [00m20s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.homeassistant: Creation complete after 13s [id=i-0819f5347ee7c8073][0m
+[0m[1mmodule.compute.aws_eip.homeassistant: Creating...[0m[0m
+[0m[1mmodule.compute.aws_instance.processor: Creation complete after 22s [id=i-01f8e4697a147a7a4][0m
+[0m[1mmodule.compute.aws_eip.homeassistant: Creation complete after 1s [id=eipalloc-07ffc2da7ef5972c0][0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [00m20s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.mongodb: Still creating... [00m30s elapsed][0m[0m
+[0m[1mmodule.compute.aws_instance.mongodb: Creation complete after 33s [id=i-090a36904ef53f75e][0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [00m30s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [00m40s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [00m50s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [01m00s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [01m10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [01m20s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Creation complete after 1m24s [id=nat-0f7087b466c9f82bc][0m
+[0m[1mmodule.networking.aws_route_table.private: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table.private: Creation complete after 1s [id=rtb-0e311feeff84027eb][0m
+[0m[1mmodule.networking.aws_route_table_association.private: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table_association.private: Creation complete after 1s [id=rtbassoc-01b19b5789492d200][0m
+[0m[1m[32m
+Apply complete! Resources: 29 added, 3 changed, 0 destroyed.
+[0m[0m[1m[32m
+Outputs:
+
+[0mansible_inventory = <<EOT
+# Plant Monitoring System Infrastructure Inventory
+# Generated automatically by Terraform
+
+[kafka_vm]
+vm-1-kafka ansible_host=10.0.128.88
+
+[mongodb_vm]
+vm-2-mongodb ansible_host=10.0.128.150
+
+[processor_vm]
+vm-3-processor ansible_host=10.0.128.96
+
+[homeassistant_vm]
+vm-4-homeassistant ansible_host=18.191.38.131
+
+# Legacy group names for backwards compatibility
+[kafka]
+vm-1-kafka ansible_host=10.0.128.88
+
+[mongodb]
+vm-2-mongodb ansible_host=10.0.128.150
+
+[processor]
+vm-3-processor ansible_host=10.0.128.96
+
+[homeassistant]
+vm-4-homeassistant ansible_host=18.191.38.131
+
+# Private subnet VMs (accessible via bastion host)
+[private_vms]
+vm-1-kafka ansible_host=10.0.128.88
+vm-2-mongodb ansible_host=10.0.128.150
+vm-3-processor ansible_host=10.0.128.96
+
+# Public subnet VMs (direct access)
+[public_vms]
+vm-4-homeassistant ansible_host=18.191.38.131
+
+# SSH configuration for private VMs (through bastion)
+[private_vms:vars]
+ansible_ssh_common_args='-o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@18.191.38.131"'
+
+[all:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=~/.ssh/plant-monitoring-key.pem
+ansible_ssh_host_key_checking=False
+ansible_ssh_port=22
+
+# AWS Secrets Manager secret names (populated by Terraform)
+mongodb_credentials_secret=plant-monitoring-dev/mongodb/credentials
+homeassistant_credentials_secret=plant-monitoring-dev/homeassistant/credentials
+application_config_secret=plant-monitoring-dev/application/config
+EOT
+connection_info = {
+  "bastion_host" = {
+    "command" = "ssh -i ~/.ssh/plant-monitoring-key.pem ubuntu@18.191.38.131"
+    "public_ip" = "18.191.38.131"
+  }
+  "private_instances" = {
+    "kafka" = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.88"
+    "mongodb" = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.150"
+    "processor" = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.96"
+  }
+}
+instance_details = {
+  "homeassistant" = {
+    "instance_id" = "i-0819f5347ee7c8073"
+    "private_ip" = "10.0.0.208"
+    "public_ip" = "18.191.38.131"
+  }
+  "kafka" = {
+    "instance_id" = "i-032fb2b179123da22"
+    "private_ip" = "10.0.128.88"
+  }
+  "mongodb" = {
+    "instance_id" = "i-090a36904ef53f75e"
+    "private_ip" = "10.0.128.150"
+  }
+  "processor" = {
+    "instance_id" = "i-01f8e4697a147a7a4"
+    "private_ip" = "10.0.128.96"
+  }
+}
+private_subnet_id = "subnet-00029ec224a93c91d"
+public_subnet_id = "subnet-001842073f094133d"
+secrets_info = <sensitive>
+security_group_ids = {
+  "homeassistant" = "sg-0cdb63f9c19101731"
+  "kafka" = "sg-05506893919644fbb"
+  "mongodb" = "sg-0c9a64f55e66604e1"
+  "processor" = "sg-09b1ff2ccf4488f97"
+}
+vpc_id = "vpc-0571f9cfea1d48079"
+[0;34m[INFO][0m Validating security group rules after deployment...
+[0m[1mmodule.secrets.random_password.mongodb_root_password: Refreshing state... [id=none][0m
+[0m[1mmodule.secrets.random_password.mongodb_app_password: Refreshing state... [id=none][0m
+[0m[1mmodule.secrets.random_password.homeassistant_password: Refreshing state... [id=none][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.application_config: Refreshing state... [id=plant-monitoring-dev/application/config][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.homeassistant_credentials: Refreshing state... [id=plant-monitoring-dev/homeassistant/credentials][0m
+[0m[1mmodule.networking.aws_vpc.main: Refreshing state... [id=vpc-0571f9cfea1d48079][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret.mongodb_credentials: Refreshing state... [id=plant-monitoring-dev/mongodb/credentials][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.application_config: Refreshing state... [id=plant-monitoring-dev/application/config|terraform-20250922002259873800000003][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.homeassistant_credentials: Refreshing state... [id=plant-monitoring-dev/homeassistant/credentials|terraform-20250922002259873600000002][0m
+[0m[1mmodule.secrets.aws_secretsmanager_secret_version.mongodb_credentials: Refreshing state... [id=plant-monitoring-dev/mongodb/credentials|terraform-20250922002259860100000001][0m
+[0m[1mmodule.networking.aws_subnet.private: Refreshing state... [id=subnet-00029ec224a93c91d][0m
+[0m[1mmodule.networking.aws_internet_gateway.main: Refreshing state... [id=igw-0b5bb9ae9f22312e3][0m
+[0m[1mmodule.networking.aws_subnet.public: Refreshing state... [id=subnet-001842073f094133d][0m
+[0m[1mmodule.security.aws_security_group.processor: Refreshing state... [id=sg-09b1ff2ccf4488f97][0m
+[0m[1mmodule.security.aws_security_group.mongodb: Refreshing state... [id=sg-0c9a64f55e66604e1][0m
+[0m[1mmodule.security.aws_security_group.kafka: Refreshing state... [id=sg-05506893919644fbb][0m
+[0m[1mmodule.security.aws_security_group.homeassistant: Refreshing state... [id=sg-0cdb63f9c19101731][0m
+[0m[1mmodule.networking.aws_route_table.public: Refreshing state... [id=rtb-0827b7ced9d9da69c][0m
+[0m[1mmodule.networking.aws_eip.nat: Refreshing state... [id=eipalloc-0aa49a54460fb9853][0m
+[0m[1mmodule.security.aws_security_group_rule.homeassistant_mqtt_public: Refreshing state... [id=sgrule-201093071][0m
+[0m[1mmodule.compute.aws_instance.homeassistant: Refreshing state... [id=i-0819f5347ee7c8073][0m
+[0m[1mmodule.security.aws_security_group_rule.homeassistant_from_processor_mqtt: Refreshing state... [id=sgrule-2227542956][0m
+[0m[1mmodule.security.aws_security_group_rule.mongodb_from_processor: Refreshing state... [id=sgrule-1040885321][0m
+[0m[1mmodule.security.aws_security_group_rule.processor_from_homeassistant: Refreshing state... [id=sgrule-2065794645][0m
+[0m[1mmodule.compute.aws_instance.processor: Refreshing state... [id=i-01f8e4697a147a7a4][0m
+[0m[1mmodule.compute.aws_instance.mongodb: Refreshing state... [id=i-090a36904ef53f75e][0m
+[0m[1mmodule.compute.aws_instance.kafka: Refreshing state... [id=i-032fb2b179123da22][0m
+[0m[1mmodule.networking.aws_route_table_association.public: Refreshing state... [id=rtbassoc-0577e72d8082b8fed][0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Refreshing state... [id=nat-0f7087b466c9f82bc][0m
+[0m[1mmodule.networking.aws_route_table.private: Refreshing state... [id=rtb-0e311feeff84027eb][0m
+[0m[1mmodule.networking.aws_route_table_association.private: Refreshing state... [id=rtbassoc-01b19b5789492d200][0m
+[0m[1mmodule.compute.aws_eip.homeassistant: Refreshing state... [id=eipalloc-07ffc2da7ef5972c0][0m
+[0m[1m[32m
+Outputs:
+
+[0mansible_inventory = <<EOT
+# Plant Monitoring System Infrastructure Inventory
+# Generated automatically by Terraform
+
+[kafka_vm]
+vm-1-kafka ansible_host=10.0.128.88
+
+[mongodb_vm]
+vm-2-mongodb ansible_host=10.0.128.150
+
+[processor_vm]
+vm-3-processor ansible_host=10.0.128.96
+
+[homeassistant_vm]
+vm-4-homeassistant ansible_host=18.191.38.131
+
+# Legacy group names for backwards compatibility
+[kafka]
+vm-1-kafka ansible_host=10.0.128.88
+
+[mongodb]
+vm-2-mongodb ansible_host=10.0.128.150
+
+[processor]
+vm-3-processor ansible_host=10.0.128.96
+
+[homeassistant]
+vm-4-homeassistant ansible_host=18.191.38.131
+
+# Private subnet VMs (accessible via bastion host)
+[private_vms]
+vm-1-kafka ansible_host=10.0.128.88
+vm-2-mongodb ansible_host=10.0.128.150
+vm-3-processor ansible_host=10.0.128.96
+
+# Public subnet VMs (direct access)
+[public_vms]
+vm-4-homeassistant ansible_host=18.191.38.131
+
+# SSH configuration for private VMs (through bastion)
+[private_vms:vars]
+ansible_ssh_common_args='-o ProxyCommand="ssh -i ~/.ssh/plant-monitoring-key.pem -W %h:%p -q ubuntu@18.191.38.131"'
+
+[all:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=~/.ssh/plant-monitoring-key.pem
+ansible_ssh_host_key_checking=False
+ansible_ssh_port=22
+
+# AWS Secrets Manager secret names (populated by Terraform)
+mongodb_credentials_secret=plant-monitoring-dev/mongodb/credentials
+homeassistant_credentials_secret=plant-monitoring-dev/homeassistant/credentials
+application_config_secret=plant-monitoring-dev/application/config
+EOT
+connection_info = {
+  "bastion_host" = {
+    "command" = "ssh -i ~/.ssh/plant-monitoring-key.pem ubuntu@18.191.38.131"
+    "public_ip" = "18.191.38.131"
+  }
+  "private_instances" = {
+    "kafka" = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.88"
+    "mongodb" = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.150"
+    "processor" = "ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.96"
+  }
+}
+instance_details = {
+  "homeassistant" = {
+    "instance_id" = "i-0819f5347ee7c8073"
+    "private_ip" = "10.0.0.208"
+    "public_ip" = "18.191.38.131"
+  }
+  "kafka" = {
+    "instance_id" = "i-032fb2b179123da22"
+    "private_ip" = "10.0.128.88"
+  }
+  "mongodb" = {
+    "instance_id" = "i-090a36904ef53f75e"
+    "private_ip" = "10.0.128.150"
+  }
+  "processor" = {
+    "instance_id" = "i-01f8e4697a147a7a4"
+    "private_ip" = "10.0.128.96"
+  }
+}
+private_subnet_id = "subnet-00029ec224a93c91d"
+public_subnet_id = "subnet-001842073f094133d"
+secrets_info = <sensitive>
+security_group_ids = {
+  "homeassistant" = "sg-0cdb63f9c19101731"
+  "kafka" = "sg-05506893919644fbb"
+  "mongodb" = "sg-0c9a64f55e66604e1"
+  "processor" = "sg-09b1ff2ccf4488f97"
+}
+vpc_id = "vpc-0571f9cfea1d48079"
+[0;32m[SUCCESS][0m Infrastructure deployed successfully
+[0;34m[INFO][0m Phase 2: Inventory Generation
+[0;34m[INFO][0m Generating Ansible inventory from Terraform outputs...
+🔧 Generating Ansible inventory from Terraform outputs...
+✅ Ansible inventory generated successfully at: /home/tricia/dev/CS5287_fork_master/CA1/plant-monitor-IaC/terraform/../application-deployment/inventory.ini
+
+📋 Generated inventory preview:
+# Plant Monitoring System Infrastructure Inventory
+# Generated automatically by Terraform
+
+[kafka_vm]
+vm-1-kafka ansible_host=10.0.128.88
+
+[mongodb_vm]
+vm-2-mongodb ansible_host=10.0.128.150
+
+[processor_vm]
+vm-3-processor ansible_host=10.0.128.96
+
+[homeassistant_vm]
+vm-4-homeassistant ansible_host=18.191.38.131
+
+# Legacy group names for backwards compatibility
+[kafka]
+vm-1-kafka ansible_host=10.0.128.88
+
+[mongodb]
+[0;32m[SUCCESS][0m Ansible inventory generated
+[0;34m[INFO][0m Phase 3: Instance Readiness Check
+[0;34m[INFO][0m Waiting for EC2 instances to be ready...
+[0;34m[INFO][0m Testing SSH connectivity to bastion host (18.191.38.131)...
+[0;32m[SUCCESS][0m SSH connectivity established
+[0;34m[INFO][0m Phase 4: Application Deployment (Ansible)
+[0;34m[INFO][0m Deploying applications with Ansible...
+[0;34m[INFO][0m Installing Docker on all VMs...
+
+PLAY [all] *********************************************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'vm-4-homeassistant' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-1-kafka' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-3-processor' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-2-mongodb' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+ok: [vm-4-homeassistant]
+ok: [vm-1-kafka]
+ok: [vm-3-processor]
+ok: [vm-2-mongodb]
+
+TASK [Update apt cache] ********************************************************
+changed: [vm-4-homeassistant]
+changed: [vm-3-processor]
+changed: [vm-1-kafka]
+changed: [vm-2-mongodb]
+
+TASK [Install required packages] ***********************************************
+changed: [vm-4-homeassistant]
+changed: [vm-1-kafka]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+
+TASK [Add Docker GPG key] ******************************************************
+changed: [vm-4-homeassistant]
+changed: [vm-1-kafka]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+
+TASK [Add Docker repository] ***************************************************
+changed: [vm-1-kafka]
+changed: [vm-4-homeassistant]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+
+TASK [Install Docker] **********************************************************
+changed: [vm-1-kafka]
+changed: [vm-3-processor]
+changed: [vm-4-homeassistant]
+changed: [vm-2-mongodb]
+
+TASK [Start and enable Docker service] *****************************************
+ok: [vm-4-homeassistant]
+ok: [vm-2-mongodb]
+ok: [vm-3-processor]
+ok: [vm-1-kafka]
+
+TASK [Add ubuntu user to docker group] *****************************************
+changed: [vm-4-homeassistant]
+changed: [vm-1-kafka]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+
+TASK [Reset SSH connection to pick up new group membership] ********************
+
+TASK [Reset SSH connection to pick up new group membership] ********************
+
+TASK [Reset SSH connection to pick up new group membership] ********************
+
+TASK [Reset SSH connection to pick up new group membership] ********************
+
+TASK [Create application directories] ******************************************
+changed: [vm-4-homeassistant] => (item=/opt/apps)
+changed: [vm-4-homeassistant] => (item=/opt/apps/logs)
+changed: [vm-3-processor] => (item=/opt/apps)
+changed: [vm-2-mongodb] => (item=/opt/apps)
+changed: [vm-1-kafka] => (item=/opt/apps)
+changed: [vm-3-processor] => (item=/opt/apps/logs)
+changed: [vm-2-mongodb] => (item=/opt/apps/logs)
+changed: [vm-1-kafka] => (item=/opt/apps/logs)
+
+TASK [Test Docker installation] ************************************************
+changed: [vm-4-homeassistant]
+changed: [vm-3-processor]
+changed: [vm-1-kafka]
+changed: [vm-2-mongodb]
+
+TASK [Display Docker version] **************************************************
+ok: [vm-1-kafka] => {
+    "msg": "Docker installed successfully: Docker version 28.4.0, build d8eb465"
+}
+ok: [vm-2-mongodb] => {
+    "msg": "Docker installed successfully: Docker version 28.4.0, build d8eb465"
+}
+ok: [vm-3-processor] => {
+    "msg": "Docker installed successfully: Docker version 28.4.0, build d8eb465"
+}
+ok: [vm-4-homeassistant] => {
+    "msg": "Docker installed successfully: Docker version 28.4.0, build d8eb465"
+}
+
+TASK [Test Docker Compose installation] ****************************************
+changed: [vm-4-homeassistant]
+changed: [vm-1-kafka]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+
+TASK [Display Docker Compose version] ******************************************
+ok: [vm-1-kafka] => {
+    "msg": "Docker Compose installed successfully: Docker Compose version v2.39.4"
+}
+ok: [vm-2-mongodb] => {
+    "msg": "Docker Compose installed successfully: Docker Compose version v2.39.4"
+}
+ok: [vm-3-processor] => {
+    "msg": "Docker Compose installed successfully: Docker Compose version v2.39.4"
+}
+ok: [vm-4-homeassistant] => {
+    "msg": "Docker Compose installed successfully: Docker Compose version v2.39.4"
+}
+
+PLAY RECAP *********************************************************************
+vm-1-kafka                 : ok=13   changed=9    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-2-mongodb               : ok=13   changed=9    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-3-processor             : ok=13   changed=9    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-4-homeassistant         : ok=13   changed=9    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[0;32m[SUCCESS][0m Docker installation completed
+[0;34m[INFO][0m Setting up persistent volumes on all VMs...
+
+PLAY [Setup Basic Persistent Volumes and Directories] **************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'vm-4-homeassistant' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-3-processor' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-1-kafka' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-2-mongodb' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+ok: [vm-4-homeassistant]
+ok: [vm-3-processor]
+ok: [vm-1-kafka]
+ok: [vm-2-mongodb]
+
+TASK [Create persistent volume base directories] *******************************
+changed: [vm-4-homeassistant] => (item=mongodb)
+changed: [vm-1-kafka] => (item=mongodb)
+changed: [vm-3-processor] => (item=mongodb)
+changed: [vm-2-mongodb] => (item=mongodb)
+changed: [vm-4-homeassistant] => (item=kafka)
+changed: [vm-1-kafka] => (item=kafka)
+changed: [vm-3-processor] => (item=kafka)
+changed: [vm-2-mongodb] => (item=kafka)
+changed: [vm-4-homeassistant] => (item=homeassistant)
+changed: [vm-3-processor] => (item=homeassistant)
+changed: [vm-1-kafka] => (item=homeassistant)
+changed: [vm-4-homeassistant] => (item=mosquitto)
+changed: [vm-2-mongodb] => (item=homeassistant)
+changed: [vm-4-homeassistant] => (item=apps)
+changed: [vm-3-processor] => (item=mosquitto)
+changed: [vm-1-kafka] => (item=mosquitto)
+changed: [vm-2-mongodb] => (item=mosquitto)
+changed: [vm-3-processor] => (item=apps)
+changed: [vm-1-kafka] => (item=apps)
+changed: [vm-2-mongodb] => (item=apps)
+
+TASK [Create MongoDB data directories] *****************************************
+skipping: [vm-1-kafka] => (item=data) 
+skipping: [vm-1-kafka] => (item=config) 
+skipping: [vm-3-processor] => (item=data) 
+skipping: [vm-3-processor] => (item=config) 
+skipping: [vm-1-kafka]
+skipping: [vm-3-processor]
+skipping: [vm-4-homeassistant] => (item=data) 
+skipping: [vm-4-homeassistant] => (item=config) 
+skipping: [vm-4-homeassistant]
+changed: [vm-2-mongodb] => (item=data)
+changed: [vm-2-mongodb] => (item=config)
+
+TASK [Create Kafka data directories] *******************************************
+skipping: [vm-2-mongodb] => (item=data) 
+skipping: [vm-2-mongodb] => (item=logs) 
+skipping: [vm-2-mongodb]
+skipping: [vm-3-processor] => (item=data) 
+skipping: [vm-3-processor] => (item=logs) 
+skipping: [vm-3-processor]
+skipping: [vm-4-homeassistant] => (item=data) 
+skipping: [vm-4-homeassistant] => (item=logs) 
+skipping: [vm-4-homeassistant]
+changed: [vm-1-kafka] => (item=data)
+changed: [vm-1-kafka] => (item=logs)
+
+TASK [Create Home Assistant data directories] **********************************
+skipping: [vm-1-kafka] => (item=homeassistant/config) 
+skipping: [vm-2-mongodb] => (item=homeassistant/config) 
+skipping: [vm-1-kafka]
+skipping: [vm-2-mongodb]
+skipping: [vm-3-processor] => (item=homeassistant/config) 
+skipping: [vm-3-processor]
+changed: [vm-4-homeassistant] => (item=homeassistant/config)
+
+TASK [Create Mosquitto data directories] ***************************************
+skipping: [vm-1-kafka] => (item=data) 
+skipping: [vm-2-mongodb] => (item=data) 
+skipping: [vm-1-kafka] => (item=logs) 
+skipping: [vm-2-mongodb] => (item=logs) 
+skipping: [vm-1-kafka]
+skipping: [vm-2-mongodb]
+skipping: [vm-3-processor] => (item=data) 
+skipping: [vm-3-processor] => (item=logs) 
+skipping: [vm-3-processor]
+changed: [vm-4-homeassistant] => (item=data)
+changed: [vm-4-homeassistant] => (item=logs)
+
+TASK [Create application directories for each VM] ******************************
+skipping: [vm-2-mongodb] => (item=vm-1-kafka) 
+skipping: [vm-3-processor] => (item=vm-1-kafka) 
+skipping: [vm-4-homeassistant] => (item=vm-1-kafka) 
+skipping: [vm-3-processor] => (item=vm-2-mongodb) 
+skipping: [vm-4-homeassistant] => (item=vm-2-mongodb) 
+skipping: [vm-4-homeassistant] => (item=vm-3-processor) 
+changed: [vm-4-homeassistant] => (item=vm-4-homeassistant)
+changed: [vm-3-processor] => (item=vm-3-processor)
+skipping: [vm-3-processor] => (item=vm-4-homeassistant) 
+changed: [vm-1-kafka] => (item=vm-1-kafka)
+skipping: [vm-1-kafka] => (item=vm-2-mongodb) 
+skipping: [vm-1-kafka] => (item=vm-3-processor) 
+skipping: [vm-1-kafka] => (item=vm-4-homeassistant) 
+changed: [vm-2-mongodb] => (item=vm-2-mongodb)
+skipping: [vm-2-mongodb] => (item=vm-3-processor) 
+skipping: [vm-2-mongodb] => (item=vm-4-homeassistant) 
+
+TASK [Display persistent volume setup completion] ******************************
+ok: [vm-1-kafka] => {
+    "msg": "✅ Persistent volumes configured for vm-1-kafka:\n- Kafka data: /opt/kafka/data  \n- Kafka logs: /opt/kafka/logs\n- Applications: /opt/apps/"
+}
+ok: [vm-2-mongodb] => {
+    "msg": "✅ Persistent volumes configured for vm-2-mongodb:\n- MongoDB data: /opt/mongodb/data\n- MongoDB config: /opt/mongodb/config\n- Applications: /opt/apps/"
+}
+ok: [vm-3-processor] => {
+    "msg": "✅ Persistent volumes configured for vm-3-processor:\n- Applications: /opt/apps/"
+}
+ok: [vm-4-homeassistant] => {
+    "msg": "✅ Persistent volumes configured for vm-4-homeassistant:\n- Home Assistant config: /opt/homeassistant/config\n- Mosquitto data: /opt/mosquitto/data\n- Applications: /opt/apps/"
+}
+
+PLAY RECAP *********************************************************************
+vm-1-kafka                 : ok=5    changed=3    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0   
+vm-2-mongodb               : ok=5    changed=3    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0   
+vm-3-processor             : ok=4    changed=2    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0   
+vm-4-homeassistant         : ok=6    changed=4    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+
+[0;32m[SUCCESS][0m Persistent volumes setup completed
+[0;34m[INFO][0m Deploying applications to VMs...
+
+PLAY [kafka_vm] ****************************************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'vm-1-kafka' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+ok: [vm-1-kafka]
+
+TASK [Create Kafka application directory] **************************************
+changed: [vm-1-kafka]
+
+TASK [Create Kafka data and log directories (required for Docker volumes)] *****
+ok: [vm-1-kafka] => (item=/opt/kafka/data)
+ok: [vm-1-kafka] => (item=/opt/kafka/logs)
+
+TASK [Copy Kafka docker-compose.yml] *******************************************
+changed: [vm-1-kafka]
+
+TASK [Stop any existing Kafka containers] **************************************
+changed: [vm-1-kafka]
+
+TASK [Start Kafka services] ****************************************************
+changed: [vm-1-kafka]
+
+TASK [Wait for Kafka to be ready] **********************************************
+ok: [vm-1-kafka]
+
+TASK [Create Kafka topics] *****************************************************
+changed: [vm-1-kafka] => (item=plant-sensors)
+changed: [vm-1-kafka] => (item=plant-alerts)
+changed: [vm-1-kafka] => (item=plant-actions)
+
+TASK [Verify Kafka topics] *****************************************************
+changed: [vm-1-kafka]
+
+TASK [Display Kafka topics] ****************************************************
+ok: [vm-1-kafka] => {
+    "msg": "Kafka topics created: ['plant-actions', 'plant-alerts', 'plant-sensors']"
+}
+
+TASK [Check Kafka container status] ********************************************
+changed: [vm-1-kafka]
+
+TASK [Display Kafka status] ****************************************************
+ok: [vm-1-kafka] => {
+    "msg": "Kafka service status: ['NAME      IMAGE                 COMMAND                  SERVICE   CREATED          STATUS                    PORTS', 'kafka     bitnami/kafka:3.5.0   \"/opt/bitnami/script…\"   kafka     53 seconds ago   Up 53 seconds (healthy)   0.0.0.0:9092-9093->9092-9093/tcp, [::]:9092-9093->9092-9093/tcp']"
+}
+
+PLAY RECAP *********************************************************************
+vm-1-kafka                 : ok=12   changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+PLAY [mongodb_vm] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'vm-2-mongodb' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+ok: [vm-2-mongodb]
+
+TASK [Create MongoDB application directory] ************************************
+changed: [vm-2-mongodb]
+
+TASK [Get MongoDB credentials from AWS Secrets Manager] ************************
+changed: [vm-2-mongodb -> localhost]
+
+TASK [Parse MongoDB credentials] ***********************************************
+ok: [vm-2-mongodb]
+
+TASK [Create MongoDB data and config directories (required for Docker volumes)] ***
+changed: [vm-2-mongodb] => (item=/opt/mongodb/data)
+changed: [vm-2-mongodb] => (item=/opt/mongodb/config)
+
+TASK [Generate MongoDB docker-compose.yml from template] ***********************
+changed: [vm-2-mongodb]
+
+TASK [Generate MongoDB initialization script from template] ********************
+changed: [vm-2-mongodb]
+
+TASK [Ensure ubuntu user is in docker group] ***********************************
+ok: [vm-2-mongodb]
+
+TASK [Reset SSH connection to allow user group changes to take effect] *********
+
+TASK [Stop any existing MongoDB containers] ************************************
+changed: [vm-2-mongodb]
+
+TASK [Start MongoDB service] ***************************************************
+changed: [vm-2-mongodb]
+
+TASK [Wait for MongoDB to be ready] ********************************************
+ok: [vm-2-mongodb]
+
+TASK [Wait additional time for MongoDB initialization] *************************
+Pausing for 30 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [vm-2-mongodb]
+
+TASK [Wait for MongoDB initialization to complete] *****************************
+Pausing for 10 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [vm-2-mongodb]
+
+TASK [Verify MongoDB initialization] *******************************************
+changed: [vm-2-mongodb]
+
+TASK [Display MongoDB initialization result] ***********************************
+ok: [vm-2-mongodb] => {
+    "msg": "MongoDB initialization: ['Current Mongosh Log ID:\\t68d09887c52696af5d8d0f27', 'Connecting to:\\t\\tmongodb://<credentials>@127.0.0.1:27017/plant_monitoring?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.8.0', 'Using MongoDB:\\t\\t6.0.4', 'Using Mongosh:\\t\\t1.8.0', '', 'For mongosh info see: https://docs.mongodb.com/mongodb-shell/', '', '2']"
+}
+
+TASK [Test MongoDB connection] *************************************************
+changed: [vm-2-mongodb]
+
+TASK [Display MongoDB ping result] *********************************************
+ok: [vm-2-mongodb] => {
+    "msg": "MongoDB ping test: ['Current Mongosh Log ID:\\t68d0988a11fc5ad52b41e188', 'Connecting to:\\t\\tmongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.8.0', 'Using MongoDB:\\t\\t6.0.4', 'Using Mongosh:\\t\\t1.8.0', '', 'For mongosh info see: https://docs.mongodb.com/mongodb-shell/', '', '{ ok: 1 }']"
+}
+
+TASK [Check MongoDB container status] ******************************************
+changed: [vm-2-mongodb]
+
+TASK [Display MongoDB status] **************************************************
+ok: [vm-2-mongodb] => {
+    "msg": "MongoDB service status: ['NAME      IMAGE         COMMAND                  SERVICE   CREATED              STATUS                        PORTS', 'mongodb   mongo:6.0.4   \"docker-entrypoint.s…\"   mongodb   About a minute ago   Up About a minute (healthy)   0.0.0.0:27017->27017/tcp, [::]:27017->27017/tcp']"
+}
+
+PLAY RECAP *********************************************************************
+vm-1-kafka                 : ok=12   changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-2-mongodb               : ok=19   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+PLAY [processor_vm] ************************************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'vm-3-processor' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+ok: [vm-3-processor]
+
+TASK [Create Processor application directory] **********************************
+changed: [vm-3-processor] => (item=/opt/apps/processor)
+changed: [vm-3-processor] => (item=/opt/apps/processor/plant-care-processor)
+
+TASK [Get MongoDB credentials from AWS Secrets Manager] ************************
+changed: [vm-3-processor -> localhost]
+
+TASK [Parse MongoDB credentials] ***********************************************
+ok: [vm-3-processor]
+
+TASK [Copy Processor docker-compose.yml with IP substitution and credentials] ***
+changed: [vm-3-processor]
+
+TASK [Copy Processor application files] ****************************************
+changed: [vm-3-processor] => (item={'src': '../../applications/vm-3-processor/plant-care-processor/app.js', 'dest': '/opt/apps/processor/plant-care-processor/app.js'})
+changed: [vm-3-processor] => (item={'src': '../../applications/vm-3-processor/plant-care-processor/package.json', 'dest': '/opt/apps/processor/plant-care-processor/package.json'})
+changed: [vm-3-processor] => (item={'src': '../../applications/vm-3-processor/plant-care-processor/Dockerfile', 'dest': '/opt/apps/processor/plant-care-processor/Dockerfile'})
+
+TASK [Wait for Kafka to be available] ******************************************
+ok: [vm-3-processor]
+
+TASK [Wait for MongoDB to be available (with retry logic for network stability)] ***
+ok: [vm-3-processor]
+
+TASK [Display MongoDB connectivity status] *************************************
+ok: [vm-3-processor] => {
+    "msg": "MongoDB connectivity: SUCCESS"
+}
+
+TASK [Stop any existing Processor containers] **********************************
+changed: [vm-3-processor]
+
+TASK [Build and start Processor service] ***************************************
+changed: [vm-3-processor]
+
+TASK [Wait for Processor to start] *********************************************
+Pausing for 30 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [vm-3-processor]
+
+TASK [Check Processor container status] ****************************************
+changed: [vm-3-processor]
+
+TASK [Display Processor status] ************************************************
+ok: [vm-3-processor] => {
+    "msg": "Processor service status: ['NAME                          IMAGE                       COMMAND                  SERVICE           CREATED          STATUS          PORTS', 'processor-plant-processor-1   processor-plant-processor   \"docker-entrypoint.s…\"   plant-processor   33 seconds ago   Up 32 seconds   8080/tcp']"
+}
+
+TASK [Show Processor logs] *****************************************************
+changed: [vm-3-processor]
+
+TASK [Display recent Processor logs] *******************************************
+ok: [vm-3-processor] => {
+    "msg": "Recent Processor logs: ['plant-processor-1  | - Kafka Broker: 10.0.128.88:9092', 'plant-processor-1  | - MongoDB URL: mongodb://***:***@10.0.128.150:27017/plant_monitoring', 'plant-processor-1  | - MQTT Broker: mqtt://18.191.38.131:1883', 'plant-processor-1  | Starting Plant Care Processor...', 'plant-processor-1  | Connected to Kafka and MongoDB', 'plant-processor-1  | Publishing MQTT discovery messages...', 'plant-processor-1  | Published discovery for Plant 001 Moisture', 'plant-processor-1  | Published discovery for Plant 001 Health', 'plant-processor-1  | Published discovery for Plant 001 Light', 'plant-processor-1  | Published discovery for Plant 001 Temperature', 'plant-processor-1  | Published discovery for Plant 001 Status', 'plant-processor-1  | Published discovery for Plant 002 Moisture', 'plant-processor-1  | Published discovery for Plant 002 Health', 'plant-processor-1  | Published discovery for Plant 002 Light', 'plant-processor-1  | Published discovery for Plant 002 Temperature', 'plant-processor-1  | Published discovery for Plant 002 Status', 'plant-processor-1  | MQTT discovery messages published successfully', 'plant-processor-1  | {\"level\":\"INFO\",\"timestamp\":\"2025-09-22T00:31:21.931Z\",\"logger\":\"kafkajs\",\"message\":\"[Consumer] Starting\",\"groupId\":\"plant-processor-group\"}', 'plant-processor-1  | {\"level\":\"ERROR\",\"timestamp\":\"2025-09-22T00:31:21.947Z\",\"logger\":\"kafkajs\",\"message\":\"[Connection] Response GroupCoordinator(key: 10, version: 2)\",\"broker\":\"10.0.128.88:9092\",\"clientId\":\"plant-care-processor\",\"error\":\"The group coordinator is not available\",\"correlationId\":2,\"size\":55}', 'plant-processor-1  | {\"level\":\"INFO\",\"timestamp\":\"2025-09-22T00:31:26.109Z\",\"logger\":\"kafkajs\",\"message\":\"[ConsumerGroup] Consumer has joined the group\",\"groupId\":\"plant-processor-group\",\"memberId\":\"plant-care-processor-2b96f386-ad54-422a-9064-6cc2a80fa02b\",\"leaderId\":\"plant-care-processor-2b96f386-ad54-422a-9064-6cc2a80fa02b\",\"isLeader\":true,\"memberAssignment\":{\"plant-sensors\":[0]},\"groupProtocol\":\"RoundRobinAssigner\",\"duration\":4176}']"
+}
+
+PLAY RECAP *********************************************************************
+vm-1-kafka                 : ok=12   changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-2-mongodb               : ok=19   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-3-processor             : ok=16   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+PLAY [homeassistant_vm] ********************************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'vm-4-homeassistant' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+ok: [vm-4-homeassistant]
+
+TASK [Create Home Assistant application directories] ***************************
+changed: [vm-4-homeassistant] => (item=/opt/homeassistant)
+changed: [vm-4-homeassistant] => (item=/opt/homeassistant/plant-sensors)
+changed: [vm-4-homeassistant] => (item=/opt/homeassistant/mosquitto/config)
+
+TASK [Create Home Assistant config and data directories with correct permissions] ***
+ok: [vm-4-homeassistant] => (item={'path': '/opt/homeassistant/config', 'owner': '1000', 'group': '1000'})
+ok: [vm-4-homeassistant] => (item={'path': '/opt/mosquitto/data', 'owner': '1883', 'group': '1883'})
+ok: [vm-4-homeassistant] => (item={'path': '/opt/mosquitto/logs', 'owner': '1883', 'group': '1883'})
+
+TASK [Get Kafka VM IP for sensor configuration] ********************************
+ok: [vm-4-homeassistant]
+
+TASK [Display Kafka IP being used] *********************************************
+ok: [vm-4-homeassistant] => {
+    "msg": "Configuring sensors to connect to Kafka at: 10.0.128.88:9092"
+}
+
+TASK [Copy Home Assistant docker-compose.yml with IP substitution] *************
+changed: [vm-4-homeassistant]
+
+TASK [Copy Plant Sensor application files] *************************************
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/plant-sensors/sensor.js', 'dest': '/opt/homeassistant/plant-sensors/sensor.js'})
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/plant-sensors/package.json', 'dest': '/opt/homeassistant/plant-sensors/package.json'})
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/plant-sensors/Dockerfile', 'dest': '/opt/homeassistant/plant-sensors/Dockerfile'})
+
+TASK [Copy Home Assistant configuration files (force update)] ******************
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/config/configuration.yaml', 'dest': '/opt/homeassistant/config/configuration.yaml'})
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/config/sensors.yaml', 'dest': '/opt/homeassistant/config/sensors.yaml'})
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/config/automations.yaml', 'dest': '/opt/homeassistant/config/automations.yaml'})
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/config/scripts.yaml', 'dest': '/opt/homeassistant/config/scripts.yaml'})
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/config/scenes.yaml', 'dest': '/opt/homeassistant/config/scenes.yaml'})
+changed: [vm-4-homeassistant] => (item={'src': '../../applications/vm-4-homeassistant/config/customize.yaml', 'dest': '/opt/homeassistant/config/customize.yaml'})
+
+TASK [Copy Mosquitto configuration] ********************************************
+changed: [vm-4-homeassistant]
+
+TASK [Copy setup guide for users] **********************************************
+changed: [vm-4-homeassistant]
+
+TASK [Copy MQTT setup guide template] ******************************************
+changed: [vm-4-homeassistant]
+
+TASK [Wait for Kafka to be available] ******************************************
+ok: [vm-4-homeassistant]
+
+TASK [Check if Home Assistant is already running] ******************************
+changed: [vm-4-homeassistant]
+
+TASK [Reload Home Assistant configuration if running] **************************
+skipping: [vm-4-homeassistant]
+
+TASK [Stop any existing Home Assistant containers for fresh deployment] ********
+changed: [vm-4-homeassistant]
+
+TASK [Fix Docker volume permissions (if volumes exist)] ************************
+changed: [vm-4-homeassistant]
+
+TASK [Build and start Home Assistant services] *********************************
+changed: [vm-4-homeassistant]
+
+TASK [Wait a moment for initial startup] ***************************************
+Pausing for 30 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [vm-4-homeassistant]
+
+TASK [Check if Home Assistant started successfully] ****************************
+changed: [vm-4-homeassistant]
+
+TASK [Check containers status] *************************************************
+changed: [vm-4-homeassistant]
+
+TASK [Create and set ownership of homeassistant config directory] **************
+skipping: [vm-4-homeassistant]
+
+TASK [Create and set ownership of homeassistant deps directory] ****************
+skipping: [vm-4-homeassistant]
+
+TASK [Set ownership of all homeassistant config files recursively] *************
+skipping: [vm-4-homeassistant]
+
+TASK [Restart containers after permission fix] *********************************
+skipping: [vm-4-homeassistant]
+
+TASK [Wait for startup after permission fix] ***********************************
+skipping: [vm-4-homeassistant]
+
+TASK [Wait for Home Assistant to be ready] *************************************
+ok: [vm-4-homeassistant]
+
+TASK [Wait for MQTT broker to be ready] ****************************************
+ok: [vm-4-homeassistant]
+
+TASK [Check Home Assistant container status] ***********************************
+changed: [vm-4-homeassistant]
+
+TASK [Display Home Assistant status] *******************************************
+ok: [vm-4-homeassistant] => {
+    "msg": "Home Assistant service status: ['NAME                               IMAGE                                   COMMAND                  SERVICE            CREATED              STATUS              PORTS', 'homeassistant-homeassistant-1      homeassistant/home-assistant:2023.8.0   \"/init\"                  homeassistant      About a minute ago   Up About a minute   0.0.0.0:8123->8123/tcp, [::]:8123->8123/tcp', 'homeassistant-mosquitto-1          eclipse-mosquitto:2.0                   \"/docker-entrypoint.…\"   mosquitto          About a minute ago   Up About a minute   0.0.0.0:1883->1883/tcp, [::]:1883->1883/tcp', 'homeassistant-plant-sensor-001-1   homeassistant-plant-sensor-001          \"docker-entrypoint.s…\"   plant-sensor-001   About a minute ago   Up About a minute   ', 'homeassistant-plant-sensor-002-1   homeassistant-plant-sensor-002          \"docker-entrypoint.s…\"   plant-sensor-002   About a minute ago   Up About a minute   ']"
+}
+
+TASK [Show Plant Sensor logs] **************************************************
+changed: [vm-4-homeassistant]
+
+TASK [Display recent Sensor logs] **********************************************
+ok: [vm-4-homeassistant] => {
+    "msg": "Recent Plant Sensor logs: ['plant-sensor-001-1  | > node sensor.js', 'plant-sensor-001-1  | ', 'plant-sensor-001-1  | {\"level\":\"WARN\",\"timestamp\":\"2025-09-22T00:33:52.251Z\",\"logger\":\"kafkajs\",\"message\":\"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \\\\\"createPartitioner: Partitioners.LegacyPartitioner\\\\\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \\\\\"KAFKAJS_NO_PARTITIONER_WARNING=1\\\\\"\"}', 'plant-sensor-001-1  | Initializing sensor for plant-001 (monstera) at Living Room', 'plant-sensor-001-1  | Kafka brokers: 10.0.128.88:9092', 'plant-sensor-001-1  | Sensor interval: 30 seconds', 'plant-sensor-001-1  | Starting sensor simulation for plant-001', \"plant-sensor-001-1  | Sent sensor data for plant-001: { moisture: '52.8', light: '70', temp: '19.2', humidity: '52.8' }\", \"plant-sensor-001-1  | Sent sensor data for plant-001: { moisture: '47.9', light: '90', temp: '18.3', humidity: '49.5' }\", \"plant-sensor-001-1  | Sent sensor data for plant-001: { moisture: '53.5', light: '41', temp: '18.4', humidity: '50.5' }\"]"
+}
+
+TASK [Display Home Assistant access information] *******************************
+ok: [vm-4-homeassistant] => {
+    "msg": [
+        "🏠 Home Assistant is ready!",
+        "🌐 Access the dashboard at: http://10.0.0.208:8123",
+        "🔧 MQTT broker: 18.191.38.131:1883 (configure via integration)",
+        "🌱 Plant sensors are sending data - configure MQTT to see them!",
+        "📋 Setup guide: /opt/homeassistant/SETUP_GUIDE.md",
+        "📋 MQTT setup guide: /opt/homeassistant/config/MQTT_SETUP_GUIDE.md",
+        "",
+        "🚀 FIRST TIME SETUP:",
+        "  1. Open http://10.0.0.208:8123 in your browser",
+        "  2. Create your Home Assistant account (first-time only)",
+        "  3. Add MQTT integration (Settings → Devices & services)",
+        "  4. Use broker: 18.191.38.131:1883 (no auth required)",
+        "  5. Plant sensors will appear automatically after MQTT setup!"
+    ]
+}
+
+PLAY RECAP *********************************************************************
+vm-1-kafka                 : ok=12   changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-2-mongodb               : ok=19   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-3-processor             : ok=16   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-4-homeassistant         : ok=26   changed=15   unreachable=0    failed=0    skipped=6    rescued=0    ignored=0   
+
+[0;32m[SUCCESS][0m Application deployment completed
+[0;34m[INFO][0m Running health checks...
+
+PLAY [all] *********************************************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'vm-4-homeassistant' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-3-processor' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-1-kafka' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'vm-2-mongodb' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
+ok: [vm-4-homeassistant]
+ok: [vm-3-processor]
+ok: [vm-1-kafka]
+ok: [vm-2-mongodb]
+
+TASK [Check Docker service status] *********************************************
+changed: [vm-4-homeassistant]
+changed: [vm-1-kafka]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+
+TASK [Get running containers] **************************************************
+changed: [vm-4-homeassistant]
+changed: [vm-1-kafka]
+changed: [vm-3-processor]
+changed: [vm-2-mongodb]
+
+TASK [Set facts for this host] *************************************************
+ok: [vm-1-kafka]
+ok: [vm-2-mongodb]
+ok: [vm-3-processor]
+ok: [vm-4-homeassistant]
+
+PLAY [kafka_vm] ****************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm-1-kafka]
+
+TASK [Test Kafka connectivity] *************************************************
+changed: [vm-1-kafka]
+
+TASK [Check Kafka topics] ******************************************************
+changed: [vm-1-kafka]
+
+TASK [Test Kafka producer/consumer] ********************************************
+changed: [vm-1-kafka]
+
+TASK [Set Kafka health facts] **************************************************
+ok: [vm-1-kafka]
+
+PLAY [mongodb_vm] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm-2-mongodb]
+
+TASK [Test MongoDB connectivity] ***********************************************
+changed: [vm-2-mongodb]
+
+TASK [Check MongoDB status] ****************************************************
+changed: [vm-2-mongodb]
+
+TASK [Check MongoDB collections and data] **************************************
+changed: [vm-2-mongodb]
+
+TASK [Test MongoDB authentication] *********************************************
+changed: [vm-2-mongodb]
+
+TASK [Set MongoDB health facts] ************************************************
+ok: [vm-2-mongodb]
+
+PLAY [processor_vm] ************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm-3-processor]
+
+TASK [Check Processor container health] ****************************************
+changed: [vm-3-processor]
+
+TASK [Test Kafka connectivity from Processor] **********************************
+changed: [vm-3-processor]
+
+TASK [Test MongoDB connectivity from Processor] ********************************
+changed: [vm-3-processor]
+
+TASK [Test MQTT connectivity to Home Assistant] ********************************
+changed: [vm-3-processor]
+
+TASK [Get Processor logs] ******************************************************
+changed: [vm-3-processor]
+
+TASK [Set Processor health facts] **********************************************
+ok: [vm-3-processor]
+
+PLAY [homeassistant_vm] ********************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm-4-homeassistant]
+
+TASK [Test Home Assistant web interface] ***************************************
+ok: [vm-4-homeassistant]
+
+TASK [Test MQTT broker] ********************************************************
+changed: [vm-4-homeassistant]
+
+TASK [Check sensor containers] *************************************************
+changed: [vm-4-homeassistant]
+
+TASK [Test Kafka connectivity from sensors] ************************************
+changed: [vm-4-homeassistant]
+
+TASK [Get sensor logs] *********************************************************
+changed: [vm-4-homeassistant]
+
+TASK [Set Home Assistant health facts] *****************************************
+ok: [vm-4-homeassistant]
+
+PLAY [localhost] ***************************************************************
+
+TASK [Set health report content] ***********************************************
+ok: [localhost]
+
+TASK [Display Health Report] ***************************************************
+ok: [localhost] => {
+    "msg": [
+        "========================================",
+        "PLANT MONITORING SYSTEM HEALTH REPORT",
+        "========================================",
+        "",
+        "🖥️  VM STATUS:",
+        "vm-1-kafka (10.0.128.88):",
+        "  Docker: active",
+        "  Containers: 1 running",
+        "vm-2-mongodb (10.0.128.150):",
+        "  Docker: active",
+        "  Containers: 1 running",
+        "vm-3-processor (10.0.128.96):",
+        "  Docker: active",
+        "  Containers: 1 running",
+        "vm-4-homeassistant (18.191.38.131):",
+        "  Docker: active",
+        "  Containers: 4 running",
+        "",
+        "☕ KAFKA SERVICE (vm-1-kafka):",
+        "  Port 9092: ✅ OK",
+        "  Topics Available: ✅ OK",
+        "  Messaging: ✅ OK",
+        "  Topics: __consumer_offsets, plant-actions, plant-alerts, plant-sensors",
+        "",
+        "🗄️  MONGODB SERVICE (vm-2-mongodb):",
+        "  Port 27017: ✅ OK",
+        "  Ping Response: ✅ OK",
+        "  Collections: ✅ OK",
+        "  Authentication: ✅ OK",
+        "",
+        "⚙️  PROCESSOR SERVICE (vm-3-processor):",
+        "  Container Running: ✅ OK",
+        "  Kafka Connection: ✅ OK",
+        "  MongoDB Connection: ✅ OK",
+        "  MQTT Connection: ✅ OK",
+        "  Processing Logs: ✅ OK",
+        "",
+        "🏠 HOME ASSISTANT & SENSORS (vm-4-homeassistant):",
+        "  Web Interface (8123): ✅ OK",
+        "  MQTT Broker (1883): ✅ OK",
+        "  Sensors → Kafka: ✅ OK",
+        "  Sensor Data Flow: ✅ OK",
+        "  All Containers: ✅ OK",
+        "",
+        "🌐 ACCESS INFORMATION:",
+        "  🏠 Home Assistant Dashboard: http://18.191.38.131:8123",
+        "  🔧 MQTT Broker: 18.191.38.131:1883 (public access enabled)",
+        "  📖 MQTT Setup Guide: /opt/homeassistant/config/MQTT_SETUP_GUIDE.md",
+        "  🌱 Plant Sensors: Configure MQTT integration to see sensor data",
+        "  🔑 SSH Access (bastion): ssh ubuntu@18.191.38.131",
+        "  ",
+        "📋 FIRST TIME SETUP:",
+        "  1. Open the Home Assistant URL above",
+        "  2. Create your user account (first time only)  ",
+        "  3. Go to Settings → Devices & services → + ADD INTEGRATION",
+        "  4. Search for MQTT and configure broker: 18.191.38.131:1883",
+        "  5. Enable MQTT discovery - plant sensors will appear automatically!",
+        "",
+        "📊 OVERALL SYSTEM STATUS:",
+        "  System Health: 17/17 checks passed",
+        "  Status: 🎉 SYSTEM FULLY OPERATIONAL",
+        "========================================",
+        ""
+    ]
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-1-kafka                 : ok=9    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-2-mongodb               : ok=10   changed=6    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-3-processor             : ok=11   changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vm-4-homeassistant         : ok=11   changed=6    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[0;32m[SUCCESS][0m Health checks passed
+[0;34m[INFO][0m Deployment Summary
+==========================================
+
+[0;34m[INFO][0m 🔗 Connection Information:
+Bastion Host (Home Assistant): ssh -i ~/.ssh/plant-monitoring-key.pem ubuntu@18.191.38.131
+
+Private Instance Access:
+  Kafka:     ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.88
+  MongoDB:   ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.150
+  Processor: ssh -i ~/.ssh/plant-monitoring-key.pem -o ProxyCommand='ssh -W %h:%p -q ubuntu@18.191.38.131' ubuntu@10.0.128.96
+
+[0;34m[INFO][0m 🖥️  Instance Details:
+Kafka:        10.0.128.88
+MongoDB:      10.0.128.150
+Processor:    10.0.128.96
+Home Assistant: 10.0.0.208 (Public: 18.191.38.131)
+
+[0;32m[SUCCESS][0m 🌱 Plant Monitoring Dashboard: http://18.191.38.131:8123
+
+[0;32m[SUCCESS][0m ✅ Deployment completed successfully!

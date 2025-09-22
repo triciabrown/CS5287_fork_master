@@ -54,3 +54,8 @@ bin/
 **/logs/
 *.tmp
 *.log
+
+# CA1 Assignment - Include submission logs (exception to above rules)
+!CA1/plant-monitor-IaC/logs/
+!CA1/plant-monitor-IaC/logs/*.log
+!CA1/plant-monitor-IaC/logs/README.md

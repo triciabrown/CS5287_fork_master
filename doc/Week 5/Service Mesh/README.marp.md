@@ -6,6 +6,8 @@ paginate: true
 
 # Service Mesh Primer
 
+Video: https://youtu.be/cqMhri1AmFs
+
 A **service mesh** is an infrastructure layer that manages service-to-service communication in microservices architectures.
 
 It abstracts networking complexity and provides **traffic management, security, and observability** without modifying application code.
@@ -13,6 +15,12 @@ It abstracts networking complexity and provides **traffic management, security, 
 ---
 
 ## Core Components
+
+![Service Mesh Core Components](ServiceMeshArchitecture-Service_Mesh_Core_Components.png)
+
+---
+
+## Core Components (cont.)
 
 ### Data Plane (Sidecar Proxies)
 - Deployed alongside each application container (as a sidecar).
@@ -24,7 +32,6 @@ It abstracts networking complexity and provides **traffic management, security, 
 - Service discovery, traffic policies, mTLS certificates.
 - Examples: Istio Pilot, Linkerd2 Control Plane.
 
-![Service Mesh Core Components](ServiceMeshArchitecture-Service_Mesh_Core_Components.png)
 
 ---
 

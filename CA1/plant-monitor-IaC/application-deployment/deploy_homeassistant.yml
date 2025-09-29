@@ -61,7 +61,27 @@
         - { src: '../../applications/vm-4-homeassistant/plant-sensors/package.json', dest: '{{ app_dir }}/plant-sensors/package.json' }
         - { src: '../../applications/vm-4-homeassistant/plant-sensors/Dockerfile', dest: '{{ app_dir }}/plant-sensors/Dockerfile' }
 
-    - name: Copy Home Assistant configuration files (force update)
+    - name: Get Home Assistant VM public IP for MQTT broker configuration
+      set_fact:
+        homeassistant_vm_ip: "{{ ansible_host }}"
+
+    - name: Display Home Assistant IP being used for MQTT broker
+      debug:
+        msg: "Configuring MQTT broker at: {{ homeassistant_vm_ip }}:1883"
+
+    - name: Generate Home Assistant configuration with auto-configured MQTT
+      template:
+        src: ../../applications/vm-4-homeassistant/config/configuration.yaml.j2
+        dest: "{{ app_dir }}/config/configuration.yaml"
+        owner: "1000"
+        group: "1000"
+        mode: '0644'
+        force: yes
+        backup: yes
+      vars:
+        homeassistant_vm_ip: "{{ homeassistant_vm_ip }}"
+
+    - name: Copy other Home Assistant configuration files (force update)
       copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -71,7 +91,6 @@
         force: yes
         backup: yes
       loop:
-        - { src: '../../applications/vm-4-homeassistant/config/configuration.yaml', dest: '{{ app_dir }}/config/configuration.yaml' }
         - { src: '../../applications/vm-4-homeassistant/config/sensors.yaml', dest: '{{ app_dir }}/config/sensors.yaml' }
         - { src: '../../applications/vm-4-homeassistant/config/automations.yaml', dest: '{{ app_dir }}/config/automations.yaml' }
         - { src: '../../applications/vm-4-homeassistant/config/scripts.yaml', dest: '{{ app_dir }}/config/scripts.yaml' }

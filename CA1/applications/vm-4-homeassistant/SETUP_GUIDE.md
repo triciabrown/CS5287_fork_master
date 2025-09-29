@@ -27,12 +27,15 @@ Your dashboard will automatically display:
   - Humidity
   - Health Status
 
-### 🔧 **MQTT Configuration (Pre-configured)**
+### 🔧 **MQTT Configuration (Automatically Configured)**
 
-The system automatically configures:
-- **MQTT Broker**: `localhost:1883` (internal)
+The system automatically configures MQTT integration with:
+- **MQTT Broker**: `YOUR_PUBLIC_IP:1883` (automatically detected)
 - **Discovery**: Enabled (sensors appear automatically)
 - **Topics**: `homeassistant/sensor/plant_*`
+- **Authentication**: Not required (internal network security)
+
+**No manual MQTT setup required!** The integration is automatically configured during deployment.
 
 ### 📈 **System Components**
 
@@ -53,9 +56,10 @@ All configuration files are located in `/opt/homeassistant/config/`:
 ### 🔍 **Troubleshooting**
 
 If sensors don't appear:
-1. Check MQTT integration: **Settings → Integrations → MQTT**
-2. Verify broker connection: `mosquitto_pub -h localhost -t test -m "hello"`
+1. **MQTT should be automatically configured** - check **Settings → Integrations → MQTT**
+2. Verify broker connection: `mosquitto_pub -h YOUR_PUBLIC_IP -t test -m "hello"`
 3. Check processor logs: `docker logs processor-plant-processor-1`
+4. If MQTT integration is missing, it will be automatically configured on next restart
 
 ### 📱 **Mobile Access**
 

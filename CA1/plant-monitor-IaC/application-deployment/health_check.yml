@@ -247,15 +247,13 @@
             🏠 Home Assistant Dashboard: http://{{ hostvars[groups['homeassistant_vm'][0]]['host_ip'] }}:8123
             🔧 MQTT Broker: {{ hostvars[groups['homeassistant_vm'][0]]['host_ip'] }}:1883 (public access enabled)
             📖 MQTT Setup Guide: /opt/homeassistant/config/MQTT_SETUP_GUIDE.md
-            🌱 Plant Sensors: Configure MQTT integration to see sensor data
+            🌱 Plant Sensors: MQTT integration automatically configured - sensors ready!
             🔑 SSH Access (bastion): ssh ubuntu@{{ hostvars[groups['homeassistant_vm'][0]]['host_ip'] }}
             
           📋 FIRST TIME SETUP:
             1. Open the Home Assistant URL above
             2. Create your user account (first time only)  
-            3. Go to Settings → Devices & services → + ADD INTEGRATION
-            4. Search for MQTT and configure broker: {{ hostvars[groups['homeassistant_vm'][0]]['host_ip'] }}:1883
-            5. Enable MQTT discovery - plant sensors will appear automatically!
+            3. MQTT integration is automatically configured - plant sensors will appear in your dashboard!
           
           📊 OVERALL SYSTEM STATUS:
           {% set total_checks = 17 %}

@@ -8,6 +8,7 @@ size: 16:9
 ---
 
 # Cloud Load Balancing
+Video: https://youtu.be/x9oWl5RQO54
 Distributes incoming traffic across multiple backend servers or services to improve:
 - Availability
 - Scalability

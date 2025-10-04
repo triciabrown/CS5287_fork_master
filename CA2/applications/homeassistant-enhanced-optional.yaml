@@ -1,0 +1,58 @@
+# Optional: Enhanced Home Assistant deployment with node affinity
+# This is ONLY needed if you want specific placement control
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homeassistant-enhanced
+  namespace: plant-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homeassistant
+  template:
+    metadata:
+      labels:
+        app: homeassistant
+        component: dashboard
+        tier: frontend
+    spec:
+      # Optional: Prefer worker nodes over control plane
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+      
+      # Optional: Tolerate control plane if needed
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+        
+      containers:
+      # ... rest of Home Assistant container spec ...
+---
+# Optional: Service with NodePort for external access without port-forward
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistant-external
+  namespace: plant-monitoring
+spec:
+  type: NodePort
+  selector:
+    app: homeassistant
+  ports:
+  - name: http
+    port: 8123
+    targetPort: 8123
+    nodePort: 30123  # Access via any-node-ip:30123
+  - name: mqtt
+    port: 1883
+    targetPort: 1883
+    nodePort: 31883  # MQTT access via any-node-ip:31883

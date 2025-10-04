@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  kafka:
+    image: bitnami/kafka:3.5.0
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    volumes:
+      # Persistent data volumes with correct ownership
+      - kafka_data:/bitnami/kafka/data
+      - kafka_logs:/opt/bitnami/kafka/logs
+    environment:
+      # KRaft mode configuration (no ZooKeeper required)
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://{{ ansible_default_ipv4.address }}:9092
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_KRAFT_CLUSTER_ID=LelM2dIFQkiUFvXCEcqRWA
+      
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      
+      # Memory optimization for t2.micro
+      - KAFKA_HEAP_OPTS=-Xmx400m -Xms400m
+    restart: unless-stopped
+    mem_limit: 512m  # Memory limit for t2.micro
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  kafka_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kafka/data
+  kafka_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kafka/logs

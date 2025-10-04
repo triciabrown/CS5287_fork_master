@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  plant-processor:
+    build: ./plant-care-processor
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=256  # Reduced for t2.micro
+      - KAFKA_BROKER={{ kafka_vm_private_ip }}:9092
+      - MONGODB_URL={{ mongodb_connection_string }}
+      - MQTT_BROKER=mqtt://{{ homeassistant_vm_private_ip }}:1883
+    restart: unless-stopped
+    mem_limit: 512m  # Memory limit for t2.micro
+    depends_on:
+      - kafka-health-check
+      - mongo-health-check
+
+  kafka-health-check:
+    image: busybox
+    command: ['sh', '-c', 'until nc -z {{ kafka_vm_private_ip }} 9092; do sleep 1; done']
+
+  mongo-health-check:
+    image: busybox
+    command: ['sh', '-c', 'until nc -z {{ mongodb_vm_private_ip }} 27017; do sleep 1; done']

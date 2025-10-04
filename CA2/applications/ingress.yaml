@@ -1,0 +1,104 @@
+# Simple Ingress Configuration for Plant Monitoring System
+# CS5287 CA2 - Basic external access without admission webhooks
+# Optimized for t2.micro resource constraints
+
+---
+# Simple Ingress for Home Assistant
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homeassistant-ingress
+  namespace: plant-monitoring
+  annotations:
+    # Use basic configuration to avoid webhook validation
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: plant-monitoring.local  # Change to your domain or use IP
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: homeassistant-service
+            port:
+              number: 8123
+  # TLS configuration (uncomment when you have certificates)
+  # tls:
+  # - hosts:
+  #   - plant-monitoring.local
+  #   secretName: homeassistant-tls
+
+---
+# NetworkPolicy - Restrict Home Assistant network access for security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: homeassistant-network-policy
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: homeassistant
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress controller to reach Home Assistant
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8123
+  # Allow internal communication within namespace (for MQTT, etc.)
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 8123
+    - protocol: TCP
+      port: 1883
+    - protocol: TCP
+      port: 9001
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow communication within namespace
+  - to:
+    - podSelector: {}
+  # Allow Home Assistant to reach external services (for updates, integrations)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+
+---
+# Service for MQTT (separate from Home Assistant for better security)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mqtt-service
+  namespace: plant-monitoring
+  labels:
+    app: homeassistant
+    component: mqtt
+spec:
+  selector:
+    app: homeassistant
+  ports:
+  - name: mqtt
+    port: 1883
+    targetPort: 1883
+  - name: websockets
+    port: 9001
+    targetPort: 9001
+  type: ClusterIP

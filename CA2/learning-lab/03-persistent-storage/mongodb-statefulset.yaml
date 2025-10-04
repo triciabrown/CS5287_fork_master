@@ -1,0 +1,114 @@
+# MongoDB StatefulSet with Persistent Storage
+# This demonstrates the difference between Deployment and StatefulSet
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb-stateful
+  namespace: ca2-learning
+  labels:
+    app: mongodb-stateful
+spec:
+  serviceName: mongodb-stateful-headless  # Required for StatefulSet
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-stateful
+  template:
+    metadata:
+      labels:
+        app: mongodb-stateful
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:6.0.4
+        ports:
+        - containerPort: 27017
+          name: mongodb
+        # Reuse the same secret from Exercise 2
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-credentials
+              key: root-username
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-credentials
+              key: root-password
+        - name: MONGO_INITDB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-credentials
+              key: database
+        # Volume mount for persistent data
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+        # Resource limits for Docker Desktop
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "150m"
+        # Health checks
+        livenessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 15
+          periodSeconds: 5
+  # Volume Claim Templates - This is the key difference from Deployment!
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: hostpath  # Docker Desktop default storage class
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+# Headless Service for StatefulSet
+# Provides stable network identity for each pod
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-stateful-headless
+  namespace: ca2-learning
+  labels:
+    app: mongodb-stateful
+spec:
+  clusterIP: None  # This makes it "headless"
+  selector:
+    app: mongodb-stateful
+  ports:
+  - port: 27017
+    targetPort: 27017
+    name: mongodb
+
+---
+# Regular Service for external access
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-stateful
+  namespace: ca2-learning
+  labels:
+    app: mongodb-stateful
+spec:
+  type: ClusterIP
+  selector:
+    app: mongodb-stateful
+  ports:
+  - port: 27017
+    targetPort: 27017
+    name: mongodb

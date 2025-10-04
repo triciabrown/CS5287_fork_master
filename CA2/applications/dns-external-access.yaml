@@ -1,0 +1,89 @@
+# DNS-Enabled External Access Configuration
+# This enhances the current architecture with proper DNS resolution
+
+---
+# External Load Balancer for Home Assistant (replaces NodePort approach)
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistant-external
+  namespace: plant-monitoring
+  labels:
+    app: homeassistant
+    service: external
+  annotations:
+    # AWS Load Balancer Controller annotations
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    # DNS-friendly name
+    external-dns.alpha.kubernetes.io/hostname: "plant-monitor.your-domain.com"
+spec:
+  type: LoadBalancer
+  selector:
+    app: homeassistant
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8123
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 8123
+    protocol: TCP
+  - name: mqtt
+    port: 1883
+    targetPort: 1883
+    protocol: TCP
+
+---
+# Ingress with DNS for Home Assistant Dashboard
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homeassistant-ingress
+  namespace: plant-monitoring
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/websocket-services: "homeassistant-service"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Certificate management
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - plant-monitor.your-domain.com
+    secretName: plant-monitor-tls
+  rules:
+  - host: plant-monitor.your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: homeassistant-service
+            port:
+              number: 8123
+
+---
+# External DNS Service for MQTT (separate from HA for flexibility)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mqtt-external
+  namespace: plant-monitoring
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "mqtt.plant-monitor.your-domain.com"
+spec:
+  type: LoadBalancer
+  selector:
+    app: homeassistant  # Points to same pod but separate DNS entry
+  ports:
+  - name: mqtt
+    port: 1883
+    targetPort: 1883
+  - name: websockets
+    port: 9001
+    targetPort: 9001

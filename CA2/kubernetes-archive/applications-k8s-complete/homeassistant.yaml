@@ -1,0 +1,161 @@
+# Home Assistant - IoT Dashboard and MQTT Broker
+# CS5287 CA2 - Standalone Home Assistant deployment
+# 
+# This complements the Ansible-deployed core plant monitoring system
+
+---
+# Home Assistant Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homeassistant
+  namespace: plant-monitoring
+  labels:
+    app: homeassistant
+    component: dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homeassistant
+  template:
+    metadata:
+      labels:
+        app: homeassistant
+        component: dashboard
+    spec:
+      serviceAccountName: homeassistant-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: homeassistant
+        image: homeassistant/home-assistant:2024.1
+        ports:
+        - containerPort: 8123
+          name: http
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false  # Home Assistant needs to write configs
+          runAsNonRoot: true
+          runAsUser: 1000
+        env:
+        - name: TZ
+          value: "America/New_York"
+        volumeMounts:
+        - name: homeassistant-config
+          mountPath: /config
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8123
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8123
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      - name: mosquitto
+        image: eclipse-mosquitto:2.0.15
+        ports:
+        - containerPort: 1883
+          name: mqtt
+        - containerPort: 9001
+          name: websockets
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1883
+        volumeMounts:
+        - name: mosquitto-config
+          mountPath: /mosquitto/config
+        - name: mosquitto-data
+          mountPath: /mosquitto/data
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+      volumes:
+      - name: homeassistant-config
+        emptyDir: {}
+      - name: mosquitto-config
+        configMap:
+          name: mosquitto-config
+      - name: mosquitto-data
+        emptyDir: {}
+
+---
+# Home Assistant Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistant-service
+  namespace: plant-monitoring
+  labels:
+    app: homeassistant
+    component: dashboard
+spec:
+  selector:
+    app: homeassistant
+  ports:
+  - port: 8123
+    targetPort: 8123
+    name: http
+    nodePort: 30123
+  - port: 1883
+    targetPort: 1883
+    name: mqtt
+  type: NodePort
+
+---
+# MQTT Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: plant-monitoring
+data:
+  mosquitto.conf: |
+    # Basic MQTT broker configuration
+    listener 1883
+    allow_anonymous true
+    
+    # WebSocket support
+    listener 9001
+    protocol websockets
+    
+    # Logging
+    log_dest stdout
+    log_type error
+    log_type warning
+    log_type notice
+    log_type information
+    
+    # Persistence
+    persistence true
+    persistence_location /mosquitto/data/
+    
+    # Home Assistant integration
+    # Allow retained messages for device discovery
+    max_inflight_messages 20
+    max_queued_messages 100

@@ -1,0 +1,501 @@
+---
+# Main deployment playbook for Plant Monitoring System on Kubernetes
+# Builds upon CA1 implementation with proper container orchestration
+
+- name: Deploy Plant Monitoring System to Kubernetes
+  hosts: localhost
+  connection: local
+  gather_facts: no
+    
+  pre_tasks:
+    - name: Verify kubectl connectivity
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Node
+      register: cluster_nodes
+      
+    - name: Display cluster information
+      debug:
+        msg:
+          - "🌐 Connected to Kubernetes cluster"
+          - "📊 Nodes: {{ cluster_nodes.resources | length }}"
+          - "🎯 Target namespace: {{ namespace }}"
+
+    - name: Ensure namespace exists
+      kubernetes.core.k8s:
+        name: "{{ namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+        
+  tasks:
+    # Step 1: Deploy Infrastructure Components
+    - name: Deploy MongoDB StatefulSet
+      kubernetes.core.k8s:
+        state: present
+        merge_type: merge
+        definition:
+          apiVersion: apps/v1
+          kind: StatefulSet
+          metadata:
+            name: mongodb
+            namespace: "{{ namespace }}"
+            labels:
+              app: mongodb
+              component: database
+          spec:
+            serviceName: mongodb-headless
+            replicas: "{{ mongodb_replicas }}"
+            selector:
+              matchLabels:
+                app: mongodb
+            template:
+              metadata:
+                labels:
+                  app: mongodb
+                  component: database
+              spec:
+                containers:
+                - name: mongodb
+                  image: mongo:6.0.4
+                  ports:
+                  - containerPort: 27017
+                    name: mongo
+                  env:
+                  - name: MONGO_INITDB_ROOT_USERNAME
+                    valueFrom:
+                      secretKeyRef:
+                        name: "{{ mongodb_secret_name }}"
+                        key: root-username
+                  - name: MONGO_INITDB_ROOT_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: "{{ mongodb_secret_name }}"
+                        key: root-password
+                  # t2.micro optimizations
+                  resources:
+                    requests:
+                      memory: "128Mi"
+                      cpu: "100m"
+                    limits:
+                      memory: "{{ mongodb_memory_limit }}"
+                      cpu: "{{ mongodb_cpu_limit }}"
+                  volumeMounts:
+                  - name: mongodb-data
+                    mountPath: /data/db
+                  # MongoDB optimizations for t2.micro
+                  command:
+                  - mongod
+                  - --wiredTigerCacheSizeGB
+                  - "0.25"
+                  - --bind_ip
+                  - "0.0.0.0"
+                  # Removed --smallfiles (deprecated in MongoDB 4.2+)
+                  # Removed --nojournal (not recommended for production)
+                  livenessProbe:
+                    tcpSocket:
+                      port: 27017
+                    initialDelaySeconds: 30
+                    periodSeconds: 10
+                  readinessProbe:
+                    tcpSocket:
+                      port: 27017
+                    initialDelaySeconds: 10
+                    periodSeconds: 5
+            volumeClaimTemplates:
+            - metadata:
+                name: mongodb-data
+              spec:
+                accessModes: ["ReadWriteOnce"]
+                storageClassName: "{{ storage_class }}"
+                resources:
+                  requests:
+                    storage: "{{ mongodb_storage_size }}"
+
+    - name: Deploy MongoDB Service
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: mongodb-service
+            namespace: "{{ namespace }}"
+            labels:
+              app: mongodb
+              component: database
+          spec:
+            selector:
+              app: mongodb
+            ports:
+            - port: 27017
+              targetPort: 27017
+              name: mongo
+            clusterIP: None  # Headless service for StatefulSet
+
+    - name: Create Kafka Init Storage ConfigMap
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: kafka-init-storage
+            namespace: "{{ namespace }}"
+          data:
+            init-storage.sh: |
+              {{ lookup('file', 'kafka-init-storage.sh') }}
+
+    - name: Deploy Kafka StatefulSet
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: StatefulSet
+          metadata:
+            name: kafka
+            namespace: "{{ namespace }}"
+            labels:
+              app: kafka
+              component: messaging
+          spec:
+            serviceName: kafka-headless
+            replicas: "{{ kafka_replicas }}"
+            selector:
+              matchLabels:
+                app: kafka
+            template:
+              metadata:
+                labels:
+                  app: kafka
+                  component: messaging
+              spec:
+                # Fix volume permissions for Kafka data directory
+                securityContext:
+                  fsGroup: 1000
+                  runAsUser: 1000
+                  runAsGroup: 1000
+                # Init container to format Kafka storage for KRaft mode
+                initContainers:
+                - name: kafka-format-storage
+                  image: confluentinc/cp-kafka:7.4.0
+                  command: ["/bin/bash", "/scripts/init-storage.sh"]
+                  env:
+                  - name: CLUSTER_ID
+                    value: "EchgzCv5T7OjY0wIPyFVXw"
+                  - name: KAFKA_NODE_ID
+                    value: "1"
+                  - name: KAFKA_PROCESS_ROLES
+                    value: "broker,controller"
+                  - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+                    value: "1@kafka-0.kafka-headless:9093"
+                  - name: KAFKA_LISTENERS
+                    value: "PLAINTEXT://:9092,CONTROLLER://:9093"
+                  - name: KAFKA_CONTROLLER_LISTENER_NAMES
+                    value: "CONTROLLER"
+                  volumeMounts:
+                  - name: kafka-data
+                    mountPath: /var/lib/kafka/data
+                  - name: kafka-init-script
+                    mountPath: /scripts
+                  securityContext:
+                    runAsUser: 1000
+                    runAsGroup: 1000
+                containers:
+                - name: kafka
+                  image: confluentinc/cp-kafka:7.4.0
+                  ports:
+                  - containerPort: 9092
+                    name: kafka
+                  - containerPort: 9093
+                    name: controller
+                  env:
+                  # KRaft mode configuration (no Zookeeper)
+                  - name: KAFKA_NODE_ID
+                    value: "1"
+                  - name: KAFKA_PROCESS_ROLES
+                    value: "broker,controller"
+                  - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+                    value: "1@kafka-0.kafka-headless:9093"
+                  - name: KAFKA_LISTENERS
+                    value: "PLAINTEXT://:9092,CONTROLLER://:9093"
+                  - name: KAFKA_ADVERTISED_LISTENERS
+                    value: "PLAINTEXT://kafka-0.kafka-headless:9092"
+                  - name: KAFKA_CONTROLLER_LISTENER_NAMES
+                    value: "CONTROLLER"
+                  - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+                    value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+                  - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+                    value: "1"
+                  - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+                    value: "1"
+                  - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+                    value: "1"
+                  - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+                    value: "true"
+                  # Required for KRaft mode - must be a valid base64-encoded UUID
+                  # Generated from: uuid4() = 11c860cc-2bf9-4fb3-a363-4c083f21555f
+                  # This value should remain constant across redeployments
+                  - name: CLUSTER_ID
+                    value: "EchgzCv5T7OjY0wIPyFVXw"
+                  # Ultra-lightweight JVM optimizations for t2.micro
+                  - name: KAFKA_HEAP_OPTS
+                    value: "-Xmx160M -Xms160M"
+                  - name: KAFKA_JVM_PERFORMANCE_OPTS
+                    value: "-XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35"
+                  # Enable verbose logging for troubleshooting
+                  - name: KAFKA_LOG4J_ROOT_LOGLEVEL
+                    value: "INFO"
+                  - name: KAFKA_TOOLS_LOG4J_LOGLEVEL
+                    value: "ERROR"
+                  resources:
+                    requests:
+                      memory: "{{ kafka_memory_request }}"
+                      cpu: "100m"
+                    limits:
+                      memory: "{{ kafka_memory_limit }}"
+                      cpu: "{{ kafka_cpu_limit }}"
+                  volumeMounts:
+                  - name: kafka-data
+                    mountPath: /var/lib/kafka/data
+                  livenessProbe:
+                    tcpSocket:
+                      port: 9092
+                    initialDelaySeconds: 90  # Increased for t2.micro slow startup
+                    periodSeconds: 10
+                    failureThreshold: 6  # Allow more failures before restart
+                  readinessProbe:
+                    tcpSocket:
+                      port: 9092
+                    initialDelaySeconds: 60  # Increased for t2.micro
+                    periodSeconds: 10
+                    failureThreshold: 3
+                volumes:
+                - name: kafka-init-script
+                  configMap:
+                    name: kafka-init-storage
+                    defaultMode: 0755  # Make script executable
+            volumeClaimTemplates:
+            - metadata:
+                name: kafka-data
+              spec:
+                accessModes: ["ReadWriteOnce"]
+                storageClassName: "{{ storage_class }}"
+                resources:
+                  requests:
+                    storage: "{{ kafka_storage_size }}"
+
+    - name: Deploy Kafka Headless Service
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: kafka-headless
+            namespace: "{{ namespace }}"
+            labels:
+              app: kafka
+              component: messaging
+          spec:
+            selector:
+              app: kafka
+            ports:
+            - port: 9092
+              targetPort: 9092
+              name: kafka
+            - port: 9093
+              targetPort: 9093
+              name: controller
+            clusterIP: None  # Headless service for StatefulSet
+
+    # Step 2: Deploy Application Components
+    - name: Deploy Plant Processor
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: plant-processor
+            namespace: "{{ namespace }}"
+            labels:
+              app: plant-processor
+              component: processor
+          spec:
+            replicas: "{{ processor_replicas }}"
+            selector:
+              matchLabels:
+                app: plant-processor
+            template:
+              metadata:
+                labels:
+                  app: plant-processor
+                  component: processor
+              spec:
+                serviceAccountName: plant-processor-sa
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1000
+                  fsGroup: 1000
+                containers:
+                - name: processor
+                  image: "{{ docker_registry }}/{{ docker_namespace }}/plant-processor:{{ image_tag }}"
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                      - ALL
+                    readOnlyRootFilesystem: false  # Processor needs to write logs/temp files
+                    runAsNonRoot: true
+                    runAsUser: 1000
+                  env:
+                  - name: KAFKA_BROKERS
+                    valueFrom:
+                      configMapKeyRef:
+                        name: kafka-config
+                        key: KAFKA_BROKERS
+                  - name: MONGODB_URL
+                    valueFrom:
+                      secretKeyRef:
+                        name: "{{ mongodb_secret_name }}"
+                        key: connection-string
+                  - name: MQTT_BROKER
+                    valueFrom:
+                      configMapKeyRef:
+                        name: app-config
+                        key: MQTT_BROKER
+                  - name: POD_NAME
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: metadata.name
+                  - name: NODE_NAME
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: spec.nodeName
+                  resources:
+                    requests:
+                      memory: "32Mi"
+                      cpu: "25m"
+                    limits:
+                      memory: "{{ processor_memory_limit }}"
+                      cpu: "{{ processor_cpu_limit }}"
+                  livenessProbe:
+                    httpGet:
+                      path: /health
+                      port: 8080
+                    initialDelaySeconds: 30
+                    periodSeconds: 30
+                  readinessProbe:
+                    httpGet:
+                      path: /ready
+                      port: 8080
+                    initialDelaySeconds: 5
+                    periodSeconds: 10
+
+    - name: Deploy Plant Processor Service
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: plant-processor-service
+            namespace: "{{ namespace }}"
+            labels:
+              app: plant-processor
+              component: processor
+          spec:
+            selector:
+              app: plant-processor
+            ports:
+            - port: 8080
+              targetPort: 8080
+              name: http
+            type: ClusterIP
+
+    # Step 3: Deploy Plant Sensors
+    - name: Deploy Plant Sensors
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: "plant-sensor-{{ item.id }}"
+            namespace: "{{ namespace }}"
+            labels:
+              app: plant-sensor
+              plant-id: "{{ item.id }}"
+              plant-type: "{{ item.type }}"
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: plant-sensor
+                plant-id: "{{ item.id }}"
+            template:
+              metadata:
+                labels:
+                  app: plant-sensor
+                  plant-id: "{{ item.id }}"
+                  plant-type: "{{ item.type }}"
+              spec:
+                serviceAccountName: plant-sensor-sa
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1001
+                  fsGroup: 1001
+                containers:
+                - name: plant-sensor
+                  image: "{{ docker_registry }}/{{ docker_namespace }}/plant-sensor:{{ image_tag }}"
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                      - ALL
+                    readOnlyRootFilesystem: true  # Sensors are read-only
+                    runAsNonRoot: true
+                    runAsUser: 1001
+                  env:
+                  - name: PLANT_ID
+                    value: "{{ item.id }}"
+                  - name: PLANT_TYPE
+                    value: "{{ item.type }}"
+                  - name: LOCATION
+                    value: "{{ item.location }}"
+                  - name: KAFKA_BROKERS
+                    valueFrom:
+                      configMapKeyRef:
+                        name: kafka-config
+                        key: KAFKA_BROKERS
+                  - name: SENSOR_INTERVAL
+                    valueFrom:
+                      configMapKeyRef:
+                        name: plant-sensor-config
+                        key: SENSOR_INTERVAL
+                  - name: KAFKA_TOPIC
+                    valueFrom:
+                      configMapKeyRef:
+                        name: plant-sensor-config  
+                        key: KAFKA_TOPIC
+                  resources:
+                    requests:
+                      memory: "32Mi"
+                      cpu: "50m"
+                    limits:
+                      memory: "64Mi"
+                      cpu: "100m"
+      loop: "{{ plant_sensors }}"
+
+    - name: Deployment completion message
+      debug:
+        msg:
+          - "🎉 Plant Monitoring System deployed successfully!"
+          - "📦 Components deployed:"
+          - "   - MongoDB StatefulSet ({{ mongodb_replicas }} replica)"
+          - "   - Kafka StatefulSet ({{ kafka_replicas }} replica)"
+          - "   - Plant Processor ({{ processor_replicas }} replica)"
+          - "   - Plant Sensors ({{ plant_sensors | length }} sensors)"
+          - "🔐 All using secure secret management"
+          - "🚀 System ready for Home Assistant deployment"

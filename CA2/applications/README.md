@@ -1,69 +1,136 @@
-# Plant Monitoring System - Production Deployment
+# Plant Monitor Applications# Plant Monitoring System - Production Deployment
 
-This directory contains the **production-ready** Kubernetes manifests for the Plant Monitoring System PaaS implementation (CS5287 CA2).
 
-## 🏗️ Architecture Overview
 
-The Plant Monitoring System is deployed as a **Platform-as-a-Service (PaaS)** solution on AWS Kubernetes, consisting of:
+This directory contains the Docker application source code for the Plant Monitoring System, ready for deployment with **Docker Swarm**.This directory contains the **production-ready** Kubernetes manifests for the Plant Monitoring System PaaS implementation (CS5287 CA2).
 
-- **Data Layer**: MongoDB StatefulSet with persistent storage
-- **Messaging Layer**: Apache Kafka with KRaft mode (no Zookeeper)  
-- **Processing Layer**: Plant Data Processor for sensor data handling
-- **Monitoring Layer**: System health monitoring and alerting
 
-## 📦 Production Components
 
-### Core Services
-- `mongodb` - StatefulSet with 5GB persistent storage (gp2)
-- `kafka` - StatefulSet with KRaft configuration and 5GB storage
+## Directory Structure## 🏗️ Architecture Overview
+
+
+
+```The Plant Monitoring System is deployed as a **Platform-as-a-Service (PaaS)** solution on AWS Kubernetes, consisting of:
+
+applications/
+
+├── processor/          # Data processing service- **Data Layer**: MongoDB StatefulSet with persistent storage
+
+│   ├── Dockerfile- **Messaging Layer**: Apache Kafka with KRaft mode (no Zookeeper)  
+
+│   ├── processor.py- **Processing Layer**: Plant Data Processor for sensor data handling
+
+│   └── requirements.txt- **Monitoring Layer**: System health monitoring and alerting
+
+├── sensor/             # MQTT sensor simulator
+
+│   ├── Dockerfile## 📦 Production Components
+
+│   ├── sensor.js
+
+│   └── package.json### Core Services
+
+└── build-images.sh     # Build script for Docker Hub images- `mongodb` - StatefulSet with 5GB persistent storage (gp2)
+
+```- `kafka` - StatefulSet with KRaft configuration and 5GB storage
+
 - `plant-processor` - Deployment for sensor data processing
-- `system-monitor` - Pod for health monitoring and system status
 
-### Networking
+## Building Docker Images- `system-monitor` - Pod for health monitoring and system status
+
+
+
+Use the `build-images.sh` script to build and push images to Docker Hub:### Networking
+
 - All services use ClusterIP for internal communication
-- Services are isolated within the `plant-monitoring` namespace
-- No external LoadBalancer to optimize for AWS free tier costs
 
-### Resource Optimization
-- **Memory limits**: Containers limited to 64-300Mi per t2.micro constraints
-- **CPU limits**: Conservative CPU allocation (25-200m) for stable performance
-- **Storage**: 5GB persistent volumes using AWS gp2 storage class
-- **JVM tuning**: Kafka optimized with 128MB heap for minimal resource usage
+```bash- Services are isolated within the `plant-monitoring` namespace
 
-## 🚀 Deployment Instructions
+./build-images.sh- No external LoadBalancer to optimize for AWS free tier costs
 
-### Prerequisites
-- Kubernetes cluster running on AWS (see `/aws-cluster-setup/`)
-- kubectl configured for cluster access
-- StorageClass `gp2` available (default on AWS EKS/kubeadm)
-
-### Quick Deploy
-```bash
-# Deploy all components
-# Use modular approach with Ansible + Home Assistant
-# Core services deployed via Ansible, Home Assistant via manifest
-kubectl apply -f homeassistant.yaml
-
-# Verify deployment
-kubectl get all -n plant-monitoring
-
-# Check persistent volumes
-kubectl get pv,pvc -n plant-monitoring
-
-# Monitor system health
-kubectl logs -f system-monitor -n plant-monitoring
 ```
 
-### Validation
-```bash
-# Check MongoDB connectivity
-kubectl exec -it mongodb-0 -n plant-monitoring -- mongosh -u admin -p plantmon2024
+### Resource Optimization
 
-# Test Kafka topics
+This script will:- **Memory limits**: Containers limited to 64-300Mi per t2.micro constraints
+
+1. Build processor and sensor Docker images- **CPU limits**: Conservative CPU allocation (25-200m) for stable performance
+
+2. Tag them appropriately for your Docker Hub repository- **Storage**: 5GB persistent volumes using AWS gp2 storage class
+
+3. Push them to Docker Hub for deployment- **JVM tuning**: Kafka optimized with 128MB heap for minimal resource usage
+
+
+
+## Components## 🚀 Deployment Instructions
+
+
+
+### Processor Service### Prerequisites
+
+- **Language**: Python 3.9- Kubernetes cluster running on AWS (see `/aws-cluster-setup/`)
+
+- **Purpose**: Consumes sensor data from Kafka, processes it, and stores in MongoDB- kubectl configured for cluster access
+
+- **Key Dependencies**: kafka-python, pymongo, paho-mqtt- StorageClass `gp2` available (default on AWS EKS/kubeadm)
+
+
+
+### Sensor Service### Quick Deploy
+
+- **Language**: Node.js```bash
+
+- **Purpose**: Simulates IoT plant sensors and publishes data via MQTT# Deploy all components
+
+- **Key Dependencies**: mqtt, axios# Use modular approach with Ansible + Home Assistant
+
+# Core services deployed via Ansible, Home Assistant via manifest
+
+## Migration from Kuberneteskubectl apply -f homeassistant.yaml
+
+
+
+This codebase was originally deployed on Kubernetes. All Kubernetes-specific manifests (YAML files, scaling configs, network policies, etc.) have been archived to:# Verify deployment
+
+kubectl get all -n plant-monitoring
+
+```
+
+../kubernetes-archive/applications-k8s-complete/# Check persistent volumes
+
+```kubectl get pv,pvc -n plant-monitoring
+
+
+
+The Docker source code (Dockerfiles, application code, build scripts) is platform-agnostic and used for both Kubernetes and Docker Swarm deployments.# Monitor system health
+
+kubectl logs -f system-monitor -n plant-monitoring
+
+## Next Steps```
+
+
+
+Follow the **Docker Swarm Migration Guide** (`../MIGRATION_GUIDE.md`) to:### Validation
+
+1. Set up Docker Swarm infrastructure with Terraform```bash
+
+2. Deploy services using Ansible + docker-compose# Check MongoDB connectivity
+
+3. Configure monitoring and scalingkubectl exec -it mongodb-0 -n plant-monitoring -- mongosh -u admin -p plantmon2024
+
+
+
+## Documentation# Test Kafka topics
+
 kubectl exec -it kafka-0 -n plant-monitoring -- kafka-topics --bootstrap-server localhost:9092 --list
 
-# View processor logs
-kubectl logs -f deployment/plant-processor -n plant-monitoring
+- [Kubernetes Archive](../KUBERNETES_ARCHIVE.md) - Complete history of K8s implementation
+
+- [Why Docker Swarm](../WHY_DOCKER_SWARM.md) - Migration rationale# View processor logs
+
+- [Migration Guide](../MIGRATION_GUIDE.md) - Step-by-step Swarm deploymentkubectl logs -f deployment/plant-processor -n plant-monitoring
+
+- [Migration Summary](../MIGRATION_COMPLETE_SUMMARY.md) - Quick reference
 
 # System resource usage
 kubectl top nodes

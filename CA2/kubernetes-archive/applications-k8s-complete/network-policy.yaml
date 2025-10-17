@@ -1,0 +1,499 @@
+# Production-Grade Network Security Policies
+# Zero-trust networking with minimal required access
+# Uses actual app labels from current deployment
+
+---
+# Default Deny All Traffic in plant-monitoring namespace (Zero Trust Foundation)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: plant-monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+# Home Assistant - ONLY component with external access
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: homeassistant-external-access
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: homeassistant
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow external access (users accessing dashboard)
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 8123
+    - protocol: TCP
+      port: 1883  # MQTT
+    - protocol: TCP
+      port: 9001  # WebSocket
+  # Allow access from plant-processor (internal data)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-processor
+    ports:
+    - protocol: TCP
+      port: 8123
+    - protocol: TCP
+      port: 1883
+  # Allow access from plant-data-processor (backward compatibility)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-data-processor
+    ports:
+    - protocol: TCP
+      port: 8123
+    - protocol: TCP
+      port: 1883
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow HTTPS for updates/integrations
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  # Allow access to MongoDB for configuration storage
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongodb
+    ports:
+    - protocol: TCP
+      port: 27017
+
+---
+# MongoDB - Internal database access only (STRICT)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mongodb-internal-only
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: mongodb
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Kubelet health checks (liveness/readiness probes)
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 27017
+  # Allow access from plant-processor
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-processor
+    ports:
+    - protocol: TCP
+      port: 27017
+  # Allow access from plant-data-processor (backward compatibility)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-data-processor
+    ports:
+    - protocol: TCP
+      port: 27017
+  # Allow access from Home Assistant (for configuration)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: homeassistant
+    ports:
+    - protocol: TCP
+      port: 27017
+  # MongoDB replica set communication (if using replica sets)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: mongodb
+    ports:
+    - protocol: TCP
+      port: 27017
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # MongoDB replica set communication
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongodb
+    ports:
+    - protocol: TCP
+      port: 27017
+
+---
+# Kafka - Internal message broker access only (STRICT)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kafka-internal-only
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: kafka
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Kubelet health checks (liveness/readiness probes)
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
+  # Allow access from plant-processor
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-processor
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow access from plant-data-processor (backward compatibility)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-data-processor
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow access from plant-sensor
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-sensor
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow access from plant-producer (backward compatibility)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-producer
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Kubelet health checks (liveness/readiness probes)
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
+  # Kafka inter-broker communication
+  - from:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Kafka inter-broker communication
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
+
+---
+# Plant Processor - Central data processor (CONTROLLED ACCESS)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: plant-processor-controlled-access
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: plant-processor
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow access from plant-sensor (health checks and data submission)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-sensor
+    ports:
+    - protocol: TCP
+      port: 3000
+  # Allow access from Home Assistant (dashboard queries)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: homeassistant
+    ports:
+    - protocol: TCP
+      port: 3000
+  # Allow access from system-monitor (backward compatibility)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: system-monitor
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow access to MongoDB
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongodb
+    ports:
+    - protocol: TCP
+      port: 27017
+  # Allow access to Kafka
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow access to Home Assistant (for updates)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: homeassistant
+    ports:
+    - protocol: TCP
+      port: 8123
+    - protocol: TCP
+      port: 1883
+
+---
+# Plant Data Processor - Backward compatibility support
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: plant-data-processor-compatibility
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: plant-data-processor
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow access from system-monitor
+  - from:
+    - podSelector:
+        matchLabels:
+          app: system-monitor
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow access to MongoDB
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongodb
+    ports:
+    - protocol: TCP
+      port: 27017
+  # Allow access to Kafka
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+
+---
+# Plant Sensor - Data collection only (MINIMAL ACCESS)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: plant-sensor-minimal-access
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: plant-sensor
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow health checks from processor
+  - from:
+    - podSelector:
+        matchLabels:
+          app: plant-processor
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow access to Kafka (publish sensor data)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow access to plant-processor (health status and data)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: plant-processor
+    ports:
+    - protocol: TCP
+      port: 3000
+
+---
+# Plant Producer - Backward compatibility (if still in use)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: plant-producer-compatibility
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: plant-producer
+  policyTypes:
+  - Egress
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow access to Kafka (publish data)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+
+---
+# System Monitor - Backward compatibility (if still in use)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: system-monitor-compatibility
+  namespace: plant-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: system-monitor
+  policyTypes:
+  - Egress
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow access to plant-processor
+  - to:
+    - podSelector:
+        matchLabels:
+          app: plant-processor
+    ports:
+    - protocol: TCP
+      port: 3000
+  # Allow access to plant-data-processor
+  - to:
+    - podSelector:
+        matchLabels:
+          app: plant-data-processor
+    ports:
+    - protocol: TCP
+      port: 8080
+
+---
+# System pods - DNS and essential services (kube-system namespace)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-access
+  namespace: plant-monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  # Allow DNS queries to kube-system
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53

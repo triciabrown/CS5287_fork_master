@@ -1,0 +1,170 @@
+# CA2 Scaling Demonstration Configuration
+# Optimized for t2.micro resource constraints while meeting assignment requirements
+
+---
+# Lightweight Plant Sensor Deployment for Scaling Demo
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plant-sensor-demo
+  namespace: plant-monitoring
+  labels:
+    app: plant-sensor-demo
+    component: producer
+spec:
+  replicas: 1  # Start with 1, scale to N
+  selector:
+    matchLabels:
+      app: plant-sensor-demo
+  template:
+    metadata:
+      labels:
+        app: plant-sensor-demo
+        component: producer
+    spec:
+      containers:
+      - name: sensor
+        image: python:3.9-alpine
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - |
+            pip install kafka-python &&
+            python -c "
+            import time
+            import json
+            import random
+            from kafka import KafkaProducer
+            import os
+            
+            producer = KafkaProducer(
+                bootstrap_servers=['kafka-service:9092'],
+                value_serializer=lambda v: json.dumps(v).encode('utf-8')
+            )
+            
+            sensor_id = os.environ.get('HOSTNAME', 'sensor-unknown')
+            
+            while True:
+                data = {
+                    'sensor_id': sensor_id,
+                    'plant_id': f'plant-{random.randint(1,10)}',
+                    'timestamp': time.time(),
+                    'temperature': round(random.uniform(18.0, 28.0), 1),
+                    'humidity': round(random.uniform(40.0, 80.0), 1),
+                    'soil_moisture': round(random.uniform(20.0, 90.0), 1)
+                }
+                
+                producer.send('plant-sensors', data)
+                print(f'Sent: {data}')
+                time.sleep(5)  # Send every 5 seconds
+            "
+        env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-service:9092"
+        resources:
+          requests:
+            memory: "32Mi"    # Very low memory footprint
+            cpu: "10m"        # 0.01 CPU cores
+          limits:
+            memory: "64Mi"
+            cpu: "50m"        # 0.05 CPU cores
+        livenessProbe:
+          exec:
+            command: ["pgrep", "python"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+---
+# HPA for Scaling Demo - Conservative scaling within resource limits
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sensor-demo-hpa
+  namespace: plant-monitoring
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: plant-sensor-demo
+  minReplicas: 1
+  maxReplicas: 4      # Conservative max to fit memory constraints
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50    # Lower threshold for easier triggering
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30  # Faster response for demo
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+
+---
+# Load Generator for Testing Scaling
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: scaling-load-test
+  namespace: plant-monitoring
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: load-generator
+        image: python:3.9-alpine
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - |
+            echo "Starting load generation to trigger HPA scaling..."
+            
+            # Create CPU load to trigger scaling
+            for i in $(seq 1 100); do
+              echo "Load iteration $i - generating CPU load..."
+              
+              # CPU intensive task
+              timeout 10 yes > /dev/null &
+              timeout 10 yes > /dev/null &
+              timeout 10 yes > /dev/null &
+              
+              # Wait and check scaling
+              sleep 15
+              
+              echo "Current time: $(date)"
+              echo "Load generation cycle $i complete"
+            done
+            
+            echo "Load test completed. Check HPA status with: kubectl get hpa -n plant-monitoring"
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "5m"
+          limits:
+            memory: "32Mi"
+            cpu: "100m"
+
+---
+# Service for Demo Sensors
+apiVersion: v1
+kind: Service
+metadata:
+  name: plant-sensor-demo-service
+  namespace: plant-monitoring
+spec:
+  selector:
+    app: plant-sensor-demo
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP

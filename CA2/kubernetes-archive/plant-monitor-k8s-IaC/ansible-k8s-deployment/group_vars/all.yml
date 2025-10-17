@@ -1,0 +1,86 @@
+---
+# CA2 Plant Monitoring System - Kubernetes Variables
+# Builds upon CA1 implementation with Kubernetes orchestration
+
+# Cluster Configuration
+cluster_name: "plant-monitoring-k8s"
+namespace: "plant-monitoring"
+kubernetes_version: "1.28.15"
+
+# Infrastructure  
+region: "us-east-2"
+instance_type: "t2.micro"
+node_count: 5  # 1 control plane + 4 workers for better resource distribution
+vpc_cidr: "10.0.0.0/16"
+
+# Container Registry
+docker_registry: "docker.io"
+docker_namespace: "triciab221"  # Your Docker Hub username
+image_tag: "v1.0.0"
+
+# Application Configuration  
+kafka_replicas: 1
+mongodb_replicas: 1
+processor_replicas: 1
+homeassistant_replicas: 1
+
+# Service Ports (NodePort for external access)
+homeassistant_nodeport: 30123
+mqtt_nodeport: 31883
+kafka_nodeport: 30092
+mongodb_nodeport: 30017
+
+# Secrets Configuration (DO NOT PUT ACTUAL PASSWORDS HERE)
+# These reference Kubernetes secrets that will be created by Ansible
+mongodb_secret_name: "mongodb-credentials"
+homeassistant_secret_name: "homeassistant-credentials"  
+mqtt_secret_name: "mqtt-credentials"
+
+# Resource Limits (t2.micro optimized)
+mongodb_memory_limit: "128Mi"
+mongodb_cpu_limit: "100m"
+kafka_memory_limit: "256Mi"  # Increased for heap space
+kafka_memory_request: "200Mi"
+kafka_cpu_limit: "100m"
+processor_memory_limit: "64Mi"
+processor_cpu_limit: "50m"
+homeassistant_memory_limit: "200Mi"
+homeassistant_cpu_limit: "150m"
+
+# Storage
+storage_class: "gp2"
+mongodb_storage_size: "5Gi"
+kafka_storage_size: "5Gi"
+homeassistant_storage_size: "1Gi"
+
+# Home Assistant Configuration
+homeassistant_latitude: 39.7392
+homeassistant_longitude: -104.9903
+homeassistant_timezone: "America/Denver"
+homeassistant_elevation: 1655
+
+# Plant Sensor Configuration
+plant_sensors:
+  - id: "plant-001"
+    name: "Monstera Deliciosa"
+    location: "Living Room"
+    type: "monstera"
+  - id: "plant-002" 
+    name: "Snake Plant"
+    location: "Bedroom"
+    type: "sansevieria"
+
+# MQTT Topics
+mqtt_discovery_prefix: "homeassistant"
+sensor_data_topic: "plant-monitoring/sensors"
+plant_status_topic: "plant-monitoring/status"
+
+# Network Policies
+enable_network_policies: true
+allow_internet_egress: true
+
+# Scaling Configuration
+enable_hpa: true
+min_replicas: 1
+max_replicas: 3
+target_cpu_utilization: 70

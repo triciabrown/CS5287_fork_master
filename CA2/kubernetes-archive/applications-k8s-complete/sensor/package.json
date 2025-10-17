@@ -1,0 +1,20 @@
+{
+  "name": "plant-sensor-simulator",
+  "version": "1.0.0",
+  "description": "IoT Plant Sensor Simulator for CS5287 CA2",
+  "main": "sensor.js",
+  "scripts": {
+    "start": "node sensor.js",
+    "dev": "node sensor.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["iot", "plant", "sensor", "kafka", "kubernetes"],
+  "author": "CS5287 Student",
+  "license": "MIT",
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

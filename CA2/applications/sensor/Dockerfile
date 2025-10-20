@@ -1,32 +1,22 @@
-# Use official Node.js runtime as parent image
 FROM node:18-alpine
 
-# Set working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install --production
 
-# Copy application code
-COPY sensor.js .
+# Copy application source
+COPY . .
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S sensor && \
-    adduser -S sensor -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S sensor -u 1001 -G nodejs
 
-# Change ownership to sensor user
-RUN chown -R sensor:sensor /app
+# Change ownership to non-root user
+RUN chown -R sensor:nodejs /usr/src/app
 USER sensor
 
-# Expose health check port
-EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
-
-# Command to run the application
 CMD ["npm", "start"]

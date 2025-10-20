@@ -1,0 +1,35 @@
+CA2 - Docker Swarm Scaling Demonstration Results
+================================================
+Date: Sun Oct 19 18:40:18 CDT 2025
+Manager IP: 3.137.188.102
+
+Scaling Test Results:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Configuration        | Messages (30s)  | Rate (msgs/sec)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1 Replica            | 1             | .03
+2 Replicas (base)    | 2             | .06
+5 Replicas           | 5               | .16
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Throughput improvement (2→5 replicas): 150.0%
+
+
+Key Findings:
+• Horizontal scaling works as expected
+• Message throughput increases with replica count
+• Services scale up/down without downtime
+• Docker Swarm load balancing distributes messages
+
+Test Configuration:
+• Cluster: Docker Swarm on AWS (1 manager + 4 workers)
+• Service: plant-monitoring_sensor
+• Measurement window: 30 seconds per configuration
+• Scaling sequence: 2 → 5 → 1 → 2 replicas
+
+Technical Details:
+• Manager Node: 3.137.188.102
+• Overlay Network: plant-monitoring_plant-network (encrypted)
+• Service Discovery: Docker DNS
+• Load Balancing: Docker Swarm ingress routing mesh
+• Data Flow: Sensors → Kafka → Processor → MongoDB

@@ -1,25 +1,24 @@
-# Plant Monitoring Data Processor
-FROM python:3.9-alpine
+FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
 
 # Install dependencies
-RUN apk add --no-cache gcc musl-dev && \
-    pip install --no-cache-dir kafka-python pymongo
+RUN npm install --omit=dev
 
-# Copy application code
-COPY processor.py .
-COPY requirements.txt .
+# Copy application source
+COPY . .
 
-# Install application dependencies
-RUN pip install -r requirements.txt
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S processor -u 1001 -G nodejs
 
-# Run as non-root user
-RUN adduser -D appuser && chown -R appuser:appuser /app
-USER appuser
+# Change ownership to non-root user
+RUN chown -R processor:nodejs /usr/src/app
+USER processor
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD python -c "import pymongo, kafka; print('Health OK')" || exit 1
+EXPOSE 8080
 
-CMD ["python", "plant-care-processor.py"]
+CMD ["npm", "start"]

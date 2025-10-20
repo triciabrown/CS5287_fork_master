@@ -1,19 +1,21 @@
-const kafka = require('kafkajs');
+const { Kafka } = require('kafkajs');
+const fs = require('fs');
+const path = require('path');
 
 class PlantSensorSimulator {
   constructor() {
-    this.plantId = process.env.PLANT_ID;
-    this.plantType = process.env.PLANT_TYPE;
-    this.location = process.env.LOCATION;
-    this.interval = parseInt(process.env.SENSOR_INTERVAL) * 1000;
+    // Load configuration from file or environment variables
+    this.loadConfig();
+    
+    this.interval = (this.sensorInterval || parseInt(process.env.SENSOR_INTERVAL) || 30) * 1000;
 
-    this.kafka = kafka({
+    this.kafka = new Kafka({
       clientId: `plant-sensor-${this.plantId}`,
       brokers: [process.env.KAFKA_BROKERS]
     });
     this.producer = this.kafka.producer();
 
-    // Plant-specific characteristics matching CA0 proven architecture
+    // Plant-specific characteristics
     this.plantProfiles = {
       'monstera': {
         moistureBase: 50,
@@ -33,7 +35,51 @@ class PlantSensorSimulator {
     
     console.log(`🌱 Initializing sensor for ${this.plantId} (${this.plantType}) at ${this.location}`);
     console.log(`📡 Kafka brokers: ${process.env.KAFKA_BROKERS}`);
-    console.log(`⏱️ Sensor interval: ${process.env.SENSOR_INTERVAL} seconds`);
+    console.log(`⏱️  Sensor interval: ${this.interval / 1000} seconds`);
+  }
+
+  loadConfig() {
+    // Try to load from config file first (Docker config)
+    const configPaths = [
+      '/app/sensor-config.json',
+      '/sensor-config.json',
+      path.join(__dirname, 'sensor-config.json')
+    ];
+
+    let config = null;
+    for (const configPath of configPaths) {
+      try {
+        if (fs.existsSync(configPath)) {
+          const configData = fs.readFileSync(configPath, 'utf8');
+          config = JSON.parse(configData);
+          console.log(`✅ Loaded config from ${configPath}`);
+          break;
+        }
+      } catch (error) {
+        console.log(`⚠️  Could not load config from ${configPath}: ${error.message}`);
+      }
+    }
+
+    if (config && config.sensors && config.sensors.length > 0) {
+      // Use task slot number to select sensor config (for scaling)
+      const taskSlot = parseInt(process.env.TASK_SLOT || '0');
+      const sensorIndex = taskSlot % config.sensors.length;
+      const sensorConfig = config.sensors[sensorIndex];
+
+      this.plantId = sensorConfig.plantId;
+      this.plantType = sensorConfig.plantType;
+      this.location = sensorConfig.location;
+      this.sensorInterval = sensorConfig.sensorInterval;
+
+      console.log(`📋 Using sensor config index ${sensorIndex}: ${this.plantId}`);
+    } else {
+      // Fallback to environment variables
+      console.log('⚠️  No config file found, using environment variables');
+      this.plantId = process.env.PLANT_ID || 'plant-default';
+      this.plantType = process.env.PLANT_TYPE || 'monstera';
+      this.location = process.env.LOCATION || 'Unknown';
+      this.sensorInterval = parseInt(process.env.SENSOR_INTERVAL) || 30;
+    }
   }
 
   async start() {
@@ -44,7 +90,7 @@ class PlantSensorSimulator {
       // Send initial data immediately
       await this.generateAndSendSensorData();
       
-      // Then continue with interval
+      // Then continue at intervals
       setInterval(() => {
         this.generateAndSendSensorData();
       }, this.interval);
@@ -59,12 +105,12 @@ class PlantSensorSimulator {
     const now = new Date();
     const hourOfDay = now.getHours();
     
-    // Simulate daily cycles matching CA0 proven patterns
+    // Simulate daily cycles
     const dailyMoistureVariation = Math.sin((hourOfDay / 24) * 2 * Math.PI) * 5;
     const dailyLightVariation = Math.max(0, Math.sin(((hourOfDay - 6) / 12) * Math.PI) * profile.lightBase);
     const dailyTempVariation = Math.sin(((hourOfDay - 6) / 12) * Math.PI) * 3;
     
-    // Add realistic random noise
+    // Add random noise
     const moistureNoise = (Math.random() - 0.5) * 10;
     const lightNoise = Math.random() * 100;
     const tempNoise = (Math.random() - 0.5) * 2;
@@ -79,7 +125,7 @@ class PlantSensorSimulator {
         soilMoisture: Math.max(0, Math.min(100, 
           profile.moistureBase + dailyMoistureVariation + moistureNoise)),
         lightLevel: Math.max(0, dailyLightVariation + lightNoise),
-        temperature: Number((profile.tempBase + dailyTempVariation + tempNoise).toFixed(1)),
+        temperature: profile.tempBase + dailyTempVariation + tempNoise,
         humidity: Math.max(0, Math.min(100, 
           profile.humidityBase + humidityNoise))
       }
@@ -91,90 +137,32 @@ class PlantSensorSimulator {
     
     try {
       await this.producer.send({
-        topic: process.env.KAFKA_TOPIC || 'plant-sensors',
+        topic: 'plant-sensors',
         messages: [{
           key: this.plantId,
           value: JSON.stringify(sensorData)
         }]
       });
       
-      console.log(`📊 Sent sensor data for ${this.plantId}:`, {
-        moisture: `${sensorData.sensors.soilMoisture.toFixed(1)}%`,
-        light: `${sensorData.sensors.lightLevel.toFixed(0)} lux`,
-        temp: `${sensorData.sensors.temperature}°C`, 
-        humidity: `${sensorData.sensors.humidity.toFixed(1)}%`
+      console.log(`Sent sensor data for ${this.plantId}:`, {
+        moisture: sensorData.sensors.soilMoisture.toFixed(1),
+        light: sensorData.sensors.lightLevel.toFixed(0),
+        temp: sensorData.sensors.temperature.toFixed(1),
+        humidity: sensorData.sensors.humidity.toFixed(1)
       });
     } catch (error) {
-      console.error('❌ Error sending sensor data:', error);
-    }
-  }
-
-  async healthCheck() {
-    try {
-      // Simple health check endpoint 
-      const status = {
-        status: 'healthy',
-        plantId: this.plantId,
-        plantType: this.plantType,
-        location: this.location,
-        uptime: process.uptime(),
-        memoryUsage: process.memoryUsage(),
-        kafkaConnected: this.producer ? true : false
-      };
-      return status;
-    } catch (error) {
-      return {
-        status: 'unhealthy',
-        error: error.message
-      };
+      console.error('Error sending sensor data:', error);
     }
   }
 }
 
-// Health check endpoint for Kubernetes probes
-const http = require('http');
-const sensor = new PlantSensorSimulator();
-
-// Simple HTTP server for health checks
-const server = http.createServer(async (req, res) => {
-  if (req.url === '/health' || req.url === '/') {
-    const health = await sensor.healthCheck();
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(health, null, 2));
-  } else {
-    res.writeHead(404);
-    res.end('Not Found');
-  }
-});
-
-server.listen(8080, () => {
-  console.log('📋 Health check server running on port 8080');
-});
-
 // Start the sensor
+const sensor = new PlantSensorSimulator();
 sensor.start().catch(console.error);
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log(`🛑 Shutting down sensor ${process.env.PLANT_ID}...`);
-  try {
-    await sensor.producer.disconnect();
-    server.close();
-    console.log('✅ Sensor shutdown complete');
-  } catch (error) {
-    console.error('❌ Error during shutdown:', error);
-  }
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  console.log(`🛑 Received SIGTERM, shutting down sensor ${process.env.PLANT_ID}...`);
-  try {
-    await sensor.producer.disconnect();
-    server.close();
-    console.log('✅ Sensor shutdown complete');
-  } catch (error) {
-    console.error('❌ Error during shutdown:', error);
-  }
+  console.log(`Shutting down sensor ${process.env.PLANT_ID}...`);
+  await sensor.producer.disconnect();
   process.exit(0);
 });

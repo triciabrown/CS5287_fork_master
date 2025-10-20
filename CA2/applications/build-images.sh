@@ -14,7 +14,8 @@ NC='\033[0m' # No Color
 # Configuration - Update these as needed
 DOCKER_REGISTRY="docker.io"
 DOCKER_NAMESPACE="triciab221"  # Your Docker Hub username
-IMAGE_VERSION="v1.0.0"
+VERSION_TAG="v1.0.0"
+PUSH_IMAGES="${PUSH_IMAGES:-auto}"  # auto, true, false
 
 # Check if namespace is still default
 if [[ "$DOCKER_NAMESPACE" == "cs5287" ]]; then
@@ -50,7 +51,7 @@ echo "Version: $VERSION_TAG"
 echo ""
 
 # Build Sensor Image
-echo -e "${YELLOW}� Building Plant Sensor Image${NC}"
+echo -e "${YELLOW}🌱 Building Plant Sensor Image${NC}"
 cd sensor/
 docker build -t $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:$VERSION_TAG .
 docker tag $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:$VERSION_TAG $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:latest
@@ -59,7 +60,7 @@ echo -e "${GREEN}✅ Sensor image built successfully${NC}"
 cd ..
 
 # Build Processor Image
-echo -e "${YELLOW}⚙️ Building Processor Image${NC}"
+echo -e "${YELLOW}⚙️  Building Processor Image${NC}"
 cd processor/
 docker build -t $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:$VERSION_TAG .
 docker tag $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:$VERSION_TAG $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:latest
@@ -69,45 +70,66 @@ cd ..
 
 echo ""
 echo -e "${YELLOW}📦 Images Built:${NC}"
-docker images | grep -E "(plant-producer|plant-processor)"
+docker images | grep -E "(plant-sensor|plant-processor)"
 
 echo ""
-echo -e "${BLUE}🚀 Push Images to Registry${NC}"
-echo "=========================="
 
-# Check if logged into Docker registry
-if ! docker info | grep -q "Username:"; then
-    echo -e "${YELLOW}⚠️  Not logged into Docker registry. Please run:${NC}"
-    echo "docker login"
+# Determine if we should push
+SHOULD_PUSH=false
+
+if [ "$PUSH_IMAGES" = "true" ]; then
+    SHOULD_PUSH=true
+elif [ "$PUSH_IMAGES" = "false" ]; then
+    SHOULD_PUSH=false
+    echo -e "${YELLOW}⚠️  Image push disabled (PUSH_IMAGES=false)${NC}"
+    echo -e "${BLUE}Images are built locally only${NC}"
     echo ""
-    echo -e "${YELLOW}Then re-run this script to push images.${NC}"
-    echo ""
-    echo -e "${BLUE}To use images locally without registry:${NC}"
-    echo "1. Update plant-monitoring-manifests.yaml image references to:"
-    echo "   - image: $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-producer:$VERSION_TAG"
-    echo "   - image: $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:$VERSION_TAG"
-    echo "2. Add 'imagePullPolicy: Never' to use local images"
-    exit 0
+elif [ "$PUSH_IMAGES" = "auto" ]; then
+    # Auto mode: check if logged in
+    if docker info 2>/dev/null | grep -q "Username:"; then
+        SHOULD_PUSH=true
+    else
+        SHOULD_PUSH=false
+        echo -e "${YELLOW}⚠️  Not logged into Docker registry${NC}"
+        echo -e "${BLUE}Images are built locally only${NC}"
+        echo ""
+        echo -e "${YELLOW}To push images to Docker Hub:${NC}"
+        echo "  1. docker login"
+        echo "  2. PUSH_IMAGES=true ./build-images.sh"
+        echo ""
+    fi
 fi
 
-# Push images
-echo "Pushing sensor image..."
-docker push $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:$VERSION_TAG
-docker push $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:latest
-
-echo "Pushing processor image..."
-docker push $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:$VERSION_TAG
-docker push $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:latest
-
-echo ""
-echo -e "${GREEN}🎉 Images successfully pushed to registry!${NC}"
-echo ""
-echo -e "${YELLOW}📝 Images ready for deployment:${NC}"
-echo "Sensor: $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:$VERSION_TAG"
-echo "Processor: $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:$VERSION_TAG"
-echo ""
-echo -e "${BLUE}📝 Next Steps:${NC}"
-echo "1. Update image references in plant-monitoring-manifests.yaml if needed"
-echo "2. Run: ./deploy-production.sh"
-echo ""
-echo -e "${BLUE}Ready for deployment! 🚀${NC}"
+# Push images if requested and logged in
+if [ "$SHOULD_PUSH" = true ]; then
+    echo -e "${BLUE}🚀 Pushing Images to Registry${NC}"
+    echo "=========================="
+    
+    echo "Pushing sensor image..."
+    docker push $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:$VERSION_TAG
+    docker push $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:latest
+    
+    echo "Pushing processor image..."
+    docker push $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:$VERSION_TAG
+    docker push $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:latest
+    
+    echo ""
+    echo -e "${GREEN}🎉 Images successfully pushed to registry!${NC}"
+    echo ""
+    echo -e "${YELLOW}📝 Images available in Docker Hub:${NC}"
+    echo "Sensor:    $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:$VERSION_TAG"
+    echo "Sensor:    $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-sensor:latest"
+    echo "Processor: $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:$VERSION_TAG"
+    echo "Processor: $DOCKER_REGISTRY/$DOCKER_NAMESPACE/plant-processor:latest"
+    echo ""
+    echo -e "${BLUE}📝 Next Steps:${NC}"
+    echo "1. Images are now available in your Docker Hub registry"
+    echo "2. Deploy to Swarm: cd ../plant-monitor-swarm-IaC && ./deploy.sh"
+    echo "3. For multi-node: Worker nodes will pull from Docker Hub automatically"
+else
+    echo -e "${GREEN}✅ Build complete (local images only)${NC}"
+    echo ""
+    echo -e "${BLUE}📝 Next Steps:${NC}"
+    echo "1. For single-node deployment: cd ../plant-monitor-swarm-IaC && ./deploy.sh"
+    echo "2. For multi-node deployment: Push images first with PUSH_IMAGES=true ./build-images.sh"
+fi

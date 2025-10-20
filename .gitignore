@@ -46,6 +46,7 @@ bin/
 # Environment Variables & Secrets
 **/.env
 **/secrets.yml
+**/.credentials
 *.pem
 *.key
 

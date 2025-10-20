@@ -1,6 +1,44 @@
 # CA1 – Infrastructure as Code (IaC)
 ## Smart Plant Monitoring System - Automated Deployment
 
+# GRADING FEEDBACK
+Score breakdown (with additional info considered)
+Idempotency & Reproducibility (25%): 25/25
+Strong evidence of modular Terraform (variables.tf, outputs.tf, modules/), explicit terraform init guidance, and drift detection. Improvement could be the teardown workflow relies on scripted wrappers and manual IAM user hygiene (can break if wrong IAM identity created resources).
+
+Security & Secret Management (15%): 12/15
+AWS Secrets Manager integration, KMS encryption, env-var injection, and no plaintext secrets. Deduction stands for broad IAM policies (AmazonEC2FullAccess, SecretsManagerReadWrite) and world-open ports (22, 8123, 1883). Could be mitigated with least-privilege IAM JSON policies and environment-specific SG presets.
+
+Pipeline Correctness (20%): 20/20
+Kafka, MongoDB, Processor, Home Assistant, and MQTT validated. End-to-end pipeline validated with health_check.yml.  Home Assistant MQTT integration still needs a manual setup step this should be automated.
+
+Documentation & Ease of Use (25%): 25/25
+Excellent README: prerequisites, quick start, modular deployment options, teardown, troubleshooting, architecture diagram, parameterization examples, and Windows/WSL notes. Very strong student-facing documentation.
+
+Cloud-Modality Execution (10%): 9/10
+Full AWS-native constructs: VPC, subnets, NAT gateway, route tables, SG cross-references, Secrets Manager, Elastic IP. Deduction for permissive SG defaults (0.0.0.0/0 SSH + HA exposure).
+
+Automation Quality (5%): 4/5
+Well-structured repo (Terraform modules + Ansible roles, docker-compose per service, archived legacy code). Would earn a perfect score if supported by linting/CI integration (tflint, ansible-lint, pre-commit).
+
+Strengths reaffirmed
+Hybrid IaC separation of concerns: Terraform handles infra/state, Ansible handles config/apps.
+
+Parameterization clearly shown: variables.tf, group_vars/all.yml, outputs → inventory generator.
+
+Documentation at near-professional standard: Quick start, advanced options, troubleshooting, architecture diagrams, “why Terraform+Ansible” rationale.
+
+Evidence of iteration: archived old Ansible-only infra code, now replaced by Terraform modules.
+
+Gaps & improvements (refined)
+Security Groups & IAM: Replace open 0.0.0.0/0 SSH rules with CIDR-restricted ingress or bastion-only; swap broad IAM policies for least-privilege JSON policies.
+
+MQTT Authentication: Add Secrets Manager–managed credentials for the MQTT broker instead of leaving blank.
+
+Automation Completeness: Automate Home Assistant MQTT integration to eliminate manual steps in the smoke test.
+
+Terraform State: Promote S3+DynamoDB backend for state in team settings (documented as an option).
+
 **Goal:** Complete automation of the CA0 manual deployment using Infrastructure as Code - spinning up VMs, installing services, configuring the pipeline, and enabling complete teardown with minimal manual steps.
 
 ---

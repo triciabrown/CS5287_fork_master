@@ -1,5 +1,7 @@
 # Observability in the Cloud
 
+Video: https://youtu.be/xSoPSeQ9fIE
+
 ## Table of Contents
 1. [Introduction](#1-introduction)  
 2. [The Three Pillars](#2-the-three-pillars)  

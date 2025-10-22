@@ -1,4 +1,11 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
 # Observability in the Cloud
+Video: https://youtu.be/xSoPSeQ9fIE
 
 ## 1. Introduction
 - **Observability**: The ability to infer internal system states from external outputs.

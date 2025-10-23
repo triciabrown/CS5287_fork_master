@@ -1,5 +1,7 @@
 # Lecture: Kubernetes Scheduling
 
+Video: https://youtu.be/yxN22T_tp8c
+
 The Kubernetes scheduler (`kube-scheduler`) is responsible for assigning Pods to nodes based on resource requirements, constraints, and policies. Effective scheduling ensures high utilization, performance, and adherence to application-specific placement needs.
 
 ---

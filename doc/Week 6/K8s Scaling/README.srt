@@ -1,0 +1,825 @@
+﻿1
+00:00:02,276 --> 00:00:02,672
+Okay.
+
+2
+00:00:02,672 --> 00:00:05,675
+In this lecture we're
+going to talk about Kubernetes scheduling.
+
+3
+00:00:06,335 --> 00:00:09,701
+Look, take a look at the load
+balancing lecture that we did
+
+4
+00:00:10,196 --> 00:00:13,166
+and realize that scale, scaling
+
+5
+00:00:13,166 --> 00:00:16,169
+and load balancing
+need to work hand in hand,
+
+6
+00:00:16,697 --> 00:00:19,568
+where the load balancer
+has a lot of the metrics
+
+7
+00:00:19,568 --> 00:00:23,627
+that you need in order
+to feed into the scaler and the scaler.
+
+8
+00:00:23,627 --> 00:00:25,376
+When it spins things up,
+
+9
+00:00:25,376 --> 00:00:27,422
+you need to make sure
+that those microservices
+
+10
+00:00:27,422 --> 00:00:29,105
+are being registered
+with the load balancer.
+
+11
+00:00:29,105 --> 00:00:32,075
+So it's a it's a great,
+
+12
+00:00:33,692 --> 00:00:36,728
+integration that that can really, improve
+
+13
+00:00:37,091 --> 00:00:40,721
+resiliency, scalability and reliability.
+
+14
+00:00:41,315 --> 00:00:43,031
+So take a look at that. Okay.
+
+15
+00:00:43,031 --> 00:00:46,595
+So the idea here is that Kubernetes,
+
+16
+00:00:47,618 --> 00:00:50,093
+has the ability to scale up,
+
+17
+00:00:50,093 --> 00:00:54,581
+more pods and more microservices
+to handle the workloads that come
+
+18
+00:00:54,581 --> 00:00:58,739
+and not just scale up, but also scale down
+to save money on resources,
+
+19
+00:00:59,828 --> 00:01:02,831
+because in the cloud you pay,
+
+20
+00:01:02,864 --> 00:01:05,867
+you pay for resources,
+whether they're being used or not.
+
+21
+00:01:05,933 --> 00:01:06,725
+So you want to
+
+22
+00:01:06,725 --> 00:01:10,454
+if you're not using resource, you want to
+tear it down as best as you can.
+
+23
+00:01:10,982 --> 00:01:13,985
+So let's take a look
+at the differences in,
+
+24
+00:01:14,150 --> 00:01:17,153
+scalability opportunities with Kubernetes.
+
+25
+00:01:17,978 --> 00:01:21,278
+So primarily with Kubernetes
+you're talking about pod
+
+26
+00:01:21,971 --> 00:01:25,205
+autoscaling because a pod is
+
+27
+00:01:25,205 --> 00:01:29,627
+where these microservices are running
+or the individual containers are running.
+
+28
+00:01:30,650 --> 00:01:33,653
+Now I can have multiple containers
+running in the same pod.
+
+29
+00:01:34,214 --> 00:01:37,085
+Typically not multiple replicas
+of the same container.
+
+30
+00:01:37,085 --> 00:01:39,890
+That just doesn't give you
+that resilience that you want.
+
+31
+00:01:39,890 --> 00:01:44,906
+But there's helper containers and tasks
+that run in, in, in individual pods.
+
+32
+00:01:44,906 --> 00:01:49,328
+So the idea here is that
+I can adjust the number of pod replicas,
+
+33
+00:01:49,328 --> 00:01:53,453
+meaning I've got the same exact
+microservice running across
+
+34
+00:01:53,453 --> 00:01:56,555
+multiple pods, in, in your cluster.
+
+35
+00:01:56,984 --> 00:01:59,987
+And I can use different metrics
+to determine
+
+36
+00:02:00,020 --> 00:02:02,759
+when to spin up new pods
+and when to tear them down.
+
+37
+00:02:02,759 --> 00:02:07,016
+I normally set a minimum and a maximum,
+and then I can set some kind of,
+
+38
+00:02:07,775 --> 00:02:11,240
+thresholds in
+that are built that I need to do it.
+
+39
+00:02:11,240 --> 00:02:14,606
+I also have the capability
+of doing some custom scheduling there
+
+40
+00:02:14,606 --> 00:02:20,810
+if I want as well, using external metrics
+or whatever the case may be so built in
+
+41
+00:02:20,810 --> 00:02:25,529
+right now, the gun CPU utilization
+is the number one thing that they use.
+
+42
+00:02:27,476 --> 00:02:30,479
+Here's
+an example of this horizontal scaling,
+
+43
+00:02:30,545 --> 00:02:34,505
+which means I'm replicating
+the same pod over and over again
+
+44
+00:02:34,505 --> 00:02:38,366
+so that HPA horizontal pod scheduling.
+
+45
+00:02:38,366 --> 00:02:38,729
+All right.
+
+46
+00:02:38,729 --> 00:02:43,019
+So auto scaling the pods
+horizontally right.
+
+47
+00:02:43,151 --> 00:02:46,154
+In this case here I am
+
+48
+00:02:46,352 --> 00:02:49,355
+defining the minimum number of replicas
+that I have.
+
+49
+00:02:49,685 --> 00:02:53,381
+This gives me reliability and scalability
+right.
+
+50
+00:02:53,711 --> 00:02:54,635
+Minimum replica.
+
+51
+00:02:54,635 --> 00:02:57,275
+And this is two and the maximum is ten.
+
+52
+00:02:57,275 --> 00:03:01,235
+So I put in there exactly
+the range that I want to do it.
+
+53
+00:03:01,598 --> 00:03:05,393
+The goal here is to have it
+the minimum number amount as possible.
+
+54
+00:03:05,393 --> 00:03:08,825
+Most of the schedulers do that already
+where they're, hey,
+
+55
+00:03:09,089 --> 00:03:12,092
+I'm scaling to the minimum amount
+
+56
+00:03:12,323 --> 00:03:14,468
+and I will only max out of the max.
+
+57
+00:03:14,468 --> 00:03:17,471
+And when I can I'm going to drop off.
+
+58
+00:03:19,319 --> 00:03:22,520
+Different replicas
+as I need as I don't need them anymore.
+
+59
+00:03:23,609 --> 00:03:26,744
+So in this case
+here, I'm saying that there is an average
+
+60
+00:03:26,744 --> 00:03:29,813
+utilization that I want to stay at,
+which is 60.
+
+61
+00:03:30,143 --> 00:03:36,149
+Once I go above 60, I'm going to spin up
+another replica to decrease, the,
+
+62
+00:03:37,172 --> 00:03:39,713
+workload across all of the different,
+
+63
+00:03:39,713 --> 00:03:42,716
+pods that I have or microservices
+that I have.
+
+64
+00:03:43,013 --> 00:03:46,313
+When it drops well below that, it's
+
+65
+00:03:46,313 --> 00:03:50,471
+going to start looking at
+can I get rid of a pod or not?
+
+66
+00:03:51,263 --> 00:03:54,266
+So to save up on those resources.
+
+67
+00:03:55,619 --> 00:03:55,916
+Okay.
+
+68
+00:03:55,916 --> 00:03:58,226
+I also have vertical pod autoscaler.
+
+69
+00:03:58,226 --> 00:04:00,305
+Now this is a little bit different
+
+70
+00:04:00,305 --> 00:04:04,001
+because vertical means
+that maybe I have a set of microservices.
+
+71
+00:04:04,298 --> 00:04:05,849
+They're all running in the same pod.
+
+72
+00:04:05,849 --> 00:04:09,941
+Maybe they're running in different pods
+that when I need more,
+
+73
+00:04:10,865 --> 00:04:15,056
+I can, if I, if I have a lot of requests
+coming in that require
+
+74
+00:04:15,287 --> 00:04:18,092
+five different types of microservices,
+
+75
+00:04:18,092 --> 00:04:23,603
+I can scale those up on demand,
+and then I can also evict them,
+
+76
+00:04:23,603 --> 00:04:27,101
+get rid of them as I as
+I don't need them anymore.
+
+77
+00:04:27,530 --> 00:04:27,794
+Right.
+
+78
+00:04:27,794 --> 00:04:33,206
+So there's, lots of options with, the VPA,
+the vertical and pod scaler.
+
+79
+00:04:33,536 --> 00:04:37,661
+I can set up really complex workflows
+that will only create the pods
+
+80
+00:04:37,661 --> 00:04:41,225
+on demand as they need to saving resources
+that go along.
+
+81
+00:04:41,621 --> 00:04:42,743
+I've had some workflows,
+
+82
+00:04:42,743 --> 00:04:46,340
+have over 100 microservices in IT
+that do very specific things.
+
+83
+00:04:46,670 --> 00:04:49,673
+They're more task
+oriented, type of microservices.
+
+84
+00:04:49,970 --> 00:04:52,049
+I don't want those things hanging around.
+
+85
+00:04:52,049 --> 00:04:55,250
+So in this case,
+when they're done, I don't
+
+86
+00:04:55,481 --> 00:04:57,890
+I don't create a new replica of them.
+
+87
+00:04:57,890 --> 00:05:02,378
+And and no one time in the workflow
+or all 100 of them running,
+
+88
+00:05:02,708 --> 00:05:05,744
+probably more like only 5 or 10
+or running at a time.
+
+89
+00:05:06,569 --> 00:05:08,582
+All different microservices.
+
+90
+00:05:08,582 --> 00:05:11,090
+I can have multiple replicas
+and all that stuff.
+
+91
+00:05:11,090 --> 00:05:13,895
+So it's great for stateful workflows,
+
+92
+00:05:13,895 --> 00:05:17,591
+reducing that overprovision
+that, that, can happen sometimes.
+
+93
+00:05:20,891 --> 00:05:21,320
+Okay.
+
+94
+00:05:21,320 --> 00:05:22,970
+Cluster autoscaling.
+
+95
+00:05:22,970 --> 00:05:27,425
+So this is when I'm actually adding
+more nodes to the cluster.
+
+96
+00:05:27,755 --> 00:05:32,704
+This is these tools out there are great
+if my cluster is being overwhelmed
+
+97
+00:05:32,704 --> 00:05:35,014
+and I want to add more nodes
+to the cluster.
+
+98
+00:05:35,014 --> 00:05:39,700
+This ties in a lot with the cloud service
+providers, auto scalers,
+
+99
+00:05:39,733 --> 00:05:44,089
+where I can go and ask those autoscaler
+saying I need more nodes.
+
+100
+00:05:44,815 --> 00:05:47,290
+Those nodes can be dropped in and torn
+
+101
+00:05:47,290 --> 00:05:50,293
+out of the cluster and dynamically,
+
+102
+00:05:50,689 --> 00:05:55,672
+when a node is removed from a cluster,
+it takes some time to bring it back in.
+
+103
+00:05:55,672 --> 00:05:59,995
+So you have to be careful
+that you're not thrashing your cluster
+
+104
+00:06:00,259 --> 00:06:03,724
+by saying, hey, I take that node out
+and I want it back in now.
+
+105
+00:06:03,724 --> 00:06:06,694
+I want it out because I want it back in
+because you're right on a threshold.
+
+106
+00:06:06,694 --> 00:06:09,697
+So be careful
+that when you're setting these things up.
+
+107
+00:06:09,763 --> 00:06:16,132
+But very beneficial, especially for saving
+money on running resources in the cloud.
+
+108
+00:06:16,495 --> 00:06:19,267
+So take a look
+at these cluster arm scalers.
+
+109
+00:06:20,917 --> 00:06:22,864
+All right.
+
+110
+00:06:22,864 --> 00:06:23,458
+Manual.
+
+111
+00:06:23,458 --> 00:06:26,098
+There's there's lots of different ways
+that I can scale.
+
+112
+00:06:26,098 --> 00:06:30,355
+I can force a scale manually by,
+using kube
+
+113
+00:06:30,355 --> 00:06:34,381
+controller scale, deploy me on the back
+end and see how many replicas I want.
+
+114
+00:06:34,711 --> 00:06:36,526
+I can force the number of replicas
+that I want,
+
+115
+00:06:36,526 --> 00:06:39,529
+or I can use cron jobs to say,
+you know what?
+
+116
+00:06:39,826 --> 00:06:40,354
+I know?
+
+117
+00:06:40,354 --> 00:06:43,357
+Every night I run a batch process
+
+118
+00:06:44,380 --> 00:06:49,231
+in my Kubernetes cluster that runs
+all my general ledger accounting stuff.
+
+119
+00:06:49,330 --> 00:06:51,904
+And maybe I know
+
+120
+00:06:51,904 --> 00:06:55,072
+from experience and experimentation
+that I'm going to need,
+
+121
+00:06:55,699 --> 00:06:58,339
+five more clusters during that time
+
+122
+00:06:58,339 --> 00:07:01,342
+so I can set up a cron job
+to handle this for me.
+
+123
+00:07:01,870 --> 00:07:04,477
+And that's a great way to go.
+
+124
+00:07:04,477 --> 00:07:05,434
+I can scale it up,
+
+125
+00:07:05,434 --> 00:07:09,229
+and then when I know they're done,
+I can scale them back down if I want to.
+
+126
+00:07:09,229 --> 00:07:11,209
+Or I can let the autoscaler say, hey,
+
+127
+00:07:12,298 --> 00:07:15,334
+I'm above the I'm below the thresholds
+dramatically.
+
+128
+00:07:15,334 --> 00:07:16,720
+I've been there for a while.
+
+129
+00:07:16,720 --> 00:07:18,403
+I'm going to scale those back down.
+
+130
+00:07:18,403 --> 00:07:22,627
+So there are reasons
+why you would want to preemptively scale
+
+131
+00:07:22,627 --> 00:07:26,224
+up, instead of just waiting
+until you meet the thresholds.
+
+132
+00:07:26,422 --> 00:07:29,425
+And that's to handle big loads
+that you know are coming in.
+
+133
+00:07:31,372 --> 00:07:31,768
+Okay.
+
+134
+00:07:31,768 --> 00:07:35,497
+Best practices,
+make sure that you set reasonable
+
+135
+00:07:35,497 --> 00:07:38,467
+and sensible min and max,
+
+136
+00:07:38,731 --> 00:07:41,734
+replicas that you want, out there.
+
+137
+00:07:42,130 --> 00:07:46,255
+If you leave it wide open
+or you make it the range too large,
+
+138
+00:07:46,585 --> 00:07:51,106
+it will try and do its best to
+to to get, to the maximum number,
+
+139
+00:07:51,799 --> 00:07:54,967
+which you may not want,
+based off of your cost that you have.
+
+140
+00:07:55,297 --> 00:07:55,561
+Yeah.
+
+141
+00:07:55,561 --> 00:07:57,904
+I don't just use CPU utilization.
+
+142
+00:07:57,904 --> 00:07:59,785
+Use other things as well.
+
+143
+00:07:59,785 --> 00:08:02,227
+If you've got applications
+or microservices
+
+144
+00:08:02,227 --> 00:08:06,385
+that don't take a lot of CPU,
+but maybe a lot of IO, well,
+
+145
+00:08:06,847 --> 00:08:09,784
+you could overwhelm a microservice
+that has tons of IO,
+
+146
+00:08:09,784 --> 00:08:13,480
+but not a lot of, memory or a lot of CPU.
+
+147
+00:08:13,810 --> 00:08:17,605
+So take a look
+at how your microservices behave
+
+148
+00:08:17,869 --> 00:08:20,740
+and how you can scale them appropriately.
+
+149
+00:08:20,740 --> 00:08:23,743
+So take advantage
+of those different metrics, right?
+
+150
+00:08:23,908 --> 00:08:26,680
+Avoid rapid fluctuations.
+
+151
+00:08:26,680 --> 00:08:32,554
+And with stabilization windows saying,
+hey, I need to be stable
+
+152
+00:08:32,554 --> 00:08:36,976
+for at least, 10 minutes or 30 minutes,
+whatever the case may be.
+
+153
+00:08:36,976 --> 00:08:40,012
+So you're not thrashing,
+spitting up and tearing down,
+
+154
+00:08:40,243 --> 00:08:43,246
+pods all the time, or adding nodes
+and things like that.
+
+155
+00:08:43,477 --> 00:08:47,437
+Have some slack in there,
+but also make sure that you can handle,
+
+156
+00:08:48,262 --> 00:08:53,245
+you know, big events that are happening
+and pre-scheduled, those with, some,
+
+157
+00:08:53,707 --> 00:08:57,535
+cron jobs or with manual, intervention
+there.
+
+158
+00:08:58,162 --> 00:08:58,822
+Okay.
+
+159
+00:08:58,822 --> 00:09:02,485
+Also, remember that there is startup
+time for pods.
+
+160
+00:09:02,485 --> 00:09:03,640
+They do take some time.
+
+161
+00:09:03,640 --> 00:09:06,346
+So you've got to make sure
+that you build that into things.
+
+162
+00:09:07,369 --> 00:09:08,821
+So if I have
+
+163
+00:09:08,821 --> 00:09:13,507
+maybe my threshold is 50 CPU utilization
+
+164
+00:09:13,804 --> 00:09:16,840
+and my window is a milliseconds.
+
+165
+00:09:18,193 --> 00:09:21,031
+You could spin up
+several replicas of a pod
+
+166
+00:09:21,031 --> 00:09:23,011
+because the new pods hadn't
+come online yet.
+
+167
+00:09:23,011 --> 00:09:25,486
+So be careful. Those sorts of things.
+
+168
+00:09:25,486 --> 00:09:30,436
+Also, make sure that you are monitoring
+scaling events, and you can use
+
+169
+00:09:30,436 --> 00:09:34,099
+an external tool like Prometheus
+or Grafana to do that sort of stuff.
+
+170
+00:09:36,343 --> 00:09:36,937
+All right.
+
+171
+00:09:36,937 --> 00:09:41,293
+Kubernetes has some great, autoscaling,
+highly customizable
+
+172
+00:09:41,293 --> 00:09:44,890
+if you need to both scaling the pods
+themselves
+
+173
+00:09:44,890 --> 00:09:48,058
+and the cluster,
+by adding more nodes to it.
+
+174
+00:09:48,454 --> 00:09:52,546
+Combining HPA, VP and cluster autoscaling
+
+175
+00:09:52,810 --> 00:09:56,539
+should be something in your, architecture
+
+176
+00:09:56,836 --> 00:09:59,839
+to make sure that you understand
+the difference between horizontal
+
+177
+00:09:59,839 --> 00:10:03,271
+scaling and vertical scaling
+and adding more nodes to your cluster.
+
+178
+00:10:03,667 --> 00:10:07,198
+So take take a look at all
+these when you're designing
+
+179
+00:10:07,198 --> 00:10:10,696
+your architecture,
+whether you're in the cloud or on prem.

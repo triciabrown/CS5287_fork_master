@@ -1,5 +1,7 @@
 # Kubernetes Scaling
 
+Video: https://youtu.be/p3f11A3C5BI
+
 Kubernetes provides multiple mechanisms to scale workloads and cluster capacity, ensuring applications handle variable load while optimizing resource usage.
 
 ---

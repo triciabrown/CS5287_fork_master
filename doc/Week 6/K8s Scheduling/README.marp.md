@@ -6,6 +6,7 @@ title: "Kubernetes Scheduling"
 ---
 
 # Kubernetes Scheduling
+Video: https://youtu.be/yxN22T_tp8c
 
 - Scheduler assigns Pods → Nodes
 - Based on resources, constraints, policies

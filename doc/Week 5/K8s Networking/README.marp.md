@@ -7,6 +7,8 @@ title: Kubernetes Networking Primer
 
 # Kubernetes Networking Primer
 
+Video: https://youtu.be/fxXwl9L6hxg
+
 ---
 
 ## Fundamental Model

@@ -7,6 +7,8 @@ title: Kubernetes Architecture Primer
 
 # Kubernetes Architecture Primer
 
+Video: https://youtu.be/6dw5b7oNs40
+
 Kubernetes is a container orchestration platform that automates deployment, scaling, and management of containerized applications.  
 It separates **control-plane components** from **data-plane (worker node) components**.
 

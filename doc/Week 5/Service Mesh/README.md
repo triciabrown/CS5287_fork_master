@@ -6,18 +6,20 @@ A service mesh is an infrastructure layer that manages service-to-service commun
 
 ## Core Components
 
+![ServiceMeshArchitecture-Service_Mesh_Core_Components.png](ServiceMeshArchitecture-Service_Mesh_Core_Components.png)
+
+---
+
+## Core Components (cont)
+
 - **Data Plane (Sidecar Proxies)**  
   Deployed alongside each application container (as a sidecar).
     - Intercepts outbound and inbound traffic.
     - Examples: Envoy, Linkerd2 proxies.
-
 - **Control Plane**  
   Centralized control component that configures and manages proxies.
     - Service discovery, traffic policies, mTLS certificates.
     - Examples: Istio Pilot, Linkerd2 Control Plane.
-
-![ServiceMeshArchitecture-Service_Mesh_Core_Components.png](ServiceMeshArchitecture-Service_Mesh_Core_Components.png)
-
 ---
 
 ## Key Features

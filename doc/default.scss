@@ -71,7 +71,7 @@ hr {
 img {
   background-color: transparent;
   max-width: 100%;
-  height: auto;
+  max-height: 550px;
 }
 
 pre {
@@ -200,12 +200,12 @@ section {
   /* stylelint-disable-next-line scss/at-extend-no-missing-placeholder */
   @extend .markdown-body;
 
-  --h1-color: #246;
+  --h1-color: #ca2;
   --header-footer-color: #{rgba(#666, 0.75)};
-  --heading-strong-color: #48c;
+  --heading-strong-color: #ca2;
   --paginate-color: #777;
-  background-color: white;
-  color: #123456;
+  background-color: #001234;
+  color: #abcdef;
   font-family: 'Roboto', sans-serif;
 
   /*
@@ -232,9 +232,9 @@ section {
 
   &:where(.invert) {
     --h1-color: #cee7ff;
-    --header-footer-color: #{rgba(#999, 0.75)};
-    --heading-strong-color: #7bf;
-    --paginate-color: #999;
+    --header-footer-color: #{rgba(#777, 0.75)};
+    --heading-strong-color: #ca2;
+    --paginate-color: #777;
   }
 
   > *:last-child,
@@ -278,8 +278,8 @@ section {
 /* 2. Float all images and constrain their size */
 section img {
   float: right;
-  max-width: 50%;      /* image won’t exceed 40% of slide width */
-  max-height: calc(100% - 4rem); /* account for slide padding */
+  max-width: 100%;
+  max-height: 550px;
   object-fit: contain;
   margin: 0 1rem 1rem 1rem;
 }
@@ -293,11 +293,11 @@ section::after {
 
 section code {
   font-size: 0.6;
-  color: #000000;
+  color: #ffffff;
   padding: 0.2em 0.4em;
   border-radius: 0.2em;
   font-family: monospace;
 }
 marp-pre {
-  background-color: #ddeeff;
+  background-color: #555555;
 }

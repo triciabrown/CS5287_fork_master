@@ -1,5 +1,7 @@
 # Cloud Load Balancing
 
+Video: https://youtu.be/x9oWl5RQO54
+
 Load balancing distributes incoming traffic across multiple backend servers or services to improve availability, scalability, and performance. Cloud providers offer managed load-balancing services with varying features at Layer 4 (transport) and Layer 7 (application).
 
 ---

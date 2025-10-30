@@ -1,0 +1,12 @@
+@startuml
+participant ChaosTool
+participant Service
+participant Orchestrator
+participant Monitoring
+
+ChaosTool -> Service: Kill Pod
+Service -> Orchestrator: Pod Unhealthy Alert
+Orchestrator -> Orchestrator: Spin up new Pod
+Orchestrator -> Monitoring: Recovery Event
+Monitoring --> ChaosTool: Experiment Success?
+@enduml

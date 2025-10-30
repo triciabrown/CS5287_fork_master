@@ -1,0 +1,18 @@
+@startuml
+
+actor Client
+participant "Service X" as SX
+participant "Payment Gateway" as PG
+
+Client -> SX: Charge \$100
+SX -> PG: POST /charge
+alt PG healthy
+  PG --> SX: 200 OK
+  SX --> Client: Success
+else PG slow/unhealthy
+  PG --> SX: Timeout/Error
+  activate SX
+  SX --> Client: Fallback Response
+  deactivate SX
+end
+@enduml

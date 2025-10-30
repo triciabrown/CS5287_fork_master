@@ -1,0 +1,20 @@
+@startuml
+
+actor Users
+
+node "Load Balancer" {
+  [API Gateway]
+}
+
+cloud "Cluster" {
+  rectangle "Service A\n(in scope)" as A
+  rectangle "Service B\n(out of scope)" as B
+  rectangle "Database\n(out of scope)" as DB
+}
+
+Users --> [API Gateway]
+[API Gateway] --> A
+[API Gateway] --> B
+A --> DB
+
+@enduml

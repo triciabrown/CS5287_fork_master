@@ -1,0 +1,29 @@
+@startuml
+cloud "Region US-East" {
+  [LB-East]
+  [App-East]
+  [DB-East]
+}
+
+cloud "Region EU-West" {
+  [LB-West]
+  [App-West]
+  [DB-West]
+}
+
+node DNS {
+  DNS --> [LB-East]
+  DNS --> [LB-West]
+}
+
+[LB-East] --> [App-East]
+[App-East] --> [DB-East]
+
+[LB-West] --> [App-West]
+[App-West] --> [DB-West]
+
+note right of DNS
+  Weighted routing
+  with health checks
+end note
+@enduml

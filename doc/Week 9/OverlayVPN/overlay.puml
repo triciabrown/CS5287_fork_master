@@ -1,0 +1,58 @@
+@startuml
+
+
+skinparam rectangle {
+  BackgroundColor<<cloud>> LightSkyBlue
+  BackgroundColor<<edge>> LightGreen
+  BorderColor Black
+}
+skinparam circle {
+  BackgroundColor<<overlay>> LightYellow
+  BorderColor Black
+}
+
+' Define cloud components
+rectangle "Cloud Region A" <<cloud>> {
+  node "Compute VM 1" as VM1
+  node "Compute VM 2" as VM2
+}
+
+rectangle "Cloud Region B" <<cloud>> {
+  node "Compute VM 3" as VM3
+  node "Database" as DB
+}
+
+' Define edge components
+rectangle "Edge Site 1" <<edge>> {
+  node "Edge Server 1" as ES1
+  node "IoT Gateway"   as GW1
+}
+
+rectangle "Edge Site 2" <<edge>> {
+  node "Edge Server 2" as ES2
+  node "IoT Sensors"   as SENSORS
+}
+
+' Overlay network & control plane
+node "Overlay VPN\n(Encrypted Mesh)" <<overlay>> as Overlay {
+  node "Control Plane\n(Headscale / ZeroTier Controller)" as Controller
+}
+
+' Data-plane tunnels
+VM1       -[#red]- Overlay
+VM2       -[#red]- Overlay
+VM3       -[#red]- Overlay
+DB        -[#red]- Overlay
+
+Overlay       -[#red]- ES1
+Overlay       -[#red]- GW1
+Overlay       -[#red]- ES2
+Overlay   -[#red]- SENSORS
+
+' Emphasize controller relationships
+Controller -[#blue]-> VM1     : Issues keys/config
+Controller -[#blue]-> ES1     : Issues keys/config
+Controller -[#blue]-> VM3     : Issues keys/config
+Controller -[#blue]-> ES2     : Issues keys/config
+
+@enduml

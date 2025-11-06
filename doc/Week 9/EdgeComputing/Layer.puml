@@ -1,0 +1,41 @@
+@startuml
+skinparam layerTitleBackgroundColor LightBlue
+skinparam layerBorderColor Black
+
+package "Physical Layer" as phys {
+  [Data Centers]
+  [Racks]
+  [Networking Hardware]
+}
+
+package "Virtualization Layer" as virt {
+  [Hypervisors\n(Xen, KVM)]
+  [Containers\n(Docker)]
+}
+
+package "Management & Orchestration" as mgmt {
+  [Kubernetes]
+  [OpenStack]
+  [vSphere]
+}
+
+package "Middleware & Services" as middleware {
+  [Databases]
+  [Message Buses]
+  [IAM]
+  [Monitoring]
+}
+
+package "Application Layer" as app {
+  [Microservices]
+  [Serverless Functions]
+  [Web/Mobile UIs]
+}
+
+' Relationships
+phys --> virt : provides hardware for
+virt --> mgmt : hosts & isolates
+mgmt --> middleware : deploys & configures
+middleware --> app : backend for
+
+@enduml

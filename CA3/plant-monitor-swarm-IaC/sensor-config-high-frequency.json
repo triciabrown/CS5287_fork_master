@@ -1,0 +1,23 @@
+{
+  "sensors": [
+    {
+      "plantId": "plant-001",
+      "plantType": "monstera",
+      "location": "Living Room",
+      "sensorInterval": 1
+    },
+    {
+      "plantId": "plant-002",
+      "plantType": "sansevieria",
+      "location": "Bedroom",
+      "sensorInterval": 1
+    }
+  ],
+  "kafka": {
+    "topic": "plant-sensors",
+    "producerConfig": {
+      "acks": 1,
+      "compression": "snappy"
+    }
+  }
+}

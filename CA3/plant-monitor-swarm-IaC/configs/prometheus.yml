@@ -1,0 +1,114 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'plant-monitor-swarm'
+    environment: 'production'
+
+# Alertmanager configuration (optional - can be added later)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Load alerting rules (can be added later)
+# rule_files:
+#   - "alert_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Plant Sensor Service (will expose metrics on port 9091)
+  - job_name: 'plant-sensor'
+    dns_sd_configs:
+      - names:
+          - 'tasks.plant-monitoring_sensor'
+        type: 'A'
+        port: 9091
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - source_labels: [__address__]
+        regex: '(.+):.*'
+        target_label: node_ip
+        replacement: '$1'
+      - target_label: service_name
+        replacement: 'Plant Sensor'
+      - target_label: component
+        replacement: 'application'
+
+  # Plant Processor Service (will expose metrics on port 9091)
+  - job_name: 'plant-processor'
+    dns_sd_configs:
+      - names:
+          - 'tasks.plant-monitoring_processor'
+        type: 'A'
+        port: 9091
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - source_labels: [__address__]
+        regex: '(.+):.*'
+        target_label: node_ip
+        replacement: '$1'
+      - target_label: service_name
+        replacement: 'Plant Processor'
+      - target_label: component
+        replacement: 'application'
+
+  # Kafka Exporter
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['monitoring_kafka-exporter:9308']
+    relabel_configs:
+      - target_label: service_name
+        replacement: 'Kafka Broker'
+      - target_label: component
+        replacement: 'messaging'
+
+  # MongoDB Exporter
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['monitoring_mongodb-exporter:9216']
+    relabel_configs:
+      - target_label: service_name
+        replacement: 'MongoDB Database'
+      - target_label: component
+        replacement: 'database'
+
+  # Node Exporter (system metrics from all nodes)
+  - job_name: 'node'
+    dns_sd_configs:
+      - names:
+          - 'tasks.node-exporter'
+        type: 'A'
+        port: 9100
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.+):.*'
+        target_label: node_ip
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: '10\.10\.1\..*'
+        target_label: node_role
+        replacement: 'manager'
+      - source_labels: [__address__]
+        regex: '10\.10\.2\..*'
+        target_label: node_role
+        replacement: 'worker'
+      - source_labels: [node_ip, node_role]
+        separator: '-'
+        target_label: instance
+        replacement: '$1-$2'
+      - target_label: service_name
+        replacement: 'Node Exporter'
+      - target_label: component
+        replacement: 'infrastructure'
+
+  # Docker Swarm metrics (if available)
+  - job_name: 'dockerd'
+    static_configs:
+      - targets: []  # Can be populated with Docker daemon metrics if enabled

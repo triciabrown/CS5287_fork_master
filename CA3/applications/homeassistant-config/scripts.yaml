@@ -1,0 +1,12 @@
+# Plant Management Scripts
+# Custom scripts for plant care
+
+# Add your plant care scripts here
+# Example:
+# water_all_plants:
+#   alias: "Water All Plants"
+#   sequence:
+#     - service: persistent_notification.create
+#       data:
+#         title: "Plant Care"
+#         message: "Remember to water all plants!"

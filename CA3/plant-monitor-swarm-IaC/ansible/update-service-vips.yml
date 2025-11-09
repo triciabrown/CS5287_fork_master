@@ -1,0 +1,116 @@
+---
+# Ansible playbook to update docker-compose.yml with actual VIPs after initial deployment
+# This solves the problem of VIPs changing between deployments
+
+- name: Update Service Connection Strings with Actual VIPs
+  hosts: managers
+  gather_facts: yes
+  vars:
+    stack_name: plant-monitoring
+    compose_file: "/tmp/docker-compose-updated.yml"
+    remote_compose_file: "/home/ubuntu/plant-monitor/docker-compose.yml"
+  tasks:
+    - name: Get ZooKeeper VIP
+      shell: |
+        docker service inspect {{ stack_name }}_zookeeper --format '{{ '{{' }}range .Endpoint.VirtualIPs{{ '}}' }}{{ '{{' }}.Addr{{ '}}' }}{{ '{{' }}end{{ '}}' }}' 2>/dev/null | head -1 | cut -d'/' -f1
+      register: zookeeper_vip
+      changed_when: false
+      
+    - name: Get Kafka VIP
+      shell: |
+        docker service inspect {{ stack_name }}_kafka --format '{{ '{{' }}range .Endpoint.VirtualIPs{{ '}}' }}{{ '{{' }}.Addr{{ '}}' }}{{ '{{' }}end{{ '}}' }}' 2>/dev/null | head -1 | cut -d'/' -f1
+      register: kafka_vip
+      changed_when: false
+      
+    - name: Get MongoDB VIP
+      shell: |
+        docker service inspect {{ stack_name }}_mongodb --format '{{ '{{' }}range .Endpoint.VirtualIPs{{ '}}' }}{{ '{{' }}.Addr{{ '}}' }}{{ '{{' }}end{{ '}}' }}' 2>/dev/null | head -1 | cut -d'/' -f1
+      register: mongodb_vip
+      changed_when: false
+      
+    - name: Get Mosquitto VIP
+      shell: |
+        docker service inspect {{ stack_name }}_mosquitto --format '{{ '{{' }}range .Endpoint.VirtualIPs{{ '}}' }}{{ '{{' }}.Addr{{ '}}' }}{{ '{{' }}end{{ '}}' }}' 2>/dev/null | head -1 | cut -d'/' -f1
+      register: mosquitto_vip
+      changed_when: false
+      
+    - name: Display discovered VIPs
+      debug:
+        msg:
+          - "ZooKeeper VIP: {{ zookeeper_vip.stdout }}"
+          - "Kafka VIP: {{ kafka_vip.stdout }}"
+          - "MongoDB VIP: {{ mongodb_vip.stdout }}"
+          - "Mosquitto VIP: {{ mosquitto_vip.stdout }}"
+          
+    - name: Validate all VIPs were found
+      assert:
+        that:
+          - zookeeper_vip.stdout != ""
+          - kafka_vip.stdout != ""
+          - mongodb_vip.stdout != ""
+          - mosquitto_vip.stdout != ""
+        fail_msg: "Failed to retrieve all VIPs. Services may not be running yet."
+        
+    - name: Fetch current docker-compose.yml
+      fetch:
+        src: "{{ remote_compose_file }}"
+        dest: "{{ compose_file }}"
+        flat: yes
+        
+    - name: Update Kafka ZooKeeper connection with actual VIP
+      delegate_to: localhost
+      lineinfile:
+        path: "{{ compose_file }}"
+        regexp: "^(\\s+KAFKA_ZOOKEEPER_CONNECT:).*$"
+        line: "\\1 '{{ zookeeper_vip.stdout }}:2181'  # Auto-updated VIP"
+        backrefs: yes
+        
+    - name: Update Kafka advertised listeners with actual VIP
+      delegate_to: localhost
+      lineinfile:
+        path: "{{ compose_file }}"
+        regexp: "^(\\s+KAFKA_ADVERTISED_LISTENERS:).*$"
+        line: "\\1 'PLAINTEXT://{{ kafka_vip.stdout }}:9092'  # Auto-updated VIP"
+        backrefs: yes
+        
+    - name: Update processor Kafka broker with actual VIP
+      delegate_to: localhost
+      lineinfile:
+        path: "{{ compose_file }}"
+        regexp: "^(\\s+KAFKA_BROKER:).*$"
+        line: "\\1 '{{ kafka_vip.stdout }}:9092'  # Auto-updated VIP"
+        backrefs: yes
+        
+    - name: Update sensor Kafka brokers with actual VIP
+      delegate_to: localhost
+      lineinfile:
+        path: "{{ compose_file }}"
+        regexp: "^(\\s+KAFKA_BROKERS:).*$"
+        line: "\\1 '{{ kafka_vip.stdout }}:9092'  # Auto-updated VIP"
+        backrefs: yes
+        
+    - name: Update processor MQTT broker with actual VIP
+      delegate_to: localhost
+      lineinfile:
+        path: "{{ compose_file }}"
+        regexp: "^(\\s+MQTT_BROKER:).*mqtt://.*$"
+        line: "\\1 'mqtt://{{ mosquitto_vip.stdout }}:1883'  # Auto-updated VIP"
+        backrefs: yes
+        
+    - name: Copy updated docker-compose.yml back to manager
+      copy:
+        src: "{{ compose_file }}"
+        dest: "{{ remote_compose_file }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+        
+    - name: Update the stack with new VIPs
+      shell: |
+        cd /home/ubuntu/plant-monitor
+        docker stack deploy --compose-file docker-compose.yml --prune --resolve-image always {{ stack_name }}
+      register: stack_update
+      
+    - name: Display update result
+      debug:
+        msg: "Stack updated with actual VIPs. Services will restart with correct connection strings."

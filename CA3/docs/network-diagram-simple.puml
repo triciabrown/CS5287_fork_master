@@ -1,0 +1,177 @@
+@startuml Docker Swarm Overlay Network
+!theme plain
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultTextAlignment center
+
+title CA2: Docker Swarm Encrypted Overlay Network Architecture
+
+' Define colors
+!define MANAGER_COLOR #E3F2FD
+!define WORKER_COLOR #FFF9C4
+!define OVERLAY_COLOR #C8E6C9
+!define SECURITY_COLOR #FFCDD2
+
+rectangle "AWS VPC 10.0.0.0/16" as vpc #FAFAFA {
+    
+    ' Public Subnet
+    rectangle "Public Subnet\n10.0.1.0/24" as pub_subnet #F5F5F5 {
+        rectangle "Manager Node\n3.137.188.102" as manager MANAGER_COLOR {
+            card "**Docker Swarm Manager**" as mgr_control
+            card "ZooKeeper" as zoo
+            card "Processor" as proc
+            card "Mosquitto" as mqtt
+            card "Home Assistant\n:8123" as ha
+        }
+    }
+    
+    ' Private Subnet
+    rectangle "Private Subnet\n10.0.2.0/24" as priv_subnet #F5F5F5 {
+        
+        rectangle "Worker 1\n10.0.2.101" as worker1 WORKER_COLOR {
+            card "**Docker Worker**" as w1_ctrl
+            card "Kafka :9092" as kafka
+        }
+        
+        rectangle "Worker 2\n10.0.2.61" as worker2 WORKER_COLOR {
+            card "**Docker Worker**" as w2_ctrl
+            card "MongoDB :27017" as mongo
+        }
+        
+        rectangle "Worker 3\n10.0.2.180" as worker3 WORKER_COLOR {
+            card "**Docker Worker**" as w3_ctrl
+            card "Sensor 1" as sen1
+        }
+        
+        rectangle "Worker 4\n10.0.2.27" as worker4 WORKER_COLOR {
+            card "**Docker Worker**" as w4_ctrl
+            card "Sensor 2" as sen2
+        }
+        
+        cloud "NAT Gateway" as nat #FFE0B2
+    }
+    
+    cloud "Internet Gateway" as igw #FFE0B2
+}
+
+' Overlay Network
+cloud "**Encrypted Overlay Network**\nplant-network\n10.10.0.0/24" as overlay OVERLAY_COLOR {
+    rectangle "**IPsec Encryption**" as ipsec {
+        card "ESP (50)" as esp
+        card "AH (51)" as ah  
+        card "IKE (500)" as ike
+    }
+    
+    rectangle "**Service Discovery**" as sd {
+        card "DNS\n127.0.0.11" as dns
+        card "Load Balancer" as lb
+    }
+    
+    rectangle "**VXLAN**" as vxlan {
+        card "UDP 4789" as vxlan_port
+    }
+}
+
+' Security & Secrets
+rectangle "**Security**" as security SECURITY_COLOR {
+    card "source_dest_check\n= false" as src_dst
+    card "IPsec protocols\nenabled" as ipsec_enabled
+    card "VPC CIDR\nrestricted" as cidr
+}
+
+rectangle "**Docker Secrets**" as secrets #E1BEE7 {
+    card "7 encrypted\nsecrets" as sec_count
+    card "File-based\ninjection" as sec_inject
+}
+
+' External
+actor "User" as user #90CAF9
+
+' Internet connections
+user --> igw : HTTPS
+igw --> manager : 3.137.188.102:8123
+priv_subnet --> nat : Outbound
+nat --> igw : Internet
+
+' Swarm control plane
+mgr_control -[#2196F3,thickness=2]-> w1_ctrl : **Swarm Mgmt**\n2377/tcp
+mgr_control -[#2196F3,thickness=2]-> w2_ctrl : **Swarm Mgmt**\n2377/tcp
+mgr_control -[#2196F3,thickness=2]-> w3_ctrl : **Swarm Mgmt**\n2377/tcp
+mgr_control -[#2196F3,thickness=2]-> w4_ctrl : **Swarm Mgmt**\n2377/tcp
+
+' Overlay network connections
+overlay -[#4CAF50,thickness=3]-> manager : **Encrypted**
+overlay -[#4CAF50,thickness=3]-> worker1 : **Encrypted**
+overlay -[#4CAF50,thickness=3]-> worker2 : **Encrypted**
+overlay -[#4CAF50,thickness=3]-> worker3 : **Encrypted**
+overlay -[#4CAF50,thickness=3]-> worker4 : **Encrypted**
+
+' Application data flow
+sen1 .[#FF5722,thickness=2].> kafka : **Sensor Data**
+sen2 .[#FF5722,thickness=2].> kafka : **Sensor Data**
+kafka .[#FF5722,thickness=2].> proc : **Messages**
+proc .[#FF5722,thickness=2].> mongo : **Store**
+proc .[#FF5722,thickness=2].> mqtt : **Publish**
+mqtt .[#FF5722,thickness=2].> ha : **Subscribe**
+kafka .[#9C27B0,dashed].> zoo : **Coordination**
+
+' Security enforcement
+security .[#F44336,dashed].> overlay : Enforces
+ipsec .[#F44336,dashed].> overlay : Encrypts
+secrets .[#9C27B0,dashed].> mongo : Mounts
+secrets .[#9C27B0,dashed].> proc : Mounts
+
+note top of overlay
+  **Overlay Network Properties:**
+  • Encrypted with IPsec
+  • VXLAN encapsulation (UDP 4789)
+  • Automatic DNS service discovery
+  • Built-in load balancing
+  • Subnet: 10.10.0.0/24
+end note
+
+note bottom of security
+  **Critical AWS Configuration:**
+  • source_dest_check disabled on ALL instances
+  • IPsec protocols (50, 51, UDP 500) in security groups
+  • VXLAN traffic (UDP 4789) allowed
+  • Traffic restricted to VPC CIDR only
+  
+  **Without these fixes:**
+  • VXLAN packets dropped by AWS
+  • IPsec encryption fails
+  • Cross-node DNS resolution broken
+end note
+
+note left of pub_subnet
+  **Manager Node**
+  • Public IP: 3.137.188.102
+  • Controls Swarm cluster
+  • Runs stateful services
+  • Only publicly exposed service: HA
+end note
+
+note right of priv_subnet
+  **Worker Nodes**
+  • Private IPs only (NAT egress)
+  • Run scalable services
+  • Sensors scale 2-5 replicas
+  • Cross-node via overlay network
+end note
+
+legend bottom left
+  **Line Types:**
+  ━━━━ : Physical/Management connections
+  ━━━━ : Encrypted overlay network
+  ····· : Application data flow
+  - - - : Security/Secrets
+  
+  **Scaling Results:**
+  • 2 replicas → 5 replicas
+  • 150% throughput improvement
+  • Perfect linear scaling (2.5x)
+end legend
+
+footer CA2 - Docker Swarm Multi-Node Deployment | Tricia Brown | October 2024
+
+@enduml

@@ -1,0 +1,722 @@
+tricia@Spectre-15:~/dev/CS5287_fork_master/CA3/plant-monitor-swarm-IaC/scripts$ ./resilience-test.sh 
+========================================
+  CA3 Resilience Testing Suite
+========================================
+
+
+This script will run 3 resilience tests:
+  1. Container failure (kill sensor, observe auto-restart)
+  2. Rolling update (force update processor)
+  3. Scaling test (scale up/down)
+  4. Operator response (logs and troubleshooting)
+
+Manager IP: 52.14.239.94
+SSH Key: ~/.ssh/docker-swarm-key
+
+Press Enter to start tests (or Ctrl+C to cancel)...
+
+TEST 1: Container Failure & Auto-Recovery
+===========================================
+
+Step 1: Checking current service state...
+-------------------------------------------
+ID             NAME                             MODE         REPLICAS   IMAGE                                   PORTS
+p4hvcrly60lb   plant-monitoring_processor       replicated   1/1        triciab221/plant-processor:v1.2.0-ca3   
+rlcy2m3ycy7x   plant-monitoring_sensor          replicated   2/2        triciab221/plant-sensor:v1.1.0-ca3      
+
+Step 2: Viewing running sensor tasks...
+-------------------------------------------
+NAME                        NODE            CURRENT STATE
+plant-monitoring_sensor.1   ip-10-0-2-156   Running 43 minutes ago
+plant-monitoring_sensor.2   ip-10-0-2-136   Running 43 minutes ago
+
+Step 3: Simulating container failure...
+-------------------------------------------
+Note: Since sensors run on worker nodes, we'll simulate failure
+by removing a task and watching Swarm auto-recover.
+
+Current running tasks: 2
+
+Step 4: Forcing service update to trigger task restart...
+-------------------------------------------
+This simulates a container crash by forcing a rolling restart.
+plant-monitoring_sensor
+overall progress: 0 out of 2 tasks
+1/2:  
+2/2:  
+overall progress: 0 out of 2 tasks
+✗ Service update triggered (tasks will be replaced)
+
+Step 5: Observing rolling restart and auto-recovery (15 seconds)...
+-------------------------------------------
+15... 14... 13... 12... 11... 10... 9... 8... 7... 6... 5... 4... 3... 2... 1... 
+
+Step 6: Observing task transitions...
+-------------------------------------------
+This shows old tasks shutting down and new tasks starting:
+NAME                            NODE            DESIRED STATE   CURRENT STATE             ERROR
+plant-monitoring_sensor.1       ip-10-0-2-7     Running         Running 12 seconds ago    
+ \_ plant-monitoring_sensor.1   ip-10-0-2-156   Shutdown        Shutdown 12 seconds ago   
+ \_ plant-monitoring_sensor.1   ip-10-0-2-171   Shutdown        Shutdown 43 minutes ago   
+ \_ plant-monitoring_sensor.1   ip-10-0-2-156   Shutdown        Shutdown 43 minutes ago   
+ \_ plant-monitoring_sensor.1   ip-10-0-2-171   Shutdown        Shutdown 51 minutes ago   
+ \_ plant-monitoring_sensor.1   ip-10-0-2-156   Shutdown        Shutdown 52 minutes ago   
+ \_ plant-monitoring_sensor.1   ip-10-0-2-171   Shutdown        Shutdown 53 minutes ago   
+ \_ plant-monitoring_sensor.1   ip-10-0-2-136   Shutdown        Shutdown 54 minutes ago   
+ \_ plant-monitoring_sensor.1   ip-10-0-2-136   Shutdown        Failed 3 hours ago        "task: non-zero exit (1)"
+plant-monitoring_sensor.2       ip-10-0-2-171   Running         Running 12 seconds ago    
+ \_ plant-monitoring_sensor.2   ip-10-0-2-136   Shutdown        Shutdown 12 seconds ago   
+ \_ plant-monitoring_sensor.2   ip-10-0-2-7     Shutdown        Shutdown 43 minutes ago   
+ \_ plant-monitoring_sensor.2   ip-10-0-2-136   Shutdown        Shutdown 43 minutes ago   
+ \_ plant-monitoring_sensor.2   ip-10-0-2-7     Shutdown        Shutdown 51 minutes ago   
+
+Step 7: Verifying service recovered to desired state...
+-------------------------------------------
+rlcy2m3ycy7x   plant-monitoring_sensor          replicated   2/2        triciab221/plant-sensor:v1.1.0-ca3      
+
+NAME                        NODE            CURRENT STATE
+plant-monitoring_sensor.1   ip-10-0-2-7     Running 13 seconds ago
+plant-monitoring_sensor.2   ip-10-0-2-171   Running 13 seconds ago
+
+✓ Test 1 Complete: Container auto-recovered
+
+
+Press Enter to continue to next test...
+
+
+TEST 2: Graceful Rolling Update
+===========================================
+
+Step 1: Current processor state...
+-------------------------------------------
+NAME                           NODE           CURRENT STATE
+plant-monitoring_processor.1   ip-10-0-1-98   Running 3 hours ago
+
+Step 2: Triggering rolling update (force restart)...
+-------------------------------------------
+plant-monitoring_processor
+overall progress: 0 out of 1 tasks
+1/1:  
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 3 nodes; insuffi…
+overall progress: 0 out of 1 tasks
+overall progress: 0 out of 1 tasks
+overall progress: 0 out of 1 tasks
+overall progress: 0 out of 1 tasks
+overall progress: 0 out of 1 tasks
+overall progress: 0 out of 1 tasks
+overall progress: 1 out of 1 tasks
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Service plant-monitoring_processor converged
+
+Step 3: Waiting for update to complete (15 seconds)...
+-------------------------------------------
+15... 14... 13... 12... 11... 10... 9... 8... 7... 6... 5... 4... 3... 2... 1... 
+
+Step 4: Task history (showing graceful shutdown)...
+-------------------------------------------
+NAME                               NODE           DESIRED STATE   CURRENT STATE
+plant-monitoring_processor.1       ip-10-0-1-98   Running         Running 21 seconds ago
+ \_ plant-monitoring_processor.1   ip-10-0-1-98   Shutdown        Shutdown 22 seconds ago
+ \_ plant-monitoring_processor.1   ip-10-0-1-98   Shutdown        Failed 3 hours ago
+
+Step 5: Verifying service is healthy...
+-------------------------------------------
+p4hvcrly60lb   plant-monitoring_processor       replicated   1/1        triciab221/plant-processor:v1.2.0-ca3   
+
+✓ Test 2 Complete: Rolling update successful
+
+
+Press Enter to continue to next test...
+
+
+TEST 3: Rapid Scaling (Up and Down)
+===========================================
+
+Step 1: Current replica count...
+-------------------------------------------
+Current: 2/2
+
+Step 2: Scaling up to 4 replicas...
+-------------------------------------------
+plant-monitoring_sensor scaled to 4
+overall progress: 0 out of 4 tasks
+1/4:  
+2/4:  
+3/4:  
+4/4:  
+overall progress: 2 out of 4 tasks
+overall progress: 2 out of 4 tasks
+overall progress: 2 out of 4 tasks
+overall progress: 2 out of 4 tasks
+overall progress: 4 out of 4 tasks
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Service plant-monitoring_sensor converged
+
+Step 3: Waiting for scale-up to converge (15 seconds)...
+-------------------------------------------
+15... 14... 13... 12... 11... 10... 9... 8... 7... 6... 5... 4... 3... 2... 1... 
+
+Step 4: Verifying scaled state...
+-------------------------------------------
+rlcy2m3ycy7x   plant-monitoring_sensor          replicated   4/4        triciab221/plant-sensor:v1.1.0-ca3      
+
+NAME                        NODE            CURRENT STATE
+plant-monitoring_sensor.1   ip-10-0-2-7     Running about a minute ago
+plant-monitoring_sensor.2   ip-10-0-2-171   Running about a minute ago
+plant-monitoring_sensor.3   ip-10-0-2-136   Running 22 seconds ago
+plant-monitoring_sensor.4   ip-10-0-2-156   Running 21 seconds ago
+
+Step 5: Scaling down to 2 replicas...
+-------------------------------------------
+plant-monitoring_sensor scaled to 2
+overall progress: 0 out of 2 tasks
+1/2:  
+2/2:  
+overall progress: 2 out of 2 tasks
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 5 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 4 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 3 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 2 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Waiting 1 seconds to verify that tasks are stable...
+verify: Service plant-monitoring_sensor converged
+
+Step 6: Waiting for scale-down (10 seconds)...
+-------------------------------------------
+10... 9... 8... 7... 6... 5... 4... 3... 2... 1... 
+
+Step 7: Verifying return to baseline...
+-------------------------------------------
+rlcy2m3ycy7x   plant-monitoring_sensor          replicated   2/2        triciab221/plant-sensor:v1.1.0-ca3      
+
+✓ Test 3 Complete: Scaling operations successful
+
+
+Press Enter to see operator response...
+
+
+OPERATOR RESPONSE: Troubleshooting Steps
+===========================================
+
+Step 1: Check for recent failures...
+-------------------------------------------
+NAME                            DESIRED STATE   CURRENT STATE                 ERROR
+plant-monitoring_sensor.1       Shutdown        Shutdown about a minute ago   
+ \_ plant-monitoring_sensor.1   Shutdown        Shutdown 45 minutes ago       
+ \_ plant-monitoring_sensor.1   Shutdown        Shutdown 45 minutes ago       
+ \_ plant-monitoring_sensor.1   Shutdown        Shutdown 53 minutes ago       
+ \_ plant-monitoring_sensor.1   Shutdown        Shutdown 54 minutes ago       
+ \_ plant-monitoring_sensor.1   Shutdown        Shutdown 55 minutes ago       
+ \_ plant-monitoring_sensor.1   Shutdown        Shutdown 56 minutes ago       
+ \_ plant-monitoring_sensor.1   Shutdown        Failed 3 hours ago            "task: non-zero exit (1)"
+plant-monitoring_sensor.2       Shutdown        Shutdown about a minute ago   
+
+Step 2: View recent service logs...
+-------------------------------------------
+2025-11-08T23:40:51.019593824Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '28.3', light: '39', temp: '16.4', humidity: '44.5' }
+2025-11-08T23:40:52.020598736Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '32.7', light: '82', temp: '18.0', humidity: '38.8' }
+2025-11-08T23:40:53.021219904Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '27.9', light: '42', temp: '17.3', humidity: '36.7' }
+2025-11-08T23:40:54.022957828Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '23.9', light: '5', temp: '16.4', humidity: '42.1' }
+2025-11-08T23:40:55.021988293Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '32.8', light: '26', temp: '17.6', humidity: '44.5' }
+2025-11-08T23:40:56.023506043Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '26.0', light: '23', temp: '17.8', humidity: '38.2' }
+2025-11-08T23:40:57.022902402Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '27.0', light: '81', temp: '18.0', humidity: '37.0' }
+2025-11-08T23:40:58.022956349Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '31.9', light: '17', temp: '17.7', humidity: '44.1' }
+2025-11-08T23:40:59.022451779Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '33.0', light: '86', temp: '16.3', humidity: '37.0' }
+2025-11-08T23:41:00.022794298Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '31.3', light: '99', temp: '18.0', humidity: '37.7' }
+2025-11-08T23:41:00.794206092Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm error path /usr/src/app
+2025-11-08T23:41:00.794271800Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm error command failed
+2025-11-08T23:41:00.794279629Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm error signal SIGTERM
+2025-11-08T23:41:00.794283584Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm error command sh -c node sensor.js
+2025-11-08T23:41:00.798454068Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm notice
+2025-11-08T23:41:00.798468562Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:41:00.798473684Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:41:00.798477685Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:41:00.798481750Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm notice
+2025-11-08T23:41:00.799966785Z plant-monitoring_sensor.1.ljt3ypwfetq0@ip-10-0-2-156    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_33_12_401Z-debug-0.log
+2025-11-08T23:31:44.443156349Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '29.3', light: '4', temp: '17.2', humidity: '44.8' }
+2025-11-08T23:31:45.443635066Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '27.1', light: '6', temp: '16.7', humidity: '38.2' }
+2025-11-08T23:31:46.444548585Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '33.4', light: '17', temp: '17.8', humidity: '36.4' }
+2025-11-08T23:31:47.444358408Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '33.5', light: '25', temp: '16.5', humidity: '39.4' }
+2025-11-08T23:31:48.444591104Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '26.6', light: '13', temp: '17.7', humidity: '40.2' }
+2025-11-08T23:31:49.444666868Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '29.9', light: '79', temp: '17.3', humidity: '44.2' }
+2025-11-08T23:31:50.444151015Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '28.8', light: '74', temp: '17.6', humidity: '42.7' }
+2025-11-08T23:31:51.443606544Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '28.4', light: '40', temp: '16.2', humidity: '41.8' }
+2025-11-08T23:31:52.444112291Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '27.8', light: '46', temp: '16.8', humidity: '44.3' }
+2025-11-08T23:31:53.444776434Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '27.7', light: '4', temp: '17.9', humidity: '40.7' }
+2025-11-08T23:31:54.912201681Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm error path /usr/src/app
+2025-11-08T23:31:54.912221885Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm error command failed
+2025-11-08T23:31:54.912226657Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm error signal SIGTERM
+2025-11-08T23:31:54.912230285Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm error command sh -c node sensor.js
+2025-11-08T23:31:54.916402157Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm notice
+2025-11-08T23:31:54.916414859Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:31:54.916419932Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:31:54.916423610Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:31:54.916427306Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm notice
+2025-11-08T23:31:54.917663020Z plant-monitoring_sensor.1.wwpnhl4057cc@ip-10-0-2-156    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_31_03_105Z-debug-0.log
+2025-11-09T00:17:18.324768600Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '25.4', light: '22', temp: '17.7', humidity: '40.4' }
+2025-11-09T00:18:03.326060351Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '32.9', light: '55', temp: '17.1', humidity: '44.3' }
+2025-11-09T00:18:48.324774242Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '31.5', light: '41', temp: '17.4', humidity: '41.6' }
+2025-11-09T00:19:33.324231997Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '29.7', light: '91', temp: '17.4', humidity: '43.8' }
+2025-11-09T00:20:18.324464873Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '27.2', light: '74', temp: '16.7', humidity: '35.5' }
+2025-11-09T00:21:03.324842595Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '32.3', light: '43', temp: '17.0', humidity: '40.2' }
+2025-11-09T00:21:48.324775637Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '34.6', light: '25', temp: '17.2', humidity: '39.7' }
+2025-11-09T00:22:33.324766340Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '31.6', light: '7', temp: '16.3', humidity: '39.6' }
+2025-11-09T00:23:18.327597839Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '26.1', light: '21', temp: '17.5', humidity: '39.9' }
+2025-11-09T00:24:03.324786282Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | Sent sensor data for plant-002: { moisture: '26.1', light: '73', temp: '17.6', humidity: '35.4' }
+2025-11-08T23:30:20.900213520Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | 
+2025-11-08T23:30:21.697012281Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | ⚠️  No config file found, using environment variables
+2025-11-08T23:30:21.705144390Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | 🌱 Initializing sensor for plant-default (monstera) at Unknown
+2025-11-08T23:30:21.705357570Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-08T23:30:21.705522774Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | ⏱️  Sensor interval: 30 seconds
+2025-11-08T23:30:21.749850961Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | 🚀 Starting sensor simulation for plant-default
+2025-11-08T23:30:21.778184081Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | 📊 Metrics server listening on port 9091
+2025-11-08T23:30:21.815128216Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | Sent sensor data for plant-default: { moisture: '44.3', light: '79', temp: '18.6', humidity: '50.9' }
+2025-11-08T23:30:51.820148125Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | Sent sensor data for plant-default: { moisture: '49.8', light: '84', temp: '18.5', humidity: '48.2' }
+2025-11-09T00:24:42.128446772Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | 
+2025-11-09T00:24:42.128488047Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | > plant-sensor-simulator@1.0.0 start
+2025-11-09T00:24:42.128494043Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | > node sensor.js
+2025-11-09T00:24:42.128497710Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | 
+2025-11-09T00:24:42.744165079Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | ✅ Loaded config from /app/sensor-config.json
+2025-11-09T00:24:42.744821797Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | 📋 Using sensor config index 0: plant-001
+2025-11-09T00:24:42.752943802Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | 🌱 Initializing sensor for plant-001 (monstera) at Living Room
+2025-11-09T00:24:42.753102805Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-09T00:24:42.753289293Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | ⏱️  Sensor interval: 30 seconds
+2025-11-09T00:24:42.809296568Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | 🚀 Starting sensor simulation for plant-001
+2025-11-09T00:24:42.837191659Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | 📊 Metrics server listening on port 9091
+2025-11-09T00:24:44.207319794Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '45.1', light: '16', temp: '19.8', humidity: '54.9' }
+2025-11-09T00:25:14.209103760Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '47.8', light: '2', temp: '19.3', humidity: '52.9' }
+2025-11-09T00:25:44.210283999Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '47.8', light: '35', temp: '19.8', humidity: '50.0' }
+2025-11-09T00:26:14.209632184Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '48.4', light: '6', temp: '19.6', humidity: '48.1' }
+2025-11-08T23:25:29.767461351Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '44.2', light: '32', temp: '19.7', humidity: '51.7' }
+2025-11-08T23:25:59.768056644Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '46.3', light: '44', temp: '18.5', humidity: '54.0' }
+2025-11-08T23:26:29.767547027Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '45.2', light: '21', temp: '19.0', humidity: '47.3' }
+2025-11-08T23:26:59.768871624Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '47.5', light: '47', temp: '19.2', humidity: '45.3' }
+2025-11-08T23:27:29.768470421Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '50.7', light: '29', temp: '18.7', humidity: '49.6' }
+2025-11-08T23:27:59.767199779Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '50.9', light: '66', temp: '18.1', humidity: '48.7' }
+2025-11-08T23:28:29.769083349Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '52.3', light: '12', temp: '19.6', humidity: '45.1' }
+2025-11-08T23:28:59.769030662Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '52.3', light: '0', temp: '19.0', humidity: '48.1' }
+2025-11-08T23:29:29.768314501Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '46.3', light: '75', temp: '19.3', humidity: '47.9' }
+2025-11-08T23:29:59.767705834Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | Sent sensor data for plant-001: { moisture: '51.6', light: '98', temp: '19.1', humidity: '52.2' }
+2025-11-08T23:41:03.024481567Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | ⚠️  No config file found, using environment variables
+2025-11-08T23:41:03.035376702Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | 🌱 Initializing sensor for plant-default (monstera) at Unknown
+2025-11-08T23:41:03.035598398Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-08T23:41:03.035735552Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | ⏱️  Sensor interval: 30 seconds
+2025-11-08T23:41:04.324320071Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | 🚀 Starting sensor simulation for plant-default
+2025-11-08T23:41:04.339205772Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | 📊 Metrics server listening on port 9091
+2025-11-08T23:41:04.370535625Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | Sent sensor data for plant-default: { moisture: '47.3', light: '6', temp: '19.2', humidity: '48.4' }
+2025-11-08T23:31:57.185354838Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | ⚠️  No config file found, using environment variables
+2025-11-08T23:31:57.193019522Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | 🌱 Initializing sensor for plant-default (monstera) at Unknown
+2025-11-08T23:31:57.193270719Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-08T23:31:57.193446570Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | ⏱️  Sensor interval: 30 seconds
+2025-11-08T23:31:57.248664693Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | 🚀 Starting sensor simulation for plant-default
+2025-11-08T23:31:57.274573972Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | 📊 Metrics server listening on port 9091
+2025-11-08T23:31:57.308410554Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | Sent sensor data for plant-default: { moisture: '46.2', light: '97', temp: '18.1', humidity: '46.3' }
+2025-11-08T23:32:27.314240890Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | Sent sensor data for plant-default: { moisture: '48.4', light: '29', temp: '18.8', humidity: '54.6' }
+2025-11-08T23:32:57.310873493Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | Sent sensor data for plant-default: { moisture: '45.2', light: '1', temp: '19.2', humidity: '45.3' }
+2025-11-08T23:31:37.431212438Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | > plant-sensor-simulator@1.0.0 start
+2025-11-08T23:31:37.431221683Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | > node sensor.js
+2025-11-08T23:31:37.431225420Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | 
+2025-11-08T23:31:37.930597109Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | ✅ Loaded config from /app/sensor-config.json
+2025-11-08T23:31:37.931349673Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | 📋 Using sensor config index 2: plant-003
+2025-11-08T23:31:37.938922103Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | 🌱 Initializing sensor for plant-003 (pothos) at Kitchen
+2025-11-08T23:31:37.939167619Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-08T23:31:37.940277501Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | ⏱️  Sensor interval: 1 seconds
+2025-11-08T23:31:37.988787929Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | 🚀 Starting sensor simulation for plant-003
+2025-11-09T00:24:40.524212994Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm error path /usr/src/app
+2025-11-09T00:24:40.524237881Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm error command failed
+2025-11-09T00:24:40.524285567Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm error signal SIGTERM
+2025-11-09T00:24:40.524293936Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm error command sh -c node sensor.js
+2025-11-09T00:24:40.528960008Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm notice
+2025-11-09T00:24:40.528974650Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-09T00:24:40.528980600Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-09T00:24:40.528985416Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-09T00:24:40.529001290Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm notice
+2025-11-09T00:24:40.530316161Z plant-monitoring_sensor.1.90j5nt9axrhn@ip-10-0-2-156    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_41_16_964Z-debug-0.log
+2025-11-08T23:30:21.703096336Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | {"level":"WARN","timestamp":"2025-11-08T23:30:21.702Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-08T23:31:02.069346855Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm error path /usr/src/app
+2025-11-08T23:31:02.069371312Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm error command failed
+2025-11-08T23:31:02.069376913Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm error signal SIGTERM
+2025-11-08T23:31:02.069961478Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm error command sh -c node sensor.js
+2025-11-08T23:31:02.074424947Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm notice
+2025-11-08T23:31:02.074439399Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:31:02.074445106Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:31:02.074450026Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:31:02.074454663Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm notice
+2025-11-08T23:31:02.075725289Z plant-monitoring_sensor.1.edq7jkvtvb95@ip-10-0-2-171    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_30_20_009Z-debug-0.log
+2025-11-09T00:24:42.750969112Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | {"level":"WARN","timestamp":"2025-11-09T00:24:42.750Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-09T00:24:43.841607568Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | {"level":"ERROR","timestamp":"2025-11-09T00:24:43.840Z","logger":"kafkajs","message":"[Connection] Connection timeout","broker":"kafka:9092","clientId":"plant-sensor-plant-001"}
+2025-11-09T00:24:43.847251033Z plant-monitoring_sensor.2.no7g8261qddu@ip-10-0-2-171    | {"level":"ERROR","timestamp":"2025-11-09T00:24:43.846Z","logger":"kafkajs","message":"[Producer] Failed to send messages: Connection timeout","retryCount":0,"retryTime":324}
+2025-11-08T23:30:18.819342574Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm error path /usr/src/app
+2025-11-08T23:30:18.819368478Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm error command failed
+2025-11-08T23:30:18.819414951Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm error signal SIGTERM
+2025-11-08T23:30:18.819422564Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm error command sh -c node sensor.js
+2025-11-08T23:30:18.823409105Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm notice
+2025-11-08T23:30:18.823423380Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:30:18.823429185Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:30:18.823434134Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:30:18.823438779Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm notice
+2025-11-08T23:30:18.824923958Z plant-monitoring_sensor.2.7itzfrers94k@ip-10-0-2-171    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T21_44_58_463Z-debug-0.log
+2025-11-08T23:41:03.033396609Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | {"level":"WARN","timestamp":"2025-11-08T23:41:03.032Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-08T23:41:04.041294263Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | {"level":"ERROR","timestamp":"2025-11-08T23:41:04.040Z","logger":"kafkajs","message":"[Connection] Connection timeout","broker":"plant-monitoring_kafka:9092","clientId":"plant-sensor-plant-default"}
+2025-11-08T23:41:04.042394539Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | {"level":"ERROR","timestamp":"2025-11-08T23:41:04.042Z","logger":"kafkajs","message":"[BrokerPool] Failed to connect to seed broker, trying another broker from the list: Connection timeout","retryCount":0,"retryTime":269}
+2025-11-08T23:41:15.875349156Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm error path /usr/src/app
+2025-11-08T23:41:15.875385340Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm error command failed
+2025-11-08T23:41:15.875414969Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm error signal SIGTERM
+2025-11-08T23:41:15.875418862Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm error command sh -c node sensor.js
+2025-11-08T23:41:15.879615376Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm notice
+2025-11-08T23:41:15.879644774Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:41:15.879649483Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:41:15.879653181Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:41:15.879656794Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm notice
+2025-11-08T23:41:15.881133397Z plant-monitoring_sensor.1.pn4lrhi4ab7o@ip-10-0-2-171    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_41_01_873Z-debug-0.log
+2025-11-08T23:31:57.190936147Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | {"level":"WARN","timestamp":"2025-11-08T23:31:57.190Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-08T23:33:11.372331314Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm error path /usr/src/app
+2025-11-08T23:33:11.372352030Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm error command failed
+2025-11-08T23:33:11.372357552Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm error signal SIGTERM
+2025-11-08T23:33:11.372362357Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm error command sh -c node sensor.js
+2025-11-08T23:33:11.376502142Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm notice
+2025-11-08T23:33:11.376516837Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:33:11.376522894Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:33:11.376527735Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:33:11.376532423Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm notice
+2025-11-08T23:33:11.378100152Z plant-monitoring_sensor.1.wh7uvsf5rbd3@ip-10-0-2-171    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_31_55_961Z-debug-0.log
+2025-11-09T00:19:49.667786416Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '54.8', light: '87', temp: '19.7', humidity: '46.5' }
+2025-11-09T00:20:19.667945412Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '48.1', light: '32', temp: '18.0', humidity: '46.1' }
+2025-11-09T00:20:49.668510077Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '45.5', light: '55', temp: '18.0', humidity: '49.5' }
+2025-11-09T00:21:19.668633402Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '45.2', light: '33', temp: '19.1', humidity: '48.9' }
+2025-11-09T00:21:49.668798870Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '45.9', light: '29', temp: '18.8', humidity: '48.7' }
+2025-11-09T00:22:19.667931147Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '48.1', light: '12', temp: '20.0', humidity: '45.5' }
+2025-11-09T00:22:49.668294976Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '49.4', light: '23', temp: '19.6', humidity: '47.1' }
+2025-11-09T00:23:19.667646135Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '47.9', light: '19', temp: '18.0', humidity: '47.9' }
+2025-11-09T00:23:49.668076227Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '48.9', light: '56', temp: '18.2', humidity: '48.7' }
+2025-11-09T00:24:19.668439771Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '49.2', light: '76', temp: '18.9', humidity: '54.3' }
+2025-11-08T23:31:37.936931447Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | {"level":"WARN","timestamp":"2025-11-08T23:31:37.936Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-08T23:31:38.001115301Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | ❌ Failed to start sensor: TypeError: Cannot read properties of undefined (reading 'lightBase')
+2025-11-08T23:31:38.001130248Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    |     at PlantSensorSimulator.generateRealisticSensorData (/usr/src/app/sensor.js:209:98)
+2025-11-08T23:31:38.001135243Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    |     at PlantSensorSimulator.generateAndSendSensorData (/usr/src/app/sensor.js:235:29)
+2025-11-08T23:31:38.001139099Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    |     at PlantSensorSimulator.start (/usr/src/app/sensor.js:153:18)
+2025-11-08T23:31:38.001142810Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-08T23:31:38.015410993Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | npm notice
+2025-11-08T23:31:38.015425309Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:31:38.015430424Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:31:38.015434224Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:31:38.015437963Z plant-monitoring_sensor.2.jqtdh4rsh6mg@ip-10-0-2-136    | npm notice
+2025-11-09T00:24:40.521321856Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm error path /usr/src/app
+2025-11-09T00:24:40.521343901Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm error command failed
+2025-11-09T00:24:40.521349136Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm error signal SIGTERM
+2025-11-09T00:24:40.521353265Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm error command sh -c node sensor.js
+2025-11-09T00:24:40.525671769Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm notice
+2025-11-09T00:24:40.525687041Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-09T00:24:40.525692876Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-09T00:24:40.525697603Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-09T00:24:40.525702465Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm notice
+2025-11-09T00:24:40.527256777Z plant-monitoring_sensor.2.f6yf0qkz1au7@ip-10-0-2-136    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_41_17_086Z-debug-0.log
+2025-11-08T21:44:13.139560723Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |   retryCount: 5,
+2025-11-08T23:23:01.661787920Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '32.1', light: '78', temp: '18.0', humidity: '35.5' }
+2025-11-08T23:23:46.662019561Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '33.6', light: '50', temp: '16.9', humidity: '43.5' }
+2025-11-08T23:24:31.663485464Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '25.6', light: '76', temp: '18.0', humidity: '43.2' }
+2025-11-08T23:25:16.662120712Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '25.8', light: '26', temp: '16.7', humidity: '40.3' }
+2025-11-08T23:26:01.662407243Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '24.3', light: '46', temp: '16.5', humidity: '40.6' }
+2025-11-08T23:26:46.662435870Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '27.7', light: '74', temp: '17.0', humidity: '42.1' }
+2025-11-08T23:27:31.662871780Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '23.9', light: '44', temp: '18.0', humidity: '35.7' }
+2025-11-08T23:28:16.661992730Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '26.7', light: '53', temp: '17.7', humidity: '40.2' }
+2025-11-08T23:29:01.662938077Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '26.2', light: '96', temp: '17.7', humidity: '36.5' }
+2025-11-08T23:29:46.665582639Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | Sent sensor data for plant-002: { moisture: '28.9', light: '81', temp: '16.3', humidity: '38.0' }
+2025-11-08T23:30:20.919784661Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | 
+2025-11-08T23:30:21.667081811Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | ⚠️  No config file found, using environment variables
+2025-11-08T23:30:21.675773149Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | 🌱 Initializing sensor for plant-default (monstera) at Unknown
+2025-11-08T23:30:21.676272565Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-08T23:30:21.676286869Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | ⏱️  Sensor interval: 30 seconds
+2025-11-08T23:30:21.731299769Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | 🚀 Starting sensor simulation for plant-default
+2025-11-08T23:30:21.762647505Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | 📊 Metrics server listening on port 9091
+2025-11-08T23:30:21.798920510Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | Sent sensor data for plant-default: { moisture: '53.0', light: '45', temp: '19.7', humidity: '46.3' }
+2025-11-08T23:30:51.803150906Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | Sent sensor data for plant-default: { moisture: '45.0', light: '27', temp: '19.1', humidity: '47.3' }
+2025-11-08T23:40:50.829336787Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '48.1', light: '81', temp: '18.2', humidity: '49.7' }
+2025-11-08T23:40:51.829326781Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '50.2', light: '7', temp: '18.2', humidity: '48.4' }
+2025-11-08T23:40:52.828916811Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '44.4', light: '76', temp: '19.4', humidity: '45.6' }
+2025-11-08T23:40:53.829459093Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '51.3', light: '32', temp: '18.2', humidity: '48.4' }
+2025-11-08T23:40:54.828958166Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '47.9', light: '52', temp: '18.8', humidity: '53.9' }
+2025-11-08T23:40:55.829086817Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '47.3', light: '62', temp: '19.2', humidity: '49.5' }
+2025-11-08T23:40:56.829356764Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '45.2', light: '85', temp: '19.4', humidity: '48.0' }
+2025-11-08T23:40:57.829680074Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '47.5', light: '83', temp: '19.9', humidity: '47.8' }
+2025-11-08T23:40:58.828955998Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '44.8', light: '4', temp: '20.0', humidity: '52.9' }
+2025-11-08T23:40:59.828846256Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | Sent sensor data for plant-001: { moisture: '50.2', light: '15', temp: '19.6', humidity: '47.2' }
+2025-11-08T23:32:00.872509061Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | ⚠️  No config file found, using environment variables
+2025-11-08T23:32:00.881587681Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | 🌱 Initializing sensor for plant-default (monstera) at Unknown
+2025-11-08T23:32:00.881801518Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-08T23:32:00.882769802Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | ⏱️  Sensor interval: 30 seconds
+2025-11-08T23:32:00.954953240Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | 🚀 Starting sensor simulation for plant-default
+2025-11-08T23:32:01.002342116Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | 📊 Metrics server listening on port 9091
+2025-11-08T23:32:01.057619992Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | Sent sensor data for plant-default: { moisture: '51.8', light: '96', temp: '18.4', humidity: '53.1' }
+2025-11-08T23:32:31.062996256Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | Sent sensor data for plant-default: { moisture: '49.7', light: '77', temp: '18.4', humidity: '48.0' }
+2025-11-08T23:33:01.061620138Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | Sent sensor data for plant-default: { moisture: '52.6', light: '4', temp: '20.1', humidity: '47.5' }
+2025-11-08T23:31:04.246859268Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | > plant-sensor-simulator@1.0.0 start
+2025-11-08T23:31:04.246865187Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | > node sensor.js
+2025-11-08T23:31:04.246869421Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | 
+2025-11-08T23:31:05.429831660Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | ✅ Loaded config from /app/sensor-config.json
+2025-11-08T23:31:05.429864807Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | 📋 Using sensor config index 2: plant-003
+2025-11-08T23:31:05.438037546Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | 🌱 Initializing sensor for plant-003 (pothos) at Kitchen
+2025-11-08T23:31:05.438237241Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-08T23:31:05.438245456Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | ⏱️  Sensor interval: 1 seconds
+2025-11-08T23:31:05.533969581Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | 🚀 Starting sensor simulation for plant-003
+2025-11-08T23:41:03.264173095Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | > node sensor.js
+2025-11-08T23:41:03.264177023Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | 
+2025-11-08T23:41:04.386860379Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | ⚠️  No config file found, using environment variables
+2025-11-08T23:41:04.396513550Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | 🌱 Initializing sensor for plant-default (monstera) at Unknown
+2025-11-08T23:41:04.396690983Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-08T23:41:04.396886182Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | ⏱️  Sensor interval: 30 seconds
+2025-11-08T23:41:04.459015786Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | 🚀 Starting sensor simulation for plant-default
+2025-11-08T23:41:04.506909498Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | 📊 Metrics server listening on port 9091
+2025-11-08T23:41:04.555015384Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | Sent sensor data for plant-default: { moisture: '50.7', light: '50', temp: '18.6', humidity: '53.5' }
+2025-11-09T00:24:42.943885596Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | 
+2025-11-09T00:24:42.943924887Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | > plant-sensor-simulator@1.0.0 start
+2025-11-09T00:24:42.943931407Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | > node sensor.js
+2025-11-09T00:24:42.943935476Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | 
+2025-11-09T00:24:43.722812941Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | ✅ Loaded config from /app/sensor-config.json
+2025-11-09T00:24:43.723158544Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | 📋 Using sensor config index 1: plant-002
+2025-11-09T00:24:43.731343861Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | 🌱 Initializing sensor for plant-002 (sansevieria) at Bedroom
+2025-11-09T00:24:43.731755419Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | 📡 Kafka brokers: plant-monitoring_kafka:9092
+2025-11-09T00:24:43.731768207Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | ⏱️  Sensor interval: 45 seconds
+2025-11-09T00:24:43.776711608Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | 🚀 Starting sensor simulation for plant-002
+2025-11-09T00:24:43.801523074Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | 📊 Metrics server listening on port 9091
+2025-11-09T00:24:43.840290140Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | Sent sensor data for plant-002: { moisture: '29.4', light: '35', temp: '16.6', humidity: '43.4' }
+2025-11-09T00:25:28.843328259Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | Sent sensor data for plant-002: { moisture: '30.1', light: '72', temp: '16.1', humidity: '43.1' }
+2025-11-09T00:26:13.843020278Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | Sent sensor data for plant-002: { moisture: '26.5', light: '55', temp: '17.3', humidity: '41.7' }
+2025-11-08T21:44:13.139563776Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |   retryTime: 11992,
+2025-11-08T21:44:13.139566843Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |   [cause]: KafkaJSConnectionError: Connection error: getaddrinfo ENOTFOUND plant-monitoring_kafka
+2025-11-08T21:44:13.139606969Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |       at Socket.onError (/usr/src/app/node_modules/kafkajs/src/network/connection.js:210:23)
+2025-11-08T21:44:13.139612268Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |       at Socket.emit (node:events:517:28)
+2025-11-08T21:44:13.139615359Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |       at emitErrorNT (node:internal/streams/destroy:151:8)
+2025-11-08T21:44:13.139627978Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |       at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+2025-11-08T21:44:13.139631376Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |       at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+2025-11-08T21:44:13.139634526Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |     retriable: true,
+2025-11-08T21:44:13.139637669Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |     helpUrl: undefined,
+2025-11-08T21:44:13.139640751Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |     broker: 'plant-monitoring_kafka:9092',
+2025-11-08T21:44:13.139643806Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |     code: 'ENOTFOUND',
+2025-11-08T21:44:13.139646840Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |     [cause]: undefined
+2025-11-08T21:44:13.139649993Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    |   }
+2025-11-08T21:44:13.139653169Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    | }
+2025-11-08T21:44:13.152144337Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    | npm notice
+2025-11-08T21:44:13.152158234Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T21:44:13.152162666Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T21:44:13.152166013Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T21:44:13.152169205Z plant-monitoring_sensor.1.amjkwqbpbob1@ip-10-0-2-136    | npm notice
+2025-11-08T23:30:18.927303354Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm error path /usr/src/app
+2025-11-08T23:30:18.927325715Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm error command failed
+2025-11-08T23:30:18.927348711Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm error signal SIGTERM
+2025-11-08T23:30:18.927354176Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm error command sh -c node sensor.js
+2025-11-08T23:30:18.931383439Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm notice
+2025-11-08T23:30:18.931399325Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:30:18.931405112Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:30:18.931409933Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:30:18.931414291Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm notice
+2025-11-08T23:30:18.932726776Z plant-monitoring_sensor.1.t7wjn6gitjp4@ip-10-0-2-136    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T21_44_44_142Z-debug-0.log
+2025-11-08T23:30:21.673711664Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | {"level":"WARN","timestamp":"2025-11-08T23:30:21.673Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-08T23:31:02.064321590Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm error path /usr/src/app
+2025-11-08T23:31:02.064385677Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm error command failed
+2025-11-08T23:31:02.064395075Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm error signal SIGTERM
+2025-11-08T23:31:02.066317418Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm error command sh -c node sensor.js
+2025-11-08T23:31:02.069290492Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm notice
+2025-11-08T23:31:02.069305300Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:31:02.069311006Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:31:02.069315743Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:31:02.069320489Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm notice
+2025-11-08T23:31:02.070553894Z plant-monitoring_sensor.2.agyfr8c19obj@ip-10-0-2-136    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_30_20_047Z-debug-0.log
+2025-11-08T23:41:00.790305110Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm error path /usr/src/app
+2025-11-08T23:41:00.790327657Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm error command failed
+2025-11-08T23:41:00.790371715Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm error signal SIGTERM
+2025-11-08T23:41:00.790377044Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm error command sh -c node sensor.js
+2025-11-08T23:41:00.794330187Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm notice
+2025-11-08T23:41:00.794344632Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:41:00.794349554Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:41:00.794353402Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:41:00.794357240Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm notice
+2025-11-08T23:41:00.795842377Z plant-monitoring_sensor.2.mck0qorvy226@ip-10-0-2-136    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_33_12_523Z-debug-0.log
+2025-11-08T21:44:26.995436420Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |   retryCount: 5,
+2025-11-08T21:44:26.995441005Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |   retryTime: 16072,
+2025-11-08T21:44:26.995445527Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |   [cause]: KafkaJSConnectionError: Connection error: connect ECONNREFUSED 10.10.2.12:9092
+2025-11-08T21:44:26.995450207Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |       at Socket.onError (/usr/src/app/node_modules/kafkajs/src/network/connection.js:210:23)
+2025-11-08T21:44:26.995454919Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |       at Socket.emit (node:events:517:28)
+2025-11-08T21:44:26.995459452Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |       at emitErrorNT (node:internal/streams/destroy:151:8)
+2025-11-08T21:44:26.995473449Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |       at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+2025-11-08T21:44:26.995477615Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |       at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+2025-11-08T21:44:26.995481500Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |     retriable: true,
+2025-11-08T21:44:26.995485246Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |     helpUrl: undefined,
+2025-11-08T21:44:26.995488959Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |     broker: 'plant-monitoring_kafka:9092',
+2025-11-08T21:44:26.995492711Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |     code: 'ECONNREFUSED',
+2025-11-08T21:44:26.995496537Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |     [cause]: undefined
+2025-11-08T21:44:26.995500273Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    |   }
+2025-11-08T21:44:26.995503997Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    | }
+2025-11-08T21:44:27.025510925Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    | npm notice
+2025-11-08T21:44:27.025524423Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T21:44:27.025528678Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T21:44:27.025532288Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T21:44:27.025535928Z plant-monitoring_sensor.2.hy49xop2np37@ip-10-0-2-7    | npm notice
+2025-11-08T23:32:00.879737089Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | {"level":"WARN","timestamp":"2025-11-08T23:32:00.879Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-08T23:33:11.422803448Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm error path /usr/src/app
+2025-11-08T23:33:11.422825082Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm error command failed
+2025-11-08T23:33:11.422871109Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm error signal SIGTERM
+2025-11-08T23:33:11.422878327Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm error command sh -c node sensor.js
+2025-11-08T23:33:11.427297682Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm notice
+2025-11-08T23:33:11.427311148Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:33:11.427316924Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:33:11.427321588Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:33:11.427326230Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm notice
+2025-11-08T23:33:11.429773008Z plant-monitoring_sensor.2.ims7qoxgj6vc@ip-10-0-2-7    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_31_58_697Z-debug-0.log
+2025-11-08T23:31:05.436133113Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | {"level":"WARN","timestamp":"2025-11-08T23:31:05.435Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-08T23:31:05.567596663Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | ❌ Failed to start sensor: TypeError: Cannot read properties of undefined (reading 'lightBase')
+2025-11-08T23:31:05.567617212Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    |     at PlantSensorSimulator.generateRealisticSensorData (/usr/src/app/sensor.js:209:98)
+2025-11-08T23:31:05.567621926Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    |     at PlantSensorSimulator.generateAndSendSensorData (/usr/src/app/sensor.js:235:29)
+2025-11-08T23:31:05.567625960Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    |     at PlantSensorSimulator.start (/usr/src/app/sensor.js:153:18)
+2025-11-08T23:31:05.567629940Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-08T23:31:05.601012191Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | npm notice
+2025-11-08T23:31:05.601031351Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:31:05.601036568Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:31:05.601040701Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:31:05.601044634Z plant-monitoring_sensor.2.pfqyaihnbpff@ip-10-0-2-7    | npm notice
+2025-11-08T23:41:04.393288693Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | {"level":"WARN","timestamp":"2025-11-08T23:41:04.392Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+2025-11-08T23:41:15.943797620Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm error path /usr/src/app
+2025-11-08T23:41:15.943820059Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm error command failed
+2025-11-08T23:41:15.943824817Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm error signal SIGTERM
+2025-11-08T23:41:15.943828751Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm error command sh -c node sensor.js
+2025-11-08T23:41:15.947723223Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm notice
+2025-11-08T23:41:15.947737087Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-11-08T23:41:15.947742522Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-11-08T23:41:15.947746607Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm notice To update run: npm install -g npm@11.6.2
+2025-11-08T23:41:15.947750557Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm notice
+2025-11-08T23:41:15.948906941Z plant-monitoring_sensor.2.p81knx8fwez2@ip-10-0-2-7    | npm error A complete log of this run can be found in: /home/sensor/.npm/_logs/2025-11-08T23_41_02_153Z-debug-0.log
+2025-11-09T00:24:43.729336445Z plant-monitoring_sensor.1.veatws6xwabp@ip-10-0-2-7    | {"level":"WARN","timestamp":"2025-11-09T00:24:43.728Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+
+Step 3: Check Grafana metrics...
+-------------------------------------------
+URL: http://52.14.239.94:3000
+Dashboard: Plant Monitoring System
+Metrics to check:
+  - Producer rate (sensor messages/sec)
+  - Kafka consumer lag
+  - MongoDB inserts/sec
+
+Step 4: Verify service health...
+-------------------------------------------
+ID             NAME                             MODE         REPLICAS   IMAGE                                   PORTS
+y57bm2s2pxwv   plant-monitoring_homeassistant   replicated   1/1        homeassistant/home-assistant:2023.8.0   *:8123->8123/tcp
+w06z5schjh0m   plant-monitoring_kafka           replicated   1/1        confluentinc/cp-kafka:7.4.0             
+geub1m4x4tha   plant-monitoring_mongodb         replicated   1/1        mongo:6.0.4                             
+pu0qqrkaz37u   plant-monitoring_mosquitto       replicated   1/1        eclipse-mosquitto:2.0                   
+p4hvcrly60lb   plant-monitoring_processor       replicated   1/1        triciab221/plant-processor:v1.2.0-ca3   
+rlcy2m3ycy7x   plant-monitoring_sensor          replicated   2/2        triciab221/plant-sensor:v1.1.0-ca3      
+2er8groosokd   plant-monitoring_zookeeper       replicated   1/1        confluentinc/cp-zookeeper:7.4.0         
+
+✓ Operator Response Complete
+
+
+========================================
+  All Resilience Tests Complete!
+========================================
+
+Summary:
+  ✓ Container auto-recovery verified
+  ✓ Rolling updates verified
+  ✓ Scaling operations verified
+  ✓ Operator troubleshooting demonstrated

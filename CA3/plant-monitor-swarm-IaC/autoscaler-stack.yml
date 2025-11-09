@@ -1,0 +1,109 @@
+version: '3.8'
+
+# Docker Swarm Autoscaler Stack
+# Implements HPA-like functionality for processor service based on Kafka lag
+#
+# This stack deploys an autoscaler service that:
+# 1. Monitors Prometheus metrics (Kafka consumer lag)
+# 2. Automatically scales plant-monitoring_processor service
+# 3. Scales up when lag > 100 messages
+# 4. Scales down when lag < 20 messages
+# 5. Min replicas: 1, Max replicas: 5
+
+services:
+  # Orbiter Autoscaler - monitors Prometheus and scales services
+  autoscaler:
+    image: gianarb/orbiter:v0.5.0
+    command:
+      - autoscale
+      - --prometheus-url=http://prometheus:9090
+      - --interval=30s
+      - --log-level=info
+    environment:
+      # Scaling policies as environment variables
+      ORBITER_POLICIES: |
+        [
+          {
+            "name": "processor-kafka-lag-scaler",
+            "service": "plant-monitoring_processor",
+            "metric": "kafka_consumergroup_lag",
+            "metric_query": "kafka_consumergroup_lag{consumergroup=\"plant-care-processor\",topic=\"plant-sensors\"}",
+            "scale_up_threshold": 100,
+            "scale_down_threshold": 20,
+            "min_replicas": 1,
+            "max_replicas": 5,
+            "cooldown_period": 60,
+            "evaluation_periods": 2
+          }
+        ]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - datanet  # Access to Prometheus
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager  # Must run on manager to access Docker API
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # Alternative: Simple bash-based autoscaler using Prometheus API
+  simple-autoscaler:
+    image: alpine:latest
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        apk add --no-cache curl jq
+        
+        while true; do
+          echo "=== Autoscaler Check $(date) ==="
+          
+          # Query Kafka consumer lag from Prometheus
+          LAG=$(curl -s 'http://prometheus:9090/api/v1/query?query=kafka_consumergroup_lag{consumergroup="plant-care-processor"}' | \
+                jq -r '.data.result[0].value[1] // "0"' | cut -d. -f1)
+          
+          # Get current replica count
+          CURRENT=$(docker service ls --filter name=plant-monitoring_processor --format "{{.Replicas}}" | cut -d/ -f1)
+          
+          echo "Current lag: $LAG messages, Current replicas: $CURRENT"
+          
+          # Scale up if lag > 100 and replicas < 5
+          if [ "$LAG" -gt 100 ] && [ "$CURRENT" -lt 5 ]; then
+            NEW=$((CURRENT + 1))
+            echo "⬆️  Scaling UP: $CURRENT → $NEW (lag: $LAG)"
+            docker service scale plant-monitoring_processor=$NEW
+          # Scale down if lag < 20 and replicas > 1
+          elif [ "$LAG" -lt 20 ] && [ "$CURRENT" -gt 1 ]; then
+            NEW=$((CURRENT - 1))
+            echo "⬇️  Scaling DOWN: $CURRENT → $NEW (lag: $LAG)"
+            docker service scale plant-monitoring_processor=$NEW
+          else
+            echo "✓ No scaling needed"
+          fi
+          
+          # Wait 30 seconds before next check
+          sleep 30
+        done
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - datanet
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+networks:
+  datanet:
+    external: true
+    name: plant-monitoring_datanet

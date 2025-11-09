@@ -1,0 +1,73 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Scrape Docker container logs - ONLY plant-monitoring application (not monitoring stack)
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      # Only collect logs from plant-monitoring stack (exclude monitoring services)
+      - source_labels: ['__meta_docker_container_label_com_docker_stack_namespace']
+        regex: 'plant-monitoring'
+        action: keep
+      
+      # Extract container name
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      
+      # Extract service name from container labels
+      - source_labels: ['__meta_docker_container_label_com_docker_swarm_service_name']
+        target_label: 'service'
+      
+      # Extract node name
+      - source_labels: ['__meta_docker_container_label_com_docker_swarm_node_id']
+        target_label: 'node_id'
+      
+      # Extract task ID
+      - source_labels: ['__meta_docker_container_label_com_docker_swarm_task_id']
+        target_label: 'task_id'
+      
+      # Extract stack name
+      - source_labels: ['__meta_docker_container_label_com_docker_stack_namespace']
+        target_label: 'stack'
+      
+      # Set the log path
+      - source_labels: ['__meta_docker_container_id']
+        target_label: '__path__'
+        replacement: '/var/lib/docker/containers/$1/*.log'
+
+    # Pipeline stages to parse and extract log data
+    pipeline_stages:
+      # Parse Docker JSON logs
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            time: time
+      
+      # Extract timestamp
+      - timestamp:
+          source: time
+          format: RFC3339Nano
+      
+      # Set the log line
+      - output:
+          source: output
+      
+      # Extract log level from common patterns
+      - regex:
+          expression: '(?i)(?P<level>(ERROR|WARN|WARNING|INFO|DEBUG|TRACE))'
+      
+      # Label the log level
+      - labels:
+          level:

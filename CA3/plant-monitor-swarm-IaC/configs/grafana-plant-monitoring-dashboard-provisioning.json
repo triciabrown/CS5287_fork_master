@@ -1,0 +1,597 @@
+{
+  "id": null,
+  "uid": "plant-monitor-ca3",
+  "title": "CA3 Plant Monitoring System",
+  "tags": [
+    "ca3",
+    "plant-monitoring",
+    "iot"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "type": "graph",
+      "title": "Panel 1: Sensor Data Rate (readings/sec)",
+      "targets": [
+        {
+          "expr": "rate(plant_sensor_readings_total[2m])",
+          "legendFormat": "{{plant_id}} ({{plant_type}})",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "ops",
+          "label": "Readings/sec"
+        },
+        {
+          "format": "short"
+        }
+      ],
+      "xaxis": {
+        "mode": "time"
+      },
+      "legend": {
+        "show": true,
+        "alignAsTable": true,
+        "values": true
+      },
+      "description": "Rate of sensor readings being generated per second"
+    },
+    {
+      "id": 2,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "type": "graph",
+      "title": "Panel 2: Kafka Consumer Lag",
+      "targets": [
+        {
+          "expr": "kafka_consumergroup_lag{topic=\"plant-sensors\"}",
+          "legendFormat": "{{consumergroup}} - {{topic}}",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "Messages behind"
+        },
+        {
+          "format": "short"
+        }
+      ],
+      "xaxis": {
+        "mode": "time"
+      },
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                100
+              ],
+              "type": "gt"
+            },
+            "query": {
+              "params": [
+                "A",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "frequency": "1m",
+        "handler": 1,
+        "name": "High Kafka Lag Alert"
+      },
+      "thresholds": [
+        {
+          "value": 50,
+          "colorMode": "custom",
+          "op": "gt",
+          "fill": true,
+          "line": true,
+          "fillColor": "rgba(255, 255, 0, 0.2)",
+          "lineColor": "yellow"
+        },
+        {
+          "value": 100,
+          "colorMode": "custom",
+          "op": "gt",
+          "fill": true,
+          "line": true,
+          "fillColor": "rgba(255, 0, 0, 0.2)",
+          "lineColor": "red"
+        }
+      ],
+      "description": "Number of messages processor is behind (critical for scaling)"
+    },
+    {
+      "id": 3,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "type": "stat",
+      "title": "Panel 3: Processing Throughput",
+      "targets": [
+        {
+          "expr": "rate(plant_processor_messages_processed_total{status=\"success\"}[2m])",
+          "legendFormat": "{{plant_type}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "msgs/sec",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 0.1,
+                "color": "yellow"
+              },
+              {
+                "value": 0.5,
+                "color": "green"
+              }
+            ]
+          }
+        }
+      },
+      "description": "Messages successfully processed per second"
+    },
+    {
+      "id": 4,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "type": "graph",
+      "title": "Panel 4: Database Performance",
+      "targets": [
+        {
+          "expr": "plant_mongodb_inserts_per_second",
+          "legendFormat": "MongoDB Inserts/sec",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(plant_processor_processing_duration_seconds_bucket{operation=\"mongodb_insert\"}[1m]))",
+          "legendFormat": "Insert Latency P95",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "ops",
+          "label": "Operations/sec"
+        },
+        {
+          "format": "s",
+          "label": "Latency"
+        }
+      ],
+      "xaxis": {
+        "mode": "time"
+      },
+      "seriesOverrides": [
+        {
+          "alias": "Insert Latency P95",
+          "yaxis": 2
+        }
+      ],
+      "description": "MongoDB insert rate and latency"
+    },
+    {
+      "id": 5,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "type": "graph",
+      "title": "Panel 5: End-to-End Pipeline Latency",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(plant_data_pipeline_latency_seconds_bucket[1m]))",
+          "legendFormat": "P50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(plant_data_pipeline_latency_seconds_bucket[1m]))",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(plant_data_pipeline_latency_seconds_bucket[1m]))",
+          "legendFormat": "P99",
+          "refId": "C"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "s",
+          "label": "Latency"
+        },
+        {
+          "format": "short"
+        }
+      ],
+      "xaxis": {
+        "mode": "time"
+      },
+      "legend": {
+        "show": true,
+        "alignAsTable": true,
+        "values": true,
+        "avg": true,
+        "max": true
+      },
+      "description": "Time from sensor timestamp to processing completion (P50/P95/P99)"
+    },
+    {
+      "id": 6,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "type": "stat",
+      "title": "Panel 6: Service Availability",
+      "targets": [
+        {
+          "expr": "up{job=~\"plant-sensor|plant-processor|kafka|mongodb\"}",
+          "legendFormat": "{{service_name | job}} - {{instance}}",
+          "refId": "A"
+        },
+        {
+          "expr": "avg(up{job=\"node\"}) by (job)",
+          "legendFormat": "Cluster Nodes (avg)",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "orientation": "horizontal",
+        "textMode": "name",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                }
+              }
+            },
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 0.8,
+                "color": "yellow"
+              },
+              {
+                "value": 1,
+                "color": "green"
+              }
+            ]
+          }
+        }
+      },
+      "description": "Health status of critical application services and cluster nodes"
+    },
+    {
+      "id": 7,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "type": "stat",
+      "title": "Plant Health Scores",
+      "targets": [
+        {
+          "expr": "plant_health_score",
+          "legendFormat": "{{plant_id}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "orientation": "vertical",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 60,
+                "color": "yellow"
+              },
+              {
+                "value": 80,
+                "color": "green"
+              }
+            ]
+          }
+        }
+      },
+      "description": "Current health score of each plant (0-100)"
+    },
+    {
+      "id": 8,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      },
+      "type": "graph",
+      "title": "Alerts Generated",
+      "targets": [
+        {
+          "expr": "rate(plant_alerts_generated_total[5m])",
+          "legendFormat": "{{alert_type}} ({{severity}})",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "ops",
+          "label": "Alerts/sec"
+        },
+        {
+          "format": "short"
+        }
+      ],
+      "xaxis": {
+        "mode": "time"
+      },
+      "stack": true,
+      "description": "Rate of alerts being generated by type and severity"
+    },
+    {
+      "id": 9,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      },
+      "type": "stat",
+      "title": "Error Rates",
+      "targets": [
+        {
+          "expr": "rate(plant_sensor_kafka_errors_total[5m])",
+          "legendFormat": "Sensor Kafka Errors",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(plant_kafka_connection_errors_total[5m])",
+          "legendFormat": "Processor Kafka Errors",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(plant_mongodb_connection_errors_total[5m])",
+          "legendFormat": "MongoDB Errors",
+          "refId": "C"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "orientation": "vertical",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 0.01,
+                "color": "yellow"
+              },
+              {
+                "value": 0.1,
+                "color": "red"
+              }
+            ]
+          }
+        }
+      },
+      "description": "Error rates for Kafka and MongoDB connections"
+    },
+    {
+      "id": 10,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "type": "graph",
+      "title": "Node System Metrics",
+      "targets": [
+        {
+          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
+          "legendFormat": "CPU {{instance}}",
+          "refId": "A"
+        },
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory {{instance}}",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": "Usage %",
+          "max": 100,
+          "min": 0
+        },
+        {
+          "format": "short"
+        }
+      ],
+      "xaxis": {
+        "mode": "time"
+      },
+      "description": "CPU and memory usage across all nodes"
+    },
+    {
+      "id": 11,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "type": "graph",
+      "title": "Sensor Value Trends",
+      "targets": [
+        {
+          "expr": "plant_sensor_soil_moisture",
+          "legendFormat": "Moisture {{plant_id}}",
+          "refId": "A"
+        },
+        {
+          "expr": "plant_sensor_temperature_celsius",
+          "legendFormat": "Temp {{plant_id}}",
+          "refId": "B"
+        },
+        {
+          "expr": "plant_sensor_humidity_percent",
+          "legendFormat": "Humidity {{plant_id}}",
+          "refId": "C"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": "Moisture/Humidity %"
+        },
+        {
+          "format": "celsius",
+          "label": "Temperature \u00b0C"
+        }
+      ],
+      "xaxis": {
+        "mode": "time"
+      },
+      "seriesOverrides": [
+        {
+          "alias": "/Temp.*/",
+          "yaxis": 2
+        }
+      ],
+      "description": "Current sensor readings for soil moisture, temperature, and humidity"
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "sensors": [
+    {
+      "plantId": "plant-001",
+      "plantType": "monstera",
+      "location": "Living Room",
+      "sensorInterval": 1
+    },
+    {
+      "plantId": "plant-002",
+      "plantType": "sansevieria",
+      "location": "Bedroom",
+      "sensorInterval": 1
+    },
+    {
+      "plantId": "plant-003",
+      "plantType": "pothos",
+      "location": "Kitchen",
+      "sensorInterval": 1
+    },
+    {
+      "plantId": "plant-004",
+      "plantType": "fern",
+      "location": "Bathroom",
+      "sensorInterval": 1
+    },
+    {
+      "plantId": "plant-005",
+      "plantType": "succulent",
+      "location": "Office",
+      "sensorInterval": 1
+    }
+  ],
+  "kafka": {
+    "topic": "plant-sensors",
+    "producerConfig": {
+      "acks": 1,
+      "compression": "snappy"
+    }
+  }
+}

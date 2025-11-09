@@ -1,0 +1,214 @@
+version: '3.8'
+
+# CA3 Observability Stack
+# Provides centralized logging (Loki + Promtail) and metrics (Prometheus + Grafana)
+# for the Plant Monitoring System
+          memory: 64Mystem
+
+services:
+  # Loki - Log Aggregation Server
+  loki:
+    image: grafana/loki:2.9.3
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+    networks:
+      - datanet  # Monitor data tier
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    configs:
+      - source: loki-config
+        target: /etc/loki/local-config.yaml
+
+  # Promtail - Log Collection Agent (runs on all nodes)
+  promtail:
+    image: grafana/promtail:2.9.3
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - frontnet    # Monitor frontend tier
+      - messagenet  # Monitor messaging tier
+      - datanet     # Monitor data tier
+    deploy:
+      mode: global  # Run on every node
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    configs:
+      - source: promtail-config
+        target: /etc/promtail/config.yml
+
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - prometheus-data:/prometheus
+    networks:
+      - frontnet    # Monitor frontend tier
+      - messagenet  # Monitor messaging tier
+      - datanet     # Monitor data tier
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    configs:
+      - source: prometheus-config
+        target: /etc/prometheus/prometheus.yml
+
+  # Grafana - Unified Dashboard (Logs + Metrics)
+  grafana:
+    image: grafana/grafana:10.2.2
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - datanet  # Access to Loki and Prometheus
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    configs:
+      - source: grafana-datasources
+        target: /etc/grafana/provisioning/datasources/datasources.yml
+      - source: grafana-dashboards-config
+        target: /etc/grafana/provisioning/dashboards/dashboards.yml
+
+  # Kafka Exporter - Exposes Kafka metrics to Prometheus
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.7.0
+    command:
+      - '--kafka.server=kafka:9092'
+      - '--topic.filter=plant.*'
+      - '--group.filter=plant.*'
+    networks:
+      - messagenet  # Access to Kafka
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # MongoDB Exporter - Exposes MongoDB metrics to Prometheus
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40.0
+    command:
+      - '--mongodb.uri=mongodb://mongodb:27017'
+      - '--collect-all'
+    networks:
+      - datanet  # Access to MongoDB
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+
+  # Node Exporter - System metrics from all nodes
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+    networks:
+      - datanet  # Report to Prometheus
+    deploy:
+      mode: global  # Run on every node
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
+
+# Configuration files as Docker configs
+configs:
+  loki-config:
+    file: ./configs/loki-config.yaml
+  promtail-config:
+    file: ./configs/promtail-config.yml
+  prometheus-config:
+    file: ./configs/prometheus.yml
+  grafana-datasources:
+    file: ./configs/grafana-datasources.yml
+  grafana-dashboards-config:
+    file: ./configs/grafana-dashboards.yml
+
+# Persistent volumes for data storage
+volumes:
+  loki-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# Use the encrypted overlay networks for monitoring
+# Must reference with stack prefix since they were created by plant-monitor stack
+networks:
+  frontnet:
+    external: true
+    name: plant-monitor_frontnet
+  messagenet:
+    external: true
+    name: plant-monitor_messagenet
+  datanet:
+    external: true
+    name: plant-monitor_datanet

@@ -1,0 +1,214 @@
+@startuml Docker Swarm Network Architecture
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultTextAlignment center
+skinparam wrapWidth 200
+skinparam maxMessageSize 150
+skinparam shadowing false
+
+title Docker Swarm Multi-Node Network Architecture\nCA2 - Plant Monitoring System
+
+' AWS Infrastructure Layer
+package "AWS VPC (10.0.0.0/16)" as vpc {
+    
+    ' Public Subnet
+    package "Public Subnet (10.0.1.0/24)" as public_subnet {
+        node "**Manager Node**\n//ec2-3-137-188-102//" as manager {
+            rectangle "Docker Swarm Manager" as swarm_mgr #LightBlue {
+                component "Swarm Control Plane" as control
+                component "Raft Consensus" as raft
+            }
+            
+            rectangle "Services (Manager)" as mgr_services #LightGreen {
+                component "ZooKeeper\n:2181" as zookeeper
+                component "Processor\n:internal" as processor
+                component "Mosquitto\n:1883" as mosquitto
+                component "Home Assistant\n:8123" as homeassistant
+            }
+        }
+    }
+    
+    ' Private Subnet
+    package "Private Subnet (10.0.2.0/24)" as private_subnet {
+        node "**Worker Node 1**\n//10.0.2.101//" as worker1 {
+            rectangle "Docker Swarm Worker" as worker1_swarm #LightBlue {
+                component "Swarm Agent" as agent1
+            }
+            
+            rectangle "Services (Worker 1)" as worker1_services #LightYellow {
+                component "Kafka\n:9092" as kafka
+            }
+        }
+        
+        node "**Worker Node 2**\n//10.0.2.61//" as worker2 {
+            rectangle "Docker Swarm Worker" as worker2_swarm #LightBlue {
+                component "Swarm Agent" as agent2
+            }
+            
+            rectangle "Services (Worker 2)" as worker2_services #LightYellow {
+                component "MongoDB\n:27017" as mongodb
+            }
+        }
+        
+        node "**Worker Node 3**\n//10.0.2.180//" as worker3 {
+            rectangle "Docker Swarm Worker" as worker3_swarm #LightBlue {
+                component "Swarm Agent" as agent3
+            }
+            
+            rectangle "Services (Worker 3)" as worker3_services #LightYellow {
+                component "Sensor 1\n:internal" as sensor1
+            }
+        }
+        
+        node "**Worker Node 4**\n//10.0.2.27//" as worker4 {
+            rectangle "Docker Swarm Worker" as worker4_swarm #LightBlue {
+                component "Swarm Agent" as agent4
+            }
+            
+            rectangle "Services (Worker 4)" as worker4_services #LightYellow {
+                component "Sensor 2\n:internal" as sensor2
+            }
+        }
+        
+        component "NAT Gateway" as nat #Orange
+    }
+    
+    component "Internet Gateway" as igw #Orange
+}
+
+' Docker Overlay Network
+package "**Encrypted Overlay Network**\n//plant-network (10.10.0.0/24)//" as overlay #LightCyan {
+    component "Docker DNS\n127.0.0.11" as dns #LightGray
+    component "Service Discovery" as service_disc #LightGray
+    component "Load Balancer\n(Routing Mesh)" as lb #LightGray
+    
+    rectangle "**IPsec Encryption**" as ipsec #Pink {
+        component "ESP (Protocol 50)" as esp
+        component "AH (Protocol 51)" as ah
+        component "IKE (UDP 500)" as ike
+    }
+    
+    rectangle "**VXLAN Encapsulation**" as vxlan #Pink {
+        component "UDP Port 4789" as vxlan_port
+    }
+}
+
+' Security & Secrets
+cloud "**AWS Security Groups**" as security #Red {
+    rectangle "Swarm Ports" as swarm_ports {
+        component "2377/tcp (management)" as port_2377
+        component "7946/tcp+udp (gossip)" as port_7946
+        component "4789/udp (VXLAN)" as port_4789
+    }
+    
+    rectangle "IPsec Protocols" as ipsec_rules {
+        component "Protocol 50 (ESP)" as sg_esp
+        component "Protocol 51 (AH)" as sg_ah
+        component "UDP 500 (IKE)" as sg_ike
+    }
+}
+
+cloud "**Docker Secrets**" as secrets #Purple {
+    component "mongo_root_username" as secret1
+    component "mongo_root_password" as secret2
+    component "mongodb_connection_string" as secret3
+    component "mqtt_username" as secret4
+    component "mqtt_password" as secret5
+}
+
+' External Access
+actor "User" as user
+
+' Internet connectivity
+user -down-> igw : HTTPS (8123)
+igw -down-> manager : Public IP\n3.137.188.102
+
+' NAT for private subnet
+private_subnet -up-> nat : Outbound traffic
+nat -up-> igw : Internet access
+
+' Swarm Control Plane (Port 2377)
+control -[#blue,dashed]-> agent1 : Swarm Management\n2377/tcp
+control -[#blue,dashed]-> agent2 : Swarm Management\n2377/tcp
+control -[#blue,dashed]-> agent3 : Swarm Management\n2377/tcp
+control -[#blue,dashed]-> agent4 : Swarm Management\n2377/tcp
+
+' Overlay Network Connections (Encrypted)
+overlay -[#green,bold]-> manager : Encrypted\nVXLAN
+overlay -[#green,bold]-> worker1 : Encrypted\nVXLAN
+overlay -[#green,bold]-> worker2 : Encrypted\nVXLAN
+overlay -[#green,bold]-> worker3 : Encrypted\nVXLAN
+overlay -[#green,bold]-> worker4 : Encrypted\nVXLAN
+
+' Data Flow - Application Level
+sensor1 -[#red,bold]-> kafka : Sensor Data\n(via overlay DNS)
+sensor2 -[#red,bold]-> kafka : Sensor Data\n(via overlay DNS)
+kafka -[#red,bold]-> processor : Kafka Consume\n(cross-node)
+processor -[#red,bold]-> mongodb : Store Data\n(cross-node)
+processor -[#red,bold]-> mosquitto : MQTT Publish\n(local)
+mosquitto -[#red,bold]-> homeassistant : MQTT Subscribe\n(local)
+kafka -[#purple,dashed]-> zookeeper : Coordination\n(cross-node)
+
+' DNS and Service Discovery
+dns -[#orange,dotted]-> kafka : Resolve "kafka"
+dns -[#orange,dotted]-> mongodb : Resolve "mongodb"
+dns -[#orange,dotted]-> zookeeper : Resolve "zookeeper"
+service_disc --> dns : Service Registry
+
+' Secrets injection
+secrets -[#purple,dotted]-> mongodb : Mount at\n/run/secrets/
+secrets -[#purple,dotted]-> processor : Mount at\n/run/secrets/
+secrets -[#purple,dotted]-> mosquitto : Mount at\n/run/secrets/
+
+' Security enforcement
+security --> overlay : Enforce rules
+ipsec --> overlay : Encrypt traffic
+
+' Notes
+note right of overlay
+  **Overlay Network Features:**
+  • Subnet: 10.10.0.0/24
+  • Driver: overlay
+  • Encrypted: true (IPsec)
+  • Automatic service discovery
+  • Built-in load balancing
+  • VXLAN encapsulation (UDP 4789)
+end note
+
+note right of security
+  **Critical AWS Fixes:**
+  • source_dest_check = false
+  • IPsec protocols enabled
+  • VPC CIDR only traffic
+  • Minimal public ports
+end note
+
+note bottom of vpc
+  **Network Architecture:**
+  • 1 Manager (public subnet) - 3.137.188.102
+  • 4 Workers (private subnet via NAT)
+  • Cross-node communication via encrypted overlay
+  • Service discovery via Docker DNS (127.0.0.11)
+  • IPsec encryption for overlay traffic
+end note
+
+legend bottom
+  |= Symbol |= Meaning |
+  | <#LightBlue> | Docker Swarm Infrastructure |
+  | <#LightGreen> | Manager Services |
+  | <#LightYellow> | Worker Services |
+  | <#LightCyan> | Overlay Network |
+  | <#Pink> | Encryption/Encapsulation |
+  | <#Red> | Security |
+  | <#Purple> | Secrets |
+  | <#Orange> | AWS Network Components |
+  
+  |= Line Type |= Meaning |
+  | <color:blue>----- | Swarm Control Plane |
+  | <color:green>━━━━━ | Overlay Network |
+  | <color:red>━━━━━ | Application Data Flow |
+  | <color:purple>····· | Secrets/Coordination |
+  | <color:orange>····· | Service Discovery |
+end legend
+
+@enduml

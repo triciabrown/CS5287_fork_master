@@ -1,0 +1,15 @@
+# Customizations for Plant Monitoring Entities
+# Customize the appearance and behavior of plant sensors
+
+# Example customizations:
+# sensor.plant_001_moisture:
+#   friendly_name: "Monstera Soil Moisture"
+#   icon: mdi:water-percent
+#   unit_of_measurement: "%"
+
+# sensor.plant_001_temperature:
+#   friendly_name: "Monstera Temperature" 
+#   icon: mdi:thermometer
+#   unit_of_measurement: "°C"
+
+# Add your customizations here

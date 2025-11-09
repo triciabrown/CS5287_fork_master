@@ -1,0 +1,7 @@
+version: '3.8'
+
+# CA3 Observability Stack
+# Provides centralized logging (Loki + Promtail) and metrics (Prometheus + Grafana)
+# for the Plant Monitoring System
+
+services:

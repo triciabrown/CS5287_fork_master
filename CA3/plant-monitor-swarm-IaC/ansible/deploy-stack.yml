@@ -1,0 +1,345 @@
+---
+# deploy-stack.yml
+# Deploy the Plant Monitoring application stack to Docker Swarm
+# Runs on manager node only
+
+- name: Deploy Plant Monitoring Stack
+  hosts: managers[0]
+  become: yes
+  become_user: ubuntu
+  gather_facts: yes
+  vars:
+    stack_name: plant-monitoring
+    deploy_dir: /home/ubuntu/plant-monitor
+    
+  tasks:
+    - name: Ensure deploy directory exists
+      file:
+        path: "{{ deploy_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+      become: yes
+      become_user: root
+    
+    - name: Copy docker-compose.yml to manager
+      copy:
+        src: ../docker-compose.yml
+        dest: "{{ deploy_dir }}/docker-compose.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    
+    - name: Copy sensor config
+      copy:
+        src: ../sensor-config.json
+        dest: "{{ deploy_dir }}/sensor-config.json"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    
+    - name: Create config directory
+      file:
+        path: "{{ deploy_dir }}/configs"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+      become: yes
+      become_user: root
+    
+    - name: Copy mosquitto config
+      copy:
+        src: ../../applications/mosquitto-config/mosquitto.conf
+        dest: "{{ deploy_dir }}/configs/mosquitto.conf"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    
+    - name: Copy MongoDB init script
+      copy:
+        src: ../../applications/mongodb-init/init-mongo.js
+        dest: "{{ deploy_dir }}/configs/init-mongo.js"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    
+    - name: Copy Home Assistant configuration
+      copy:
+        src: ../../applications/homeassistant-config/configuration.yaml
+        dest: "{{ deploy_dir }}/configs/configuration.yaml"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    
+    - name: Create IaC scripts directory
+      file:
+        path: /home/ubuntu/plant-monitor-swarm-IaC
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+      become: yes
+      become_user: root
+    
+    - name: Copy deployment scripts
+      copy:
+        src: "{{ item }}"
+        dest: "/home/ubuntu/plant-monitor-swarm-IaC/{{ item | basename }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+      loop:
+        - ../deploy-observability.sh
+        - ../load-test-processor.sh
+        - ../import-dashboard.py
+    
+    - name: Copy observability stack file
+      copy:
+        src: ../observability-stack.yml
+        dest: /home/ubuntu/plant-monitor-swarm-IaC/observability-stack.yml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    
+    - name: Create configs directory on manager
+      file:
+        path: /home/ubuntu/plant-monitor-swarm-IaC/configs
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+      become: yes
+      become_user: root
+    
+    - name: Copy observability configs
+      copy:
+        src: "{{ item }}"
+        dest: "/home/ubuntu/plant-monitor-swarm-IaC/configs/{{ item | basename }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+      loop:
+        - ../configs/loki-config.yaml
+        - ../configs/promtail-config.yml
+        - ../configs/prometheus.yml
+        - ../configs/grafana-datasources.yml
+        - ../configs/grafana-dashboards.yml
+        - ../configs/grafana-plant-monitoring-dashboard.json
+        - ../configs/grafana-plant-monitoring-dashboard-provisioning.json
+    
+    - name: Check if secrets already exist
+      command: docker secret ls --format '{{"{{"}}.Name{{"}}"}}'
+      register: existing_secrets
+      changed_when: false
+    
+    - name: Generate random passwords for secrets
+      set_fact:
+        mongo_root_pass: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+        mongo_app_pass: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+        mqtt_pass: "{{ lookup('password', '/dev/null length=16 chars=ascii_letters,digits') }}"
+      when: "'mongo_root_password' not in existing_secrets.stdout"
+    
+    - name: Create Docker secrets (if not exists)
+      shell: |
+        {% if 'mongo_root_username' not in existing_secrets.stdout %}
+        echo "admin" | docker secret create mongo_root_username -
+        {% endif %}
+        {% if 'mongo_root_password' not in existing_secrets.stdout %}
+        echo "{{ mongo_root_pass }}" | docker secret create mongo_root_password -
+        {% endif %}
+        {% if 'mongo_app_username' not in existing_secrets.stdout %}
+        echo "plant_app" | docker secret create mongo_app_username -
+        {% endif %}
+        {% if 'mongo_app_password' not in existing_secrets.stdout %}
+        echo "{{ mongo_app_pass }}" | docker secret create mongo_app_password -
+        {% endif %}
+        {% if 'mongodb_connection_string' not in existing_secrets.stdout %}
+        echo "mongodb://plant_app:{{ mongo_app_pass }}@mongodb:27017/plant_monitoring?authSource=admin" | docker secret create mongodb_connection_string -
+        {% endif %}
+        {% if 'mqtt_username' not in existing_secrets.stdout %}
+        echo "mqtt_user" | docker secret create mqtt_username -
+        {% endif %}
+        {% if 'mqtt_password' not in existing_secrets.stdout %}
+        echo "{{ mqtt_pass }}" | docker secret create mqtt_password -
+        {% endif %}
+      when: "'mongo_root_password' not in existing_secrets.stdout"
+      args:
+        executable: /bin/bash
+    
+    # ============================================================================
+    # Check Existing Stack (for idempotent updates)
+    # ============================================================================
+    - name: Check if monitoring stack is deployed
+      shell: docker stack ls --format "{{"{{"}}.Name{{"}}"}}" | grep -w "monitoring" || true
+      register: existing_monitoring_stack
+      changed_when: false
+    
+    - name: Remove monitoring stack first (if exists - uses networks)
+      command: docker stack rm monitoring
+      when: existing_monitoring_stack.stdout != ""
+      register: monitoring_stack_removed
+      ignore_errors: yes
+    
+    - name: Wait for monitoring stack removal
+      pause:
+        seconds: 20
+      when: monitoring_stack_removed is changed
+    
+    - name: Check if stack is already deployed
+      shell: docker stack ls --format "{{"{{"}}.Name{{"}}"}}" | grep -w "{{ stack_name }}" || true
+      register: existing_stack
+      changed_when: false
+    
+    - name: Remove existing stack if deployed (for config updates)
+      command: docker stack rm {{ stack_name }}
+      when: existing_stack.stdout != ""
+      register: stack_removed
+      failed_when: false  # Don't fail if networks still in use
+    
+    - name: Wait for stack removal to complete
+      pause:
+        seconds: 20
+      when: stack_removed is changed
+    
+    - name: Force cleanup any remaining networks (if stack removal had issues)
+      shell: |
+        docker network ls --filter name=plant-monitoring --format "{{"{{"}}.ID{{"}}"}}" | while read net; do
+          docker network rm $net 2>/dev/null || true
+        done
+      when: stack_removed is changed and stack_removed.rc != 0
+      ignore_errors: yes
+    
+    # ============================================================================
+    # Docker Configs (Idempotent)
+    # ============================================================================
+    - name: Check if Docker configs exist
+      shell: docker config ls --format "{{"{{"}}.Name{{"}}"}}"
+      register: existing_configs
+      changed_when: false
+    
+    - name: Remove old Docker configs (only if they exist and not in use)
+      command: docker config rm {{ item }}
+      when: item in existing_configs.stdout
+      ignore_errors: yes  # In case still cleaning up
+      loop:
+        - mosquitto_config
+        - sensor_config
+        - mongodb_init_config
+        - homeassistant_config_yaml
+    
+    - name: Create Docker configs (idempotent)
+      shell: |
+        docker config create mosquitto_config {{ deploy_dir }}/configs/mosquitto.conf 2>/dev/null || echo "Config mosquitto_config already exists or being recreated"
+        docker config create sensor_config {{ deploy_dir }}/sensor-config.json 2>/dev/null || echo "Config sensor_config already exists or being recreated"
+        docker config create mongodb_init_config {{ deploy_dir }}/configs/init-mongo.js 2>/dev/null || echo "Config mongodb_init_config already exists or being recreated"
+        docker config create homeassistant_config_yaml {{ deploy_dir }}/configs/configuration.yaml 2>/dev/null || echo "Config homeassistant_config_yaml already exists or being recreated"
+      args:
+        executable: /bin/bash
+      register: config_creation
+      changed_when: "'created' in config_creation.stdout"
+    
+    # ============================================================================
+    # Deploy Stack
+    # ============================================================================
+    - name: Deploy stack
+      command: >
+        docker stack deploy
+        -c {{ deploy_dir }}/docker-compose.yml
+        {{ stack_name }}
+      register: deploy_result
+    
+    - name: Wait for initial service creation
+      pause:
+        seconds: 15
+    
+    # ============================================================================
+    # Wait for Kafka service to be fully ready with DNS registered
+    # This prevents processor from starting before Kafka DNS is available
+    # ============================================================================
+    - name: Wait for Kafka service to be running
+      shell: |
+        echo "Waiting for Kafka service to start..."
+        i=1
+        while [ $i -le 60 ]; do
+          REPLICAS=$(docker service ls --filter name=plant-monitoring_kafka --format "{{ '{{' }}.Replicas{{ '}}' }}")
+          if [ "$REPLICAS" = "1/1" ]; then
+            echo "Kafka service is running (1/1)"
+            sleep 5
+            exit 0
+          fi
+          echo "Kafka status: $REPLICAS (attempt $i/60)"
+          sleep 2
+          i=$((i+1))
+        done
+        echo "ERROR: Kafka failed to start after 120 seconds"
+        exit 1
+      register: kafka_ready
+      changed_when: false
+      failed_when: kafka_ready.rc != 0
+    
+    - name: Verify Kafka DNS is resolvable from a running container
+      shell: |
+        echo "Verifying Kafka DNS resolution..."
+        i=1
+        while [ $i -le 30 ]; do
+          CONTAINER=$(docker ps -q --filter "name=plant-monitoring_" | head -1)
+          if [ -n "$CONTAINER" ]; then
+            if docker exec $CONTAINER nslookup kafka 2>/dev/null || docker exec $CONTAINER getent hosts kafka 2>/dev/null; then
+              echo "✓ Kafka DNS is resolvable"
+              exit 0
+            fi
+          fi
+          echo "Waiting for Kafka DNS... (attempt $i/30)"
+          sleep 2
+          i=$((i+1))
+        done
+        echo "WARNING: Could not verify Kafka DNS resolution"
+        exit 0
+      register: kafka_dns_check
+      changed_when: false
+      failed_when: false
+    
+    - name: Wait for all services to stabilize
+      pause:
+        seconds: 30
+    
+    - name: Check service status
+      command: docker stack services {{ stack_name }}
+      register: services_status
+      changed_when: false
+    
+    - name: Display deployment result
+      debug:
+        msg: "{{ services_status.stdout_lines }}"
+    
+    - name: Get manager IP for access info
+      set_fact:
+        manager_ip: "{{ ansible_default_ipv4.address }}"
+    
+    - name: Display access information
+      debug:
+        msg: |
+          ═══════════════════════════════════════════════
+          Deployment Complete!
+          ═══════════════════════════════════════════════
+          
+          Access Points:
+            Home Assistant: http://{{ ansible_host }}:8123
+            MQTT Broker:    {{ ansible_host }}:1883
+            Kafka:          {{ ansible_host }}:9092
+            MongoDB:        {{ ansible_host }}:27017
+          
+          SSH to manager:
+            ssh -i ~/.ssh/docker-swarm-key ubuntu@{{ ansible_host }}
+          
+          View services:
+            docker stack services {{ stack_name }}
+          
+          View logs:
+            docker service logs {{ stack_name }}_<service-name>
+          
+          Scale services:
+            docker service scale {{ stack_name }}_sensor=5
+          ═══════════════════════════════════════════════

@@ -1,0 +1,988 @@
+﻿1
+00:00:01,088 --> 00:00:01,352
+All right.
+
+2
+00:00:01,352 --> 00:00:01,946
+In this lecture
+
+3
+00:00:01,946 --> 00:00:06,797
+we're going to talk about serverless
+architectures in in cloud computing.
+
+4
+00:00:07,127 --> 00:00:09,998
+So leveraging both function as a service
+
+5
+00:00:09,998 --> 00:00:13,001
+PaaS solutions and self-hosted models.
+
+6
+00:00:13,265 --> 00:00:16,070
+So first off what is serverless.
+
+7
+00:00:16,070 --> 00:00:20,393
+It's kind of a misnomer because
+people think oh it's not using servers.
+
+8
+00:00:20,426 --> 00:00:22,109
+It actually is using servers.
+
+9
+00:00:22,109 --> 00:00:26,201
+There are CPUs on the back end, but
+it's abstracted everything away from you.
+
+10
+00:00:26,201 --> 00:00:30,029
+So, people call it function as a service.
+
+11
+00:00:30,359 --> 00:00:33,791
+It means I got a piece of code
+and that's all I've got.
+
+12
+00:00:33,791 --> 00:00:38,312
+And all I have to do is submit something,
+and that piece of code will start up
+
+13
+00:00:38,312 --> 00:00:41,315
+and take whatever input you gave it,
+do its work, and then go away.
+
+14
+00:00:41,579 --> 00:00:43,361
+So that's the idea behind it.
+
+15
+00:00:43,361 --> 00:00:47,783
+Developers can deploy these individual
+functions to do, little things.
+
+16
+00:00:47,948 --> 00:00:52,007
+And most of the cloud service providers
+have this as a pay per use.
+
+17
+00:00:52,040 --> 00:00:56,396
+So every time it uses something
+it kicks off and does something.
+
+18
+00:00:56,924 --> 00:00:59,762
+No servers are provisioned.
+
+19
+00:00:59,762 --> 00:01:02,963
+There are
+you don't have to provision any servers.
+
+20
+00:01:03,293 --> 00:01:05,075
+There are servers provisioned.
+
+21
+00:01:05,075 --> 00:01:08,903
+There's a pool of servers on the back end
+that are just being used
+
+22
+00:01:08,903 --> 00:01:10,817
+to run this code for you. Right.
+
+23
+00:01:10,817 --> 00:01:14,315
+So everything scales
+automatically for you on the back end.
+
+24
+00:01:14,678 --> 00:01:18,407
+It just simplifies we've abstracted to the
+to the smallest,
+
+25
+00:01:18,407 --> 00:01:22,235
+level that we possibly can,
+which is a function to do something.
+
+26
+00:01:22,532 --> 00:01:23,885
+That's that's it.
+
+27
+00:01:23,885 --> 00:01:26,492
+Very simple. Very powerful tool.
+
+28
+00:01:27,449 --> 00:01:30,452
+So there's different execution models
+that I can talk about
+
+29
+00:01:30,584 --> 00:01:33,257
+function as a service,
+which you've already talked about.
+
+30
+00:01:33,257 --> 00:01:34,874
+The smallest granularity there.
+
+31
+00:01:34,874 --> 00:01:36,227
+It's all event driven.
+
+32
+00:01:36,227 --> 00:01:38,669
+So given an event run this function.
+
+33
+00:01:38,669 --> 00:01:40,253
+That's that's it.
+
+34
+00:01:40,253 --> 00:01:41,342
+Very simple.
+
+35
+00:01:41,342 --> 00:01:45,434
+Examples of this are AWS
+Lambda, Azure Functions
+
+36
+00:01:45,863 --> 00:01:50,285
+and Google Cloud Functions,
+which are options out there.
+
+37
+00:01:50,747 --> 00:01:53,090
+And then there's platform
+as a service here
+
+38
+00:01:53,090 --> 00:01:56,885
+where the entire framework
+has all the microservices in there.
+
+39
+00:01:56,885 --> 00:02:00,482
+It's still event driven, still has
+it has that functionality.
+
+40
+00:02:00,746 --> 00:02:04,838
+But things like, AWS
+elastic Beanstalk and App Engine
+
+41
+00:02:05,135 --> 00:02:09,491
+are these type of execution models
+where it's more than just an individual
+
+42
+00:02:09,491 --> 00:02:14,375
+function, it's serverless still,
+in that I am I'm starting up a service,
+
+43
+00:02:15,002 --> 00:02:19,919
+but I'm not starting up a server to run
+a service on it, if that makes any sense.
+
+44
+00:02:20,315 --> 00:02:22,988
+And then there's self-hosted, frameworks,
+
+45
+00:02:23,978 --> 00:02:27,938
+like, fast frameworks, for example,
+
+46
+00:02:28,433 --> 00:02:32,162
+like open fast, 
+native and Apache open whisk.
+
+47
+00:02:32,525 --> 00:02:35,462
+So to two real
+
+48
+00:02:35,462 --> 00:02:39,422
+execution models that right functions
+and then service.
+
+49
+00:02:39,422 --> 00:02:39,752
+Right.
+
+50
+00:02:39,752 --> 00:02:43,448
+I'm going to fire up a service
+a service gets fired up
+
+51
+00:02:43,448 --> 00:02:48,662
+and the servers are automatically,
+being scaled up and down for me.
+
+52
+00:02:49,058 --> 00:02:52,061
+So that's the main difference
+between those.
+
+53
+00:02:52,490 --> 00:02:52,886
+All right.
+
+54
+00:02:52,886 --> 00:02:54,998
+Lots of different use cases.
+
+55
+00:02:54,998 --> 00:02:59,585
+If I have, a, a bunch of data
+pipelining that I want to do,
+
+56
+00:02:59,981 --> 00:03:04,502
+or I have event processing that I want to
+do, this is perfect for that.
+
+57
+00:03:04,502 --> 00:03:05,591
+Right?
+
+58
+00:03:05,591 --> 00:03:06,284
+Great example.
+
+59
+00:03:06,284 --> 00:03:09,287
+Let's say that, from a
+the podcast that I do.
+
+60
+00:03:09,650 --> 00:03:14,732
+Right when I release, a new, podcast,
+maybe I want to take that,
+
+61
+00:03:15,194 --> 00:03:20,705
+podcast video that I do, and I want to
+chop it up into a bunch of small, shorts
+
+62
+00:03:20,705 --> 00:03:25,160
+that are every 15 seconds, 
+long of the whole thing.
+
+63
+00:03:25,160 --> 00:03:28,823
+Well, I could easily send
+that on to a function as a service.
+
+64
+00:03:28,823 --> 00:03:32,453
+Hey, when a new podcast arrives, boom.
+
+65
+00:03:32,486 --> 00:03:34,367
+Break this thing up into.
+
+66
+00:03:34,367 --> 00:03:37,370
+And then I can have a function for each.
+
+67
+00:03:37,436 --> 00:03:39,350
+Each one of those, fire off.
+
+68
+00:03:39,350 --> 00:03:41,726
+Right. So great for those types of things.
+
+69
+00:03:41,726 --> 00:03:45,587
+Real time streaming and processing
+is another great one.
+
+70
+00:03:46,280 --> 00:03:48,920
+We see this in, analytics
+
+71
+00:03:48,920 --> 00:03:52,418
+of large systems
+where a certain event happens.
+
+72
+00:03:52,616 --> 00:03:54,761
+Security systems is a good one.
+
+73
+00:03:54,761 --> 00:03:57,764
+Scheduled tasks,
+you know, anything like that?
+
+74
+00:03:58,028 --> 00:04:02,219
+A lot of really good integration points
+you can use for functions of service type
+
+75
+00:04:02,219 --> 00:04:06,872
+things, things that use webhooks or bots,
+that are generating events
+
+76
+00:04:06,872 --> 00:04:09,380
+that I want to capture
+and then do something with.
+
+77
+00:04:09,380 --> 00:04:14,693
+So these are all great use cases
+for, a fast function as a service or,
+
+78
+00:04:15,287 --> 00:04:19,544
+or even service, paths, platforms
+that are firing up services for me.
+
+79
+00:04:21,161 --> 00:04:22,976
+A lot of advantages.
+
+80
+00:04:22,976 --> 00:04:25,517
+One of them is operational simplicity,
+meaning
+
+81
+00:04:25,517 --> 00:04:28,520
+I don't have to manage the operations
+side of things.
+
+82
+00:04:28,685 --> 00:04:31,292
+Automatic scaling is done for me.
+
+83
+00:04:31,292 --> 00:04:32,678
+It can be cost efficient.
+
+84
+00:04:32,678 --> 00:04:36,539
+If you are managing your events
+appropriately, you're only going to pay
+
+85
+00:04:36,539 --> 00:04:40,532
+for, the use of, the service.
+
+86
+00:04:40,532 --> 00:04:43,700
+For the short period of time
+that you're using,
+
+87
+00:04:43,700 --> 00:04:46,703
+things,
+
+88
+00:04:46,835 --> 00:04:49,310
+there are some gotchas here
+you got to be careful of,
+
+89
+00:04:49,310 --> 00:04:50,597
+but we'll talk about that later.
+
+90
+00:04:50,597 --> 00:04:51,950
+But built in high
+
+91
+00:04:51,950 --> 00:04:55,415
+availability is already built
+in, so it takes care of a lot of the
+
+92
+00:04:55,712 --> 00:04:59,045
+operational infrastructure on the back end
+that you would normally have to do.
+
+93
+00:04:59,177 --> 00:05:01,091
+So it's a great platform.
+
+94
+00:05:01,091 --> 00:05:02,840
+For that.
+
+95
+00:05:02,840 --> 00:05:04,985
+Some disadvantages
+
+96
+00:05:04,985 --> 00:05:08,450
+when you first get started thing
+there's some idle time, right,
+
+97
+00:05:08,450 --> 00:05:11,915
+to get things going because I've got,
+automatically provisioned things.
+
+98
+00:05:13,301 --> 00:05:13,895
+You have to be
+
+99
+00:05:13,895 --> 00:05:17,294
+careful vendor lock in an AWS Lambda.
+
+100
+00:05:17,756 --> 00:05:21,023
+Incredible tool,
+but you're locked into AWS Lambda.
+
+101
+00:05:21,551 --> 00:05:23,333
+There's no way around it. Right?
+
+102
+00:05:23,333 --> 00:05:26,699
+Using some of the open source tools
+means you have to manage it,
+
+103
+00:05:26,699 --> 00:05:31,318
+some of that yourself, so you don't get
+all the benefits you get from a CSP.
+
+104
+00:05:31,483 --> 00:05:34,486
+But the CSPs have not normalized these.
+
+105
+00:05:34,486 --> 00:05:38,512
+There's not a standard for function
+as a service across the board.
+
+106
+00:05:38,512 --> 00:05:41,515
+And that brings, lock in. Right.
+
+107
+00:05:41,746 --> 00:05:44,551
+You also have to,
+
+108
+00:05:44,551 --> 00:05:48,676
+look at maximum timeout
+on some of these, functions like Lambda.
+
+109
+00:05:48,709 --> 00:05:50,524
+There's a 15 minute timeout.
+
+110
+00:05:50,524 --> 00:05:52,933
+So if you think takes more than 15 minutes
+at times out.
+
+111
+00:05:52,933 --> 00:05:56,464
+Anyway, so there's resource limitations
+
+112
+00:05:56,464 --> 00:06:00,292
+on these as well because they're
+trying to reuse really cheap.
+
+113
+00:06:01,777 --> 00:06:03,691
+EC2 type instances.
+
+114
+00:06:03,691 --> 00:06:06,496
+Any really cheap, VMs out there.
+
+115
+00:06:06,496 --> 00:06:09,004
+They're going to use these
+for these small function as a service.
+
+116
+00:06:09,004 --> 00:06:13,294
+So they're not great for big jobs,
+but they're great for small little tiny
+
+117
+00:06:13,294 --> 00:06:13,987
+things.
+
+118
+00:06:13,987 --> 00:06:16,627
+They also are very difficult
+
+119
+00:06:16,627 --> 00:06:19,762
+very, very difficult to debug and monitor
+
+120
+00:06:19,762 --> 00:06:23,227
+because things are just happening
+in an event driven way.
+
+121
+00:06:23,524 --> 00:06:27,022
+And it's hard to you can't really put
+a debugger on these things.
+
+122
+00:06:27,022 --> 00:06:27,352
+Right.
+
+123
+00:06:27,352 --> 00:06:30,916
+So you've got to debug, parts separately.
+
+124
+00:06:30,916 --> 00:06:34,876
+But the whole system running is very hard
+to, to monitor and see what's going on.
+
+125
+00:06:35,173 --> 00:06:38,176
+So those are some, some trade offs.
+
+126
+00:06:38,275 --> 00:06:39,232
+Okay.
+
+127
+00:06:39,232 --> 00:06:42,202
+Let's take a look at a fast,
+
+128
+00:06:42,202 --> 00:06:44,974
+like function as a service like Lambda.
+
+129
+00:06:44,974 --> 00:06:47,416
+Right. Great example.
+
+130
+00:06:47,416 --> 00:06:51,640
+Very easy to set up cold start impact
+when you first get started.
+
+131
+00:06:52,036 --> 00:06:56,557
+It could be a little slow,
+but once you get those first, instances
+
+132
+00:06:56,557 --> 00:07:00,484
+up and running, things, work pretty well,
+and you get charged per
+
+133
+00:07:00,484 --> 00:07:02,365
+call on this one, right?
+
+134
+00:07:02,365 --> 00:07:04,279
+Very high lock in risk.
+
+135
+00:07:04,279 --> 00:07:07,678
+You got to be careful on the next one
+if you're using a Paz.
+
+136
+00:07:08,206 --> 00:07:12,364
+Here, you know,
+you've got more flexibility here.
+
+137
+00:07:12,925 --> 00:07:15,301
+Moderate. Management.
+
+138
+00:07:15,301 --> 00:07:20,251
+You can, you can, you can put containers
+in ahead of time that warm things up.
+
+139
+00:07:20,713 --> 00:07:23,716
+You've got autoscale policies
+that you have to manage.
+
+140
+00:07:24,079 --> 00:07:28,237
+You get charged per instance hours
+instead of per call.
+
+141
+00:07:28,237 --> 00:07:31,537
+So if you have a lot of events,
+this might be a cheaper way to go.
+
+142
+00:07:31,867 --> 00:07:36,157
+And most of the, 
+Paz platforms, can be portable.
+
+143
+00:07:36,157 --> 00:07:38,995
+I mean, if you're
+if you're using some of the more open
+
+144
+00:07:38,995 --> 00:07:41,998
+source, platforms like Kubernetes
+and things like that,
+
+145
+00:07:42,097 --> 00:07:46,057
+that's more portable
+if you're going to host your own trials,
+
+146
+00:07:47,047 --> 00:07:49,720
+that's the most portable of all of them.
+
+147
+00:07:49,720 --> 00:07:51,997
+And,
+
+148
+00:07:51,997 --> 00:07:55,000
+there's, there's a couple platforms
+out there that you can use,
+
+149
+00:07:55,099 --> 00:07:58,003
+and it does a pretty good job,
+but you're still managing things yourself.
+
+150
+00:07:58,003 --> 00:08:03,646
+So, the cost model on this is,
+you got to pay for your infrastructure.
+
+151
+00:08:03,877 --> 00:08:06,946
+If you're running it locally, then you've
+already eaten that cost with your CapEx.
+
+152
+00:08:06,946 --> 00:08:12,160
+So, most portability,
+self-hosted, least portability, fast,
+
+153
+00:08:12,457 --> 00:08:16,285
+easiest to use, fast, hardest
+to use self-hosted.
+
+154
+00:08:16,648 --> 00:08:18,331
+Just like almost all the other things
+
+155
+00:08:18,331 --> 00:08:21,334
+that we've talked
+about in these architectures.
+
+156
+00:08:22,357 --> 00:08:22,687
+All right.
+
+157
+00:08:22,687 --> 00:08:26,218
+So key considerations and best practices
+
+158
+00:08:26,218 --> 00:08:29,221
+around, using serverless
+
+159
+00:08:29,848 --> 00:08:33,346
+if you have, a new start,
+
+160
+00:08:33,346 --> 00:08:36,349
+if your programs are starting up,
+
+161
+00:08:36,349 --> 00:08:38,725
+be wise to start up costs. Right.
+
+162
+00:08:38,725 --> 00:08:42,586
+Starting up those VM starting up
+those instances can take time.
+
+163
+00:08:42,850 --> 00:08:44,896
+So you may want to do a warm
+start on that.
+
+164
+00:08:44,896 --> 00:08:46,183
+If you need to.
+
+165
+00:08:46,183 --> 00:08:50,803
+Also make sure that you have a stateless
+design for these functions as a service.
+
+166
+00:08:51,199 --> 00:08:55,159
+If you're storing state,
+you're going to have an issue, right?
+
+167
+00:08:55,159 --> 00:08:57,535
+Because you don't know when or where
+these are running.
+
+168
+00:08:57,535 --> 00:08:58,228
+Right.
+
+169
+00:08:58,228 --> 00:09:01,231
+Make sure that you have centralized
+logging for observability
+
+170
+00:09:01,693 --> 00:09:03,376
+on these functions that are out there.
+
+171
+00:09:03,376 --> 00:09:06,940
+Otherwise you could easily lose track of
+what's going on out there.
+
+172
+00:09:06,940 --> 00:09:09,613
+There's great tools out there
+like CloudWatch or Stackdriver
+
+173
+00:09:09,613 --> 00:09:11,857
+that that can do that.
+
+174
+00:09:11,857 --> 00:09:15,619
+Always practice
+least privilege on your IAM
+
+175
+00:09:15,619 --> 00:09:19,381
+roles, network isolation,
+secret management, all that stuff.
+
+176
+00:09:19,546 --> 00:09:22,582
+Still need to deal with that
+with function as a service.
+
+177
+00:09:22,912 --> 00:09:26,179
+If you're doing anything with encryption
+or you've got keys or certs,
+
+178
+00:09:26,575 --> 00:09:28,027
+you still need to deal with that.
+
+179
+00:09:28,027 --> 00:09:31,030
+And also look at your CI, CD pipeline,
+
+180
+00:09:31,030 --> 00:09:34,858
+for automating your builds and doing your
+Bluegreen Canary deployments
+
+181
+00:09:36,079 --> 00:09:37,267
+just because you have a function,
+
+182
+00:09:37,267 --> 00:09:41,557
+it's a piece of code that you're
+just injecting into, like the cloud.
+
+183
+00:09:41,821 --> 00:09:44,824
+You want to make sure
+that you're doing all your normal CI, CD,
+
+184
+00:09:44,857 --> 00:09:48,883
+pipeline and quality before you go
+and push that into production.
+
+185
+00:09:49,147 --> 00:09:52,084
+So don't forget those things.
+
+186
+00:09:52,084 --> 00:09:52,612
+All right?
+
+187
+00:09:52,612 --> 00:09:54,757
+When do you want to self-hosted?
+
+188
+00:09:54,757 --> 00:09:57,760
+When you've got strict data, compliance.
+
+189
+00:09:57,892 --> 00:10:00,895
+You're worried about vendor lock lock in.
+
+190
+00:10:00,928 --> 00:10:04,030
+You want to customize runtime
+to maybe remember
+
+191
+00:10:04,030 --> 00:10:07,066
+the CCP's are going to use their cheapest,
+oldest,
+
+192
+00:10:07,627 --> 00:10:10,531
+EC2 instances out there
+
+193
+00:10:10,531 --> 00:10:13,534
+because they want to monetize
+those old resource.
+
+194
+00:10:13,534 --> 00:10:14,920
+So that's why they use this.
+
+195
+00:10:14,920 --> 00:10:18,682
+If you want to use certain
+silicon features that are newer silicon,
+
+196
+00:10:19,012 --> 00:10:21,586
+then you want to, host your own there.
+
+197
+00:10:21,586 --> 00:10:21,817
+All right.
+
+198
+00:10:21,817 --> 00:10:25,645
+So be mindful of what's happening
+on the back end of these things
+
+199
+00:10:26,074 --> 00:10:28,087
+and take advantage of self-hosting.
+
+200
+00:10:29,275 --> 00:10:30,001
+All right.
+
+201
+00:10:30,001 --> 00:10:31,420
+Identify your workloads.
+
+202
+00:10:31,420 --> 00:10:34,687
+Make sure that it fits an event
+driven architecture.
+
+203
+00:10:35,446 --> 00:10:39,703
+Also you want to prototype some things
+with some
+
+204
+00:10:40,033 --> 00:10:44,950
+maybe on some managed, like Lambda first
+to see if it's going to work.
+
+205
+00:10:44,950 --> 00:10:47,326
+And then you can make a decision
+to move off of it,
+
+206
+00:10:47,326 --> 00:10:49,834
+keep it very lightweight
+on your prototyping.
+
+207
+00:10:49,834 --> 00:10:50,461
+Right.
+
+208
+00:10:50,461 --> 00:10:53,926
+Don't forget about the cold starts
+and concurrency.
+
+209
+00:10:53,926 --> 00:10:55,807
+And that adds cost to things.
+
+210
+00:10:55,807 --> 00:10:58,777
+And explore
+some of the hybrid managed, fast, self
+
+211
+00:10:58,777 --> 00:11:02,043
+self-hosted, solutions out there.
+
+212
+00:11:02,175 --> 00:11:05,178
+They can really give you an advantage,
+especially if you're doing cloud
+
+213
+00:11:05,211 --> 00:11:08,214
+to edge architectures and FAS.
+
+214
+00:11:08,313 --> 00:11:11,316
+You really can't do that with Lambda
+very well. So,
+
+215
+00:11:12,735 --> 00:11:16,695
+doing a self-hosted FAS
+is probably the best way to go there.
+
+216
+00:11:16,992 --> 00:11:17,949
+And don't forget about it.
+
+217
+00:11:17,949 --> 00:11:20,688
+Survivability and security guardrails.
+
+218
+00:11:20,688 --> 00:11:22,932
+So that's it for serverless.

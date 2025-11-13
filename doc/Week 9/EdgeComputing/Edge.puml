@@ -1,0 +1,78 @@
+@startuml
+
+left to right direction
+
+package "Event Sources" {
+  [HTTP Request]
+  [Queue / Topic]
+  [Storage Trigger]
+  [Timer]
+}
+
+package "Serverless Models" {
+  component "FaaS\n(Function as a Service)" as FaaS
+  component "PaaS\n(Platform as a Service)" as PaaS
+  component "Self-Hosted\n(OpenFaaS, Knative)" as SelfHosted
+}
+
+package "Core Services" {
+  database "Database / Cache" as DB
+  storage "Object Storage" as S3
+  queue "Message Queue" as MQ
+  component "Monitoring / Logging" as Logs
+}
+
+package "Cloud Provider Infra" {
+  node "Compute\n(auto-scale, idle=0)" as Compute
+  node "Networking\n(load balancing, API GW)" as Network
+}
+
+' Event flows
+[HTTP Request] --> Network
+[Queue / Topic] --> FaaS
+[Storage Trigger] --> FaaS
+[Timer] --> FaaS
+
+Network --> FaaS
+Network --> PaaS
+
+' Model to infra
+FaaS --> Compute
+PaaS --> Compute
+SelfHosted --> Compute
+
+' Core services interactions
+FaaS --> DB
+FaaS --> S3
+FaaS --> MQ
+FaaS --> Logs
+
+PaaS --> DB
+PaaS --> S3
+PaaS --> Logs
+
+SelfHosted --> DB
+SelfHosted --> S3
+SelfHosted --> MQ
+SelfHosted --> Logs
+
+' Highlights
+note right of FaaS
+  • Event-driven, granular
+  • Pay per invocation
+  • Cold start risks
+end note
+
+note right of PaaS
+  • Deploy full apps
+  • Instance pricing
+  • Warm containers
+end note
+
+note right of SelfHosted
+  • Full control
+  • Operational overhead
+  • Avoid vendor lock-in
+end note
+
+@enduml

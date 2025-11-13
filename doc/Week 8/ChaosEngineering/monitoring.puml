@@ -1,0 +1,13 @@
+@startuml
+
+rectangle "Microservices" {
+  [App A] --> [Prometheus]
+  [App B] --> [Prometheus]
+}
+
+[Prometheus] --> [Alertmanager]
+[Prometheus] --> [Grafana]
+
+[Alertmanager] --> (PagerDuty)
+[Grafana] --> Users : Dashboards
+@enduml

@@ -8,6 +8,9 @@ _class: lead
 # Overlay VPN Networking
 ## Headscale (Self-Hosted) vs. ZeroTier
 
+Video: https://youtu.be/iojb_8GOt8c
+
+
 ---
 
 # 1. Introduction to Overlay VPNs

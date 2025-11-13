@@ -1,5 +1,7 @@
 # Edge Computing and Cloud Architecture
 
+Video: https://youtu.be/TghbRaf2fHQ
+
 ## 1. Introduction
 
 ### 1.1 Definitions

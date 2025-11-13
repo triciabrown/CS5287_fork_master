@@ -1,4 +1,6 @@
-# Lecture: Overlay VPN Networking with Headscale and ZeroTier
+# Overlay VPN Networking with Headscale and ZeroTier
+
+Video: https://youtu.be/iojb_8GOt8c
 
 In this lecture we’ll explore how to build private, self-hosted overlay VPNs using Headscale (an open-source Tailscale control server) and compare that to managed, peer-to-peer meshes like ZeroTier. We’ll cover core concepts, architecture, setup, use cases, security considerations, and pros/cons of each approach.
 

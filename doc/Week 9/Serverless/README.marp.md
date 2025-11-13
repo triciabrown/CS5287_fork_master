@@ -8,6 +8,7 @@ _class: lead
 # Serverless in Cloud Computing
 
 ## Leveraging FaaS, PaaS and Self-Hosted Models
+Video: https://youtu.be/hDdhx8is5Pc
 
 ---
 
@@ -97,6 +98,3 @@ _class: lead
 3. Benchmark cold starts, concurrency, and cost
 4. Explore hybrid: managed FaaS + self-hosted for critical paths
 5. Implement observability and security guardrails
-
-**Questions?**  
-Let’s discuss your serverless use cases and challenges!

@@ -7,6 +7,7 @@ _class: lead
 
 # Edge Computing and Cloud Architecture
 ## A Hybrid Approach for Modern Applications
+Video: https://youtu.be/TghbRaf2fHQ
 
 ---
 
@@ -186,10 +187,3 @@ _class: lead
 - Cloud = scale & analytics
 - Edge = responsiveness & local processing
 - Hybrid = balanced performance, cost, compliance
-
-## Action Items
-1. Propose cloud–edge topology for a real problem
-2. Identify security threats & mitigations
-3. Prototype edge function (e.g., image classification on Pi)
-
----

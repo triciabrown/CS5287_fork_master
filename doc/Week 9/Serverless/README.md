@@ -1,6 +1,8 @@
 # Serverless in Cloud Computing
 
-Welcome! Today we’ll explore serverless computing within the cloud: what it is, how it works, its various delivery models, real-world use cases, the benefits and drawbacks, best practices, and decision criteria for when to use managed versus self-hosted serverless. By the end, you should have a clear understanding of how to evaluate and adopt serverless technologies in your projects.
+Video: https://youtu.be/hDdhx8is5Pc
+
+Serverless computing within the cloud: what it is, how it works, its various delivery models, real-world use cases, the benefits and drawbacks, best practices, and decision criteria for when to use managed versus self-hosted serverless. By the end, you should have a clear understanding of how to evaluate and adopt serverless technologies in your projects.
 
 ## 1. Defining Serverless
 

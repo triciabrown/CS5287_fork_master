@@ -1,0 +1,179 @@
+@startuml CA4_Data_Flow
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam roundCorner 10
+skinparam shadowing false
+skinparam linetype ortho
+
+title CA4 Plant Monitoring System - Data Flow Architecture\nEdge-to-Cloud with VPN Tunnel
+
+' ============================================================================
+' EDGE SITE
+' ============================================================================
+package "Edge Site (Local Machine)" as edge #E8F5E9 {
+    
+    component "Sensor 1\n(Tomato)" as sensor1 #90EE90
+    component "Sensor 2\n(Basil)" as sensor2 #90EE90
+    component "Sensor 3\n(Lettuce)" as sensor3 #90EE90
+    
+    component "WireGuard Client\n10.20.0.2" as vpn_edge #FFE082
+    
+    note right of sensor1
+        **Data Created:**
+        Every 10 seconds
+        • Moisture: 35-85%
+        • Temperature: 15-30°C
+        • Light: 200-1000 lux
+        • Humidity: 30-85%
+        
+        Format: JSON
+        Destination: Kafka
+    end note
+}
+
+' ============================================================================
+' VPN TUNNEL
+' ============================================================================
+cloud "VPN Tunnel\n(WireGuard)\n10.20.0.0/24\nEncrypted" as vpn #FFF3E0
+
+' ============================================================================
+' CLOUD SITE
+' ============================================================================
+package "Cloud Site (AWS EC2 - 10.0.0.0/16)" as cloud #E3F2FD {
+    
+    component "WireGuard Gateway\n10.20.0.1" as vpn_cloud #FFE082
+    
+    rectangle "Frontend Tier (10.10.1.0/24)" as frontend #E1F5FE {
+        component "Home Assistant\nPort 8123" as ha #4FC3F7
+    }
+    
+    rectangle "Messaging Tier (10.10.2.0/24)" as messaging #FFF9C4 {
+        component "Zookeeper\nPort 2181" as zk #FFD54F
+        component "Kafka\nINT: 9092\nEXT: 9093" as kafka #FFA726
+        component "Mosquitto\nPort 1883\n(Also in Frontend\n& Data nets)" as mqtt #FF7043
+    }
+    
+    rectangle "Data Tier (10.10.3.0/24)" as data #E8F5E9 {
+        database "MongoDB\nPort 27017" as mongo #66BB6A
+    }
+    
+    rectangle "Application Tier\n(Messaging + Data Networks)" as app_tier #F3E5F5 {
+        component "Plant Processor\n(Consumer)" as processor #BA68C8
+    }
+    
+    note right of processor
+        **Processor Networks:**
+        Connected to BOTH:
+        • messaging-net (10.10.2.0/24)
+          - To consume from Kafka
+        • data-net (10.10.3.0/24)
+          - To write to MongoDB
+          - To publish to MQTT
+        
+        **Scalable:**
+        Can scale 1→3 replicas
+        for load testing
+    end note
+    
+    note right of kafka
+        **Kafka Config:**
+        Topic: plant-sensors
+        Consumer Group: 
+          plant-processor-group
+        
+        **Listeners:**
+        • INTERNAL: kafka:9092
+          (cloud services)
+        • EXTERNAL: 10.20.0.1:9093
+          (VPN - edge sensors)
+    end note
+    
+    note right of mongo
+        **MongoDB Storage:**
+        DB: plant_monitoring
+        Collections:
+        • sensor_readings
+        • plant_configurations
+        
+        **Document:**
+        {
+          plantId: "edge-sensor-001"
+          timestamp: ISO datetime
+          location: "edge-tomato-bed"
+          plantType: "tomato"
+          sensors: {
+            soilMoisture: 57.67
+            lightLevel: 640.81
+            temperature: 19.21
+            humidity: 69.05
+          }
+        }
+    end note
+    
+    note right of ha
+        **Home Assistant:**
+        Auto-discovery via MQTT
+        
+        **Displays:**
+        • Real-time sensor values
+        • Historical graphs
+        • Alert notifications
+        • Plant health status
+        
+        **Topics:**
+        homeassistant/sensor/
+        {plantId}/{metric}
+    end note
+}
+
+' ============================================================================
+' DATA FLOW
+' ============================================================================
+
+sensor1 --> vpn_edge : 1. Generate\nJSON data\n(10s intervals)
+sensor2 --> vpn_edge
+sensor3 --> vpn_edge
+
+vpn_edge --> vpn : 2. Encrypt\n& Transmit
+
+vpn --> vpn_cloud : 3. Receive\n& Decrypt
+
+vpn_cloud --> kafka : 4. Forward\nto Kafka\n(port 9093)
+
+kafka --> processor : 5. Consume\nMessages\n(partition 0)
+
+processor --> mongo : 6a. Store\nRaw Data\n(INSERT)
+processor --> mqtt : 6b. Publish\nEvents
+
+mqtt --> ha : 7. Subscribe\n& Display
+
+zk --> kafka : Coordination
+
+' ============================================================================
+' LEGEND
+' ============================================================================
+legend bottom left
+|= **Step** |= **Description** |= **Protocol/Port** |
+| 1 | Edge sensors generate readings | JSON over Kafka protocol |
+| 2 | Data encrypted via VPN | WireGuard (UDP 51820) |
+| 3 | VPN gateway receives data | 10.20.0.1:9093 |
+| 4 | Kafka queues messages | Topic: plant-sensors |
+| 5 | Processor consumes from Kafka | Consumer group |
+| 6a | Raw data stored in MongoDB | TCP 27017 (internal) |
+| 6b | Events published to MQTT | TCP 1883 (internal) |
+| 7 | Home Assistant displays data | MQTT subscription |
+
+|= **Network** |= **CIDR** |= **Purpose** |
+| VPN Tunnel | 10.20.0.0/24 | Site-to-site encryption |
+| Frontend | 10.10.1.0/24 | User interfaces |
+| Messaging | 10.10.2.0/24 | Message brokers |
+| Data | 10.10.3.0/24 | Data storage |
+| AWS VPC | 10.0.0.0/16 | Cloud network |
+
+|= **Data Format** |= **Example** |
+| Kafka Message | {"plantId":"edge-sensor-001", "timestamp":"2025-12-03T02:12:45Z",\n"location":"edge-tomato-bed", "plantType":"tomato",\n"sensors":{"soilMoisture":57.67, "lightLevel":640.81,\n"temperature":19.21, "humidity":69.05}} |
+| MQTT Topic | homeassistant/sensor/edge-sensor-001/moisture/config |
+end legend
+
+@enduml

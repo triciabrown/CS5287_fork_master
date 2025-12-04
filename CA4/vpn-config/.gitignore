@@ -1,0 +1,19 @@
+# VPN Configuration - .gitignore
+# Do not commit private keys or generated configs
+
+# Generated keys (SENSITIVE!)
+keys/
+*.key
+
+# Generated configurations (contain private keys)
+generated/
+*.conf
+
+# Backup files
+*.bak
+*.old
+
+# Keep templates and scripts
+!*.template
+!*.sh
+!README.md

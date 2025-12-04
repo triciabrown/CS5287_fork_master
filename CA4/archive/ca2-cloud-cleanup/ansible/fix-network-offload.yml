@@ -1,0 +1,35 @@
+---
+# fix-network-offload.yml
+# Apply network checksum offload fix to all nodes
+# This fixes Docker Swarm overlay network UDP packet drops
+
+- name: Fix network offloading on all nodes
+  hosts: all
+  become: yes
+  gather_facts: yes
+  tasks:
+    - name: Get network interface name
+      shell: ip route get 1.1.1.1 | grep -oP 'dev \K\S+'
+      register: network_interface
+      changed_when: false
+    
+    - name: Display interface
+      debug:
+        msg: "Network interface: {{ network_interface.stdout }}"
+    
+    - name: Disable TX offloading features
+      command: ethtool -K {{ network_interface.stdout }} tso off gso off sg off
+      register: offload_result
+      ignore_errors: yes
+      changed_when: offload_result.rc == 0
+    
+    - name: Display offload changes
+      debug:
+        msg: "Network offload features disabled on {{ network_interface.stdout }}"
+      when: offload_result.rc == 0
+    
+    - name: Restart Docker to apply changes
+      service:
+        name: docker
+        state: restarted
+      when: offload_result is changed

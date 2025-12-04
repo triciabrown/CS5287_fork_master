@@ -4,6 +4,9 @@
 
 ---
 
+#TODO: create a data architecture diagram that shows where your data is, what data is needed by
+certain applications, what data is being sent where
+
 ## 1. Choose Your Topology
 
 Select one of the following patterns or develop your own and document your choice: It must include two more locations.

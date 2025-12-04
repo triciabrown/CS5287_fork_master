@@ -1,0 +1,331 @@
+version: '3.8'
+
+# Docker Swarm Stack for Plant Monitoring System
+# Unified compose file combining all services from CA1
+# Optimized for t2.micro instances (1GB RAM, 1 vCPU)
+
+services:
+  # ============================================================================
+  # Message Broker: ZooKeeper + Kafka (proven configuration from CA1)
+  # ============================================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - plant-network
+    deploy:
+      replicas: 1
+      # Using static IP - no need for dnsrr
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    # SECURITY: Kafka is internal only - no published ports
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Memory optimization
+      KAFKA_HEAP_OPTS: '-Xmx400m -Xms400m'
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - plant-network
+    depends_on:
+      - zookeeper
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager  # Temporary: Force to manager for DNS reliability
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 400M
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 10
+        window: 300s
+
+  # ============================================================================
+  # Database: MongoDB
+  # ============================================================================
+  mongodb:
+    image: mongo:6.0.4
+    hostname: mongodb
+    # SECURITY: MongoDB is internal only - no published ports
+    # Services access via overlay network: mongodb:27017
+    # For debugging: ssh -L 27017:mongodb:27017 ubuntu@manager-ip
+    environment:
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_root_username
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_root_password
+      MONGO_INITDB_DATABASE: plant_monitoring
+    secrets:
+      - mongo_root_username
+      - mongo_root_password
+      - mongo_app_username
+      - mongo_app_password
+    configs:
+      - source: mongodb_init_config
+        target: /docker-entrypoint-initdb.d/init-mongo.js
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - plant-network
+    command: >
+      mongod 
+      --wiredTigerCacheSizeGB 0.25 
+      --quiet
+    deploy:
+      replicas: 1
+      # Keep on manager for data persistence (has EBS volume)
+      placement:
+        constraints:
+          - node.role == manager  # Run on manager for data persistence
+      resources:
+        limits:
+          memory: 400M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ============================================================================
+  # MQTT Broker: Mosquitto (for Home Assistant communication)
+  # ============================================================================
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    hostname: mosquitto
+    # SECURITY: MQTT is internal only - no published ports
+    # Services access via overlay network: mosquitto:1883
+    # For debugging: ssh -L 1883:mosquitto:1883 ubuntu@manager-ip
+    configs:
+      - source: mosquitto_config
+        target: /mosquitto/config/mosquitto.conf
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - plant-network
+    deploy:
+      replicas: 1
+      # Remove endpoint_mode - using static IP instead
+      placement:
+        constraints:
+          - node.labels.mqtt == true  # Deploy where labeled
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # ============================================================================
+  # Home Assistant (Dashboard & Automation)
+  # ============================================================================
+  homeassistant:
+    image: homeassistant/home-assistant:2023.8.0
+    hostname: homeassistant
+    ports:
+      - target: 8123
+        published: 8123
+        protocol: tcp
+        mode: ingress  # Load balanced
+    volumes:
+      - homeassistant_config:/config
+    networks:
+      - plant-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mqtt == true  # Co-locate with MQTT
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 384M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+
+  # ============================================================================
+  # Data Processor (Kafka -> MongoDB -> MQTT)
+  # ============================================================================
+  processor:
+    image: ${DOCKER_REGISTRY:-docker.io/triciab221}/plant-processor:v1.0.0
+    hostname: processor
+    environment:
+      NODE_ENV: production
+      # Fix for Node.js DNS resolution in Docker
+      NODE_OPTIONS: '--max-old-space-size=256'
+      KAFKA_BROKER: 'kafka:9092'
+      MONGODB_URL_FILE: /run/secrets/mongodb_connection_string
+      MQTT_BROKER: 'mqtt://mosquitto:1883'
+    secrets:
+      - mongodb_connection_string
+    networks:
+      - plant-network
+    depends_on:
+      - kafka
+      - mongodb
+      - mosquitto
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager  # Temporary: Force to manager for DNS reliability
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 30s           # Increased delay to give Kafka more time
+        max_attempts: 10     # More attempts to handle Kafka startup timing
+        window: 300s         # 5 minute window for restarts
+      update_config:
+        parallelism: 1
+        delay: 10s
+
+  # ============================================================================
+  # Plant Sensors (Data Producers - SCALABLE)
+  # ============================================================================
+  sensor:
+    image: ${DOCKER_REGISTRY:-docker.io/triciab221}/plant-sensor:v1.0.0
+    environment:
+      KAFKA_BROKERS: 'kafka:9092'
+      SENSOR_INTERVAL: '30'
+      # Fix for Node.js DNS resolution in Docker
+      NODE_OPTIONS: '--max-old-space-size=128'
+    configs:
+      - source: sensor_config
+        target: /app/sensor-config.json
+    networks:
+      - plant-network
+    depends_on:
+      - kafka
+    deploy:
+      replicas: 2  # Start with 2, can scale up/down
+      placement:
+        constraints:
+          - node.role == manager  # Temporary: Force to manager for DNS reliability
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+        delay: 30s           # Increased delay to give Kafka more time  
+        max_attempts: 10     # More attempts to handle Kafka startup timing
+        window: 300s         # 5 minute window for restarts
+      update_config:
+        parallelism: 2
+        delay: 5s
+      # Labels for monitoring
+      labels:
+        com.plant-monitor.service: "sensor"
+        com.plant-monitor.scalable: "true"
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  plant-network:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"  # Encrypt overlay network traffic
+    attachable: true  # Allow standalone containers and improve DNS
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.0.0/24  # Use different range than AWS VPC subnets (10.0.x.x)
+          # Docker will assign IPs automatically
+          # Gateway is automatically assigned by Docker Swarm
+
+# ============================================================================
+# Volumes (for stateful services)
+# ============================================================================
+volumes:
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
+  kafka_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  mosquitto_data:
+    driver: local
+  mosquitto_logs:
+    driver: local
+  homeassistant_config:
+    driver: local
+
+# ============================================================================
+# Configs (for configuration files)
+# ============================================================================
+# Note: When deploying to AWS, configs are created via Ansible before stack deploy
+# For local deployment, these paths are used
+configs:
+  mosquitto_config:
+    external: true
+  sensor_config:
+    external: true
+  mongodb_init_config:
+    external: true
+
+# ============================================================================
+# Secrets (for sensitive data)
+# ============================================================================
+secrets:
+  mongo_root_username:
+    external: true
+  mongo_root_password:
+    external: true
+  mongo_app_username:
+    external: true
+  mongo_app_password:
+    external: true
+  mongodb_connection_string:
+    external: true

@@ -1,0 +1,332 @@
+# Docker Swarm Infrastructure for Plant Monitoring System
+# Simplified from Kubernetes - optimized for AWS Free Tier
+
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
+# Variables
+variable "aws_region" {
+  description = "AWS region for deployment"
+  default     = "us-east-2"
+}
+
+variable "cluster_name" {
+  description = "Name of the Docker Swarm cluster"
+  default     = "plant-monitoring-swarm"
+}
+
+variable "manager_count" {
+  description = "Number of manager nodes (recommend 1 for free tier)"
+  default     = 1
+}
+
+variable "worker_count" {
+  description = "Number of worker nodes"
+  default     = 4
+}
+
+variable "key_name" {
+  description = "Name of SSH key pair"
+  default     = "plant-monitoring-swarm-key"
+}
+
+# VPC
+resource "aws_vpc" "swarm_vpc" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name    = "${var.cluster_name}-vpc"
+    Project = "plant-monitoring"
+    Type    = "swarm"
+  }
+}
+
+# Internet Gateway
+resource "aws_internet_gateway" "swarm_igw" {
+  vpc_id = aws_vpc.swarm_vpc.id
+
+  tags = {
+    Name = "${var.cluster_name}-igw"
+  }
+}
+
+# Public Subnet (simplified - single subnet for all nodes)
+resource "aws_subnet" "swarm_public" {
+  vpc_id                  = aws_vpc.swarm_vpc.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "${var.aws_region}a"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "${var.cluster_name}-public-subnet"
+  }
+}
+
+# Route Table
+resource "aws_route_table" "swarm_public_rt" {
+  vpc_id = aws_vpc.swarm_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.swarm_igw.id
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "swarm_public_rta" {
+  subnet_id      = aws_subnet.swarm_public.id
+  route_table_id = aws_route_table.swarm_public_rt.id
+}
+
+# Security Group - Simplified for Docker Swarm
+resource "aws_security_group" "swarm_sg" {
+  name        = "${var.cluster_name}-sg"
+  description = "Security group for Docker Swarm cluster"
+  vpc_id      = aws_vpc.swarm_vpc.id
+
+  # SSH access
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH access"
+  }
+
+  # Docker Swarm management (TCP 2377)
+  ingress {
+    from_port   = 2377
+    to_port     = 2377
+    protocol    = "tcp"
+    self        = true
+    description = "Swarm cluster management"
+  }
+
+  # Docker Swarm node communication (TCP/UDP 7946)
+  ingress {
+    from_port   = 7946
+    to_port     = 7946
+    protocol    = "tcp"
+    self        = true
+    description = "Swarm node communication TCP"
+  }
+
+  ingress {
+    from_port   = 7946
+    to_port     = 7946
+    protocol    = "udp"
+    self        = true
+    description = "Swarm node communication UDP"
+  }
+
+  # Overlay network (UDP 4789)
+  ingress {
+    from_port   = 4789
+    to_port     = 4789
+    protocol    = "udp"
+    self        = true
+    description = "Overlay network traffic"
+  }
+
+  # Home Assistant UI (port 8123)
+  ingress {
+    from_port   = 8123
+    to_port     = 8123
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Home Assistant web interface"
+  }
+
+  # Allow all internal traffic between cluster nodes
+  ingress {
+    from_port = 0
+    to_port   = 65535
+    protocol  = "tcp"
+    self      = true
+    description = "Internal cluster communication"
+  }
+
+  # Allow all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-sg"
+  }
+}
+
+# SSH Key Pair
+resource "aws_key_pair" "swarm_key" {
+  key_name   = var.key_name
+  public_key = file("~/.ssh/k8s-cluster-key.pub")
+
+  tags = {
+    Name = "${var.cluster_name}-key"
+  }
+}
+
+# Data source for Ubuntu AMI
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+# Manager Node (t2.small - needs more resources for manager duties)
+resource "aws_instance" "swarm_manager" {
+  count         = var.manager_count
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.small"
+  key_name      = aws_key_pair.swarm_key.key_name
+  subnet_id     = aws_subnet.swarm_public.id
+
+  vpc_security_group_ids = [aws_security_group.swarm_sg.id]
+
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp2"
+    encrypted   = false
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              set -e
+              
+              # Update system
+              apt-get update
+              
+              # Install Docker
+              apt-get install -y docker.io
+              
+              # Enable and start Docker
+              systemctl enable docker
+              systemctl start docker
+              
+              # Add ubuntu user to docker group
+              usermod -aG docker ubuntu
+              
+              # Install docker-compose for convenience
+              apt-get install -y docker-compose
+              
+              echo "Docker installation complete on manager node"
+              EOF
+
+  tags = {
+    Name    = "${var.cluster_name}-manager-${count.index + 1}"
+    Role    = "manager"
+    Project = "plant-monitoring"
+    Type    = "swarm"
+  }
+}
+
+# Worker Nodes (t2.micro - minimal resources)
+resource "aws_instance" "swarm_workers" {
+  count         = var.worker_count
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.swarm_key.key_name
+  subnet_id     = aws_subnet.swarm_public.id
+
+  vpc_security_group_ids = [aws_security_group.swarm_sg.id]
+
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp2"
+    encrypted   = false
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              set -e
+              
+              # Update system
+              apt-get update
+              
+              # Install Docker
+              apt-get install -y docker.io
+              
+              # Enable and start Docker
+              systemctl enable docker
+              systemctl start docker
+              
+              # Add ubuntu user to docker group
+              usermod -aG docker ubuntu
+              
+              echo "Docker installation complete on worker node"
+              EOF
+
+  tags = {
+    Name    = "${var.cluster_name}-worker-${count.index + 1}"
+    Role    = "worker"
+    Project = "plant-monitoring"
+    Type    = "swarm"
+  }
+}
+
+# Outputs
+output "manager_public_ip" {
+  description = "Public IP of the manager node"
+  value       = aws_instance.swarm_manager[0].public_ip
+}
+
+output "manager_private_ip" {
+  description = "Private IP of the manager node"
+  value       = aws_instance.swarm_manager[0].private_ip
+}
+
+output "worker_public_ips" {
+  description = "Public IPs of worker nodes"
+  value       = aws_instance.swarm_workers[*].public_ip
+}
+
+output "worker_private_ips" {
+  description = "Private IPs of worker nodes"
+  value       = aws_instance.swarm_workers[*].private_ip
+}
+
+output "ssh_command_manager" {
+  description = "SSH command to connect to manager"
+  value       = "ssh -i ~/.ssh/k8s-cluster-key ubuntu@${aws_instance.swarm_manager[0].public_ip}"
+}
+
+output "cluster_info" {
+  description = "Cluster information"
+  value = {
+    vpc_id          = aws_vpc.swarm_vpc.id
+    subnet_id       = aws_subnet.swarm_public.id
+    security_group  = aws_security_group.swarm_sg.id
+    total_nodes     = var.manager_count + var.worker_count
+    manager_count   = var.manager_count
+    worker_count    = var.worker_count
+  }
+}

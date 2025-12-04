@@ -1,0 +1,381 @@
+version: '3.8'
+
+# Docker Swarm Stack with Consul Service Discovery
+# This approach uses Consul for reliable cross-node service discovery
+
+services:
+  # ============================================================================
+  # SERVICE DISCOVERY: Consul
+  # ============================================================================
+  consul:
+    image: consul:1.15
+    hostname: consul
+    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0 -bind=0.0.0.0
+    ports:
+      - "8500:8500"  # Consul UI and HTTP API
+      - "8600:8600/udp"  # Consul DNS
+    networks:
+      - plant-network
+    volumes:
+      - consul_data:/consul/data
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+      labels:
+        com.plant-monitor.service: "consul"
+
+  # ============================================================================
+  # SERVICE REGISTRATOR: Automatically registers services with Consul
+  # ============================================================================
+  registrator:
+    image: gliderlabs/registrator:latest
+    hostname: registrator
+    command: -internal consul://consul:8500
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+    networks:
+      - plant-network
+    depends_on:
+      - consul
+    deploy:
+      mode: global  # Run on every node
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+      labels:
+        com.plant-monitor.service: "registrator"
+
+  # ============================================================================
+  # ZooKeeper (Kafka dependency)
+  # ============================================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - plant-network
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr  # DNS Round Robin - no VIP
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+      labels:
+        SERVICE_NAME: "zookeeper"
+        SERVICE_TAGS: "infrastructure"
+
+  # ============================================================================
+  # Kafka Message Broker
+  # ============================================================================
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      # Use Consul DNS for ZooKeeper discovery
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper.service.consul:2181'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka.service.consul:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_HEAP_OPTS: '-Xmx400m -Xms400m'
+      # Consul DNS resolver
+      EXTRA_ARGS: '-Djava.net.preferIPv4Stack=true'
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - plant-network
+    depends_on:
+      - zookeeper
+      - consul
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr  # DNS Round Robin
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 400M
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 10
+        window: 300s
+      labels:
+        SERVICE_NAME: "kafka"
+        SERVICE_9092_NAME: "kafka"
+        SERVICE_TAGS: "message-broker"
+
+  # ============================================================================
+  # MongoDB Database
+  # ============================================================================
+  mongodb:
+    image: mongo:6.0.4
+    hostname: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_root_username
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_root_password
+      MONGO_INITDB_DATABASE: plant_monitoring
+    secrets:
+      - mongo_root_username
+      - mongo_root_password
+      - mongo_app_username
+      - mongo_app_password
+    configs:
+      - source: mongodb_init_config
+        target: /docker-entrypoint-initdb.d/init-mongo.js
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - plant-network
+    command: >
+      mongod 
+      --wiredTigerCacheSizeGB 0.25 
+      --quiet
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+      labels:
+        SERVICE_NAME: "mongodb"
+        SERVICE_27017_NAME: "mongodb"
+        SERVICE_TAGS: "database"
+
+  # ============================================================================
+  # MQTT Broker (Mosquitto)
+  # ============================================================================
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    hostname: mosquitto
+    configs:
+      - source: mosquitto_config
+        target: /mosquitto/config/mosquitto.conf
+    secrets:
+      - mqtt_username
+      - mqtt_password
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - plant-network
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.mqtt == true
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+      labels:
+        SERVICE_NAME: "mosquitto"
+        SERVICE_1883_NAME: "mqtt"
+        SERVICE_TAGS: "message-broker"
+
+  # ============================================================================
+  # Home Assistant
+  # ============================================================================
+  homeassistant:
+    image: homeassistant/home-assistant:2023.8.0
+    hostname: homeassistant
+    ports:
+      - "8123:8123"
+    volumes:
+      - homeassistant_config:/config
+    configs:
+      - source: homeassistant_config_yaml
+        target: /config/configuration.yaml
+    networks:
+      - plant-network
+    depends_on:
+      - mosquitto
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mqtt == true
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+      labels:
+        SERVICE_NAME: "homeassistant"
+        SERVICE_8123_NAME: "homeassistant-ui"
+
+  # ============================================================================
+  # Data Processor
+  # ============================================================================
+  processor:
+    image: ${DOCKER_REGISTRY:-docker.io/triciab221}/plant-processor:v1.0.0
+    hostname: processor
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: '--max-old-space-size=256 --dns-result-order=ipv4first'
+      # Use Consul DNS for service discovery
+      KAFKA_BROKER: 'kafka.service.consul:9092'
+      MONGODB_URL_FILE: /run/secrets/mongodb_connection_string
+      MQTT_BROKER: 'mqtt://mosquitto.service.consul:1883'
+      # Configure Node.js to use Consul DNS
+      DNS_SERVERS: '127.0.0.11,consul:8600'
+    secrets:
+      - mongodb_connection_string
+    networks:
+      - plant-network
+    depends_on:
+      - kafka
+      - mongodb
+      - mosquitto
+      - consul
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 10
+        window: 300s
+      labels:
+        SERVICE_NAME: "processor"
+        SERVICE_TAGS: "application"
+
+  # ============================================================================
+  # Plant Sensors (SCALABLE)
+  # ============================================================================
+  sensor:
+    image: ${DOCKER_REGISTRY:-docker.io/triciab221}/plant-sensor:v1.0.0
+    environment:
+      # Use Consul DNS for Kafka discovery
+      KAFKA_BROKERS: 'kafka.service.consul:9092'
+      SENSOR_INTERVAL: '30'
+      NODE_OPTIONS: '--max-old-space-size=128 --dns-result-order=ipv4first'
+      DNS_SERVERS: '127.0.0.11,consul:8600'
+    configs:
+      - source: sensor_config
+        target: /app/sensor-config.json
+    networks:
+      - plant-network
+    depends_on:
+      - kafka
+      - consul
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 10
+        window: 300s
+      update_config:
+        parallelism: 2
+        delay: 5s
+      labels:
+        com.plant-monitor.service: "sensor"
+        com.plant-monitor.scalable: "true"
+        SERVICE_NAME: "sensor"
+        SERVICE_TAGS: "application,scalable"
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  plant-network:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    attachable: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.0.0/24
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  consul_data:
+  zookeeper_data:
+  zookeeper_logs:
+  kafka_data:
+  mongodb_data:
+  mongodb_config:
+  mosquitto_data:
+  mosquitto_logs:
+  homeassistant_config:
+
+# ============================================================================
+# Configs
+# ============================================================================
+configs:
+  mosquitto_config:
+    external: true
+  mongodb_init_config:
+    external: true
+  homeassistant_config_yaml:
+    external: true
+  sensor_config:
+    external: true
+
+# ============================================================================
+# Secrets
+# ============================================================================
+secrets:
+  mongo_root_username:
+    external: true
+  mongo_root_password:
+    external: true
+  mongo_app_username:
+    external: true
+  mongo_app_password:
+    external: true
+  mongodb_connection_string:
+    external: true
+  mqtt_username:
+    external: true
+  mqtt_password:
+    external: true

@@ -1,0 +1,8 @@
+---
+# Auto-generated VIP addresses from Docker Swarm
+# Generated: Sun Oct 19 12:58:34 CDT 2025
+
+zookeeper_vip: "10.10.0.20"
+kafka_vip: "10.10.0.2"
+mongodb_vip: "10.10.0.5"
+mosquitto_vip: "10.10.0.8"

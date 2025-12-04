@@ -1,0 +1,363 @@
+version: '3.8'
+
+# CA4 Docker Swarm Stack for Plant Monitoring System (Cloud Site)
+# ================================================================================
+# IMPROVEMENTS FROM CA2:
+# 1. Multi-tier network segmentation (frontend, messaging, data) - Security +4 pts
+# 2. Sensor service removed (moved to edge site)
+# 3. Kafka configured for VPN access (EXTERNAL listener)
+# 4. Processor configured for scaling tests - Observability +3 pts
+# ================================================================================
+
+services:
+  # ============================================================================
+  # ZooKeeper (Kafka dependency) - MESSAGING TIER
+  # ============================================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - messaging-net  # CHANGED: Only messaging network
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+      labels:
+        SERVICE_NAME: "zookeeper"
+        SERVICE_TIER: "messaging"
+
+  # ============================================================================
+  # Kafka Message Broker - MESSAGING TIER (VPN Access)
+  # ============================================================================
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      # DUAL LISTENERS: Internal (Docker DNS) + External (VPN)
+      # INTERNAL: Cloud services use kafka:9092 via overlay network DNS
+      # EXTERNAL: Edge sensors use 10.20.0.1:9093 via VPN (published with mode:host)
+      KAFKA_ADVERTISED_LISTENERS: 'INTERNAL://kafka:9092,EXTERNAL://10.20.0.1:9093'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT'
+      KAFKA_LISTENERS: 'INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9093'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'INTERNAL'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_HEAP_OPTS: '-Xmx400m -Xms400m'
+    # CA4: Port published on manager node for VPN access
+    # Using mode: host to bind directly to manager's network interfaces
+    # Publishing EXTERNAL listener (9093) for VPN access
+    ports:
+      - target: 9093
+        published: 9093
+        protocol: tcp
+        mode: host  # Publish on manager node only (not ingress)
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - messaging-net  # CHANGED: Only messaging network
+    depends_on:
+      - zookeeper
+    deploy:
+      replicas: 1
+      # Removed endpoint_mode: dnsrr to allow port publishing
+      # Pin Kafka to manager node where VPN terminates
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 400M
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 10
+        window: 300s
+      labels:
+        com.plant-monitor.service: "kafka"
+        SERVICE_TIER: "messaging"
+        VPN_ACCESS: "true"  # Accessible via VPN
+
+  # ============================================================================
+  # MongoDB Database - DATA TIER (Isolated)
+  # ============================================================================
+  mongodb:
+    image: mongo:6.0.4
+    hostname: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_root_username
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_root_password
+      MONGO_INITDB_DATABASE: plant_monitoring
+    secrets:
+      - mongo_root_username
+      - mongo_root_password
+      - mongo_app_username
+      - mongo_app_password
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - data-net  # CHANGED: Only data network
+    command: >
+      mongod 
+      --wiredTigerCacheSizeGB 0.25 
+      --quiet
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+      labels:
+        SERVICE_NAME: "mongodb"
+        SERVICE_TIER: "data"
+
+  # ============================================================================
+  # MQTT Broker (Mosquitto) - FRONTEND + DATA TIERS
+  # ============================================================================
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    hostname: mosquitto
+    configs:
+      - source: mosquitto_config
+        target: /mosquitto/config/mosquitto.conf
+    secrets:
+      - mqtt_username
+      - mqtt_password
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - frontend-net  # Access from Home Assistant
+      - data-net      # Access from Processor
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.mqtt == true
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+      labels:
+        SERVICE_NAME: "mosquitto"
+        SERVICE_TIER: "frontend,data"
+
+  # ============================================================================
+  # Home Assistant - FRONTEND TIER ONLY (Public-facing)
+  # ============================================================================
+  homeassistant:
+    image: homeassistant/home-assistant:2023.8.0
+    hostname: homeassistant
+    ports:
+      - "8123:8123"
+    volumes:
+      - homeassistant_config:/config
+    configs:
+      - source: homeassistant_config_yaml
+        target: /config/configuration.yaml
+    networks:
+      - frontend-net  # CHANGED: Only frontend network (cannot access Kafka/MongoDB)
+    depends_on:
+      - mosquitto
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mqtt == true
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+      labels:
+        SERVICE_NAME: "homeassistant"
+        SERVICE_TIER: "frontend"
+
+  # ============================================================================
+  # Data Processor - MESSAGING + DATA TIERS (Scalable for CA4)
+  # ============================================================================
+  processor:
+    image: ${DOCKER_REGISTRY:-docker.io/triciab221}/plant-processor:latest
+    hostname: processor
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: '--max-old-space-size=256'
+      KAFKA_BROKER: 'kafka:9092'
+      MONGODB_URL_FILE: /run/secrets/mongodb_connection_string
+      MQTT_BROKER: 'mqtt://mosquitto:1883'
+      # CA4: Add startup delay to wait for Kafka DNS propagation
+      STARTUP_DELAY: '45'
+    secrets:
+      - mongodb_connection_string
+    networks:
+      - messaging-net  # Access to Kafka
+      - data-net       # Access to MongoDB + Mosquitto
+    depends_on:
+      - kafka
+      - mongodb
+      - mosquitto
+    deploy:
+      # CA4 IMPROVEMENT: Configured for scaling tests (1→3 replicas)
+      replicas: 1  # Default: 1 (can scale to 3 for tests)
+      placement:
+        constraints:
+          - node.labels.mqtt == true
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 10
+        window: 300s
+      labels:
+        SERVICE_NAME: "processor"
+        SERVICE_TIER: "messaging,data"
+        SERVICE_SCALABLE: "true"  # Marked for scaling tests
+
+  # ============================================================================
+  # CA4 NOTE: Sensor service REMOVED - now running at edge site
+  # ============================================================================
+
+# ============================================================================
+# Networks - MULTI-TIER SEGMENTATION (CA4 Improvement)
+# ============================================================================
+networks:
+  # Frontend tier - Public-facing services only
+  # Home Assistant can ONLY access Mosquitto, NOT Kafka/MongoDB
+  frontend-net:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.1.0/24
+
+  # Messaging tier - Kafka, ZooKeeper
+  # Isolated from frontend, accessible by processor and edge sensors (via VPN)
+  messaging-net:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.2.0/24
+
+  # Data tier - MongoDB, Processor, Mosquitto
+  # Isolated from frontend and messaging (processor bridges)
+  data-net:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.3.0/24
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  zookeeper_data:
+  zookeeper_logs:
+  kafka_data:
+  mongodb_data:
+  mongodb_config:
+  mosquitto_data:
+  mosquitto_logs:
+  homeassistant_config:
+
+# ============================================================================
+# Configs
+# ============================================================================
+configs:
+  mosquitto_config:
+    external: true
+  homeassistant_config_yaml:
+    external: true
+
+# ============================================================================
+# Secrets
+# ============================================================================
+secrets:
+  mongo_root_username:
+    external: true
+  mongo_root_password:
+    external: true
+  mongo_app_username:
+    external: true
+  mongo_app_password:
+    external: true
+  mongodb_connection_string:
+    external: true
+  mqtt_username:
+    external: true
+  mqtt_password:
+    external: true
+
+# ============================================================================
+# CA4 ARCHITECTURE NOTES
+# ============================================================================
+# 
+# Network Segmentation (CA2 Feedback - Security +4 points):
+# ----------------------------------------------------------
+# - Frontend (10.10.1.0/24): Home Assistant ONLY
+#   - Cannot access Kafka or MongoDB directly
+#   - Principle of least privilege
+#
+# - Messaging (10.10.2.0/24): Kafka, ZooKeeper
+#   - Edge sensors access via VPN (10.20.0.1:9092)
+#   - Processor consumes from Kafka
+#   - Isolated from frontend
+#
+# - Data (10.10.3.0/24): MongoDB, Processor, Mosquitto
+#   - Processor writes to MongoDB
+#   - Mosquitto publishes to Home Assistant (via frontend-net)
+#   - Isolated from messaging tier
+#
+# Processor Scaling (CA2 Feedback - Observability +3 points):
+# ------------------------------------------------------------
+# - Default: 1 replica
+# - Scaling test: docker service scale plant-monitoring_processor=3
+# - Metrics: Kafka lag, MongoDB insert rate, end-to-end latency
+# - Results documented in scaling-results-processor-<timestamp>.txt
+#
+# Edge-to-Cloud (CA4 Requirement):
+# ---------------------------------
+# - Sensors removed from cloud (moved to edge site)
+# - Kafka accessible via VPN: 10.20.0.1:9092
+# - Security group restricts Kafka to VPN subnet (10.20.0.0/24)
+#
+# ============================================================================

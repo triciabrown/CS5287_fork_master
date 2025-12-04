@@ -1,0 +1,149 @@
+# CA4 Edge Site Configuration
+# Three plant sensors running locally, sending data to cloud Kafka via VPN
+# Sensors connect to: 10.20.0.1:9092 (Cloud Kafka via WireGuard VPN)
+
+services:
+  # ============================================================================
+  # Plant Sensor 1 - Tomato
+  # ============================================================================
+  plant-sensor-1:
+    image: ${DOCKER_REGISTRY:-triciab221}/plant-sensor:latest
+    container_name: plant-sensor-1
+    environment:
+      # Sensor Configuration
+      SENSOR_ID: "plant-001"
+      SENSOR_LOCATION: "edge-tomato-bed"
+      SENSOR_TYPE: "tomato"
+      SCAN_INTERVAL: "10"  # seconds between readings
+      
+      # Kafka Configuration (via VPN)
+      KAFKA_BROKER: "10.20.0.1:9093"
+      KAFKA_TOPIC: "plant-sensors"
+      
+      # Sensor Simulation Settings
+      TEMP_MIN: "18"
+      TEMP_MAX: "28"
+      HUMIDITY_MIN: "60"
+      HUMIDITY_MAX: "85"
+      SOIL_MOISTURE_MIN: "40"
+      SOIL_MOISTURE_MAX: "70"
+      LIGHT_MIN: "400"
+      LIGHT_MAX: "800"
+    
+    restart: unless-stopped
+    
+    networks:
+      - edge-network
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    labels:
+      - "com.plant-monitoring.service=sensor"
+      - "com.plant-monitoring.location=edge"
+      - "com.plant-monitoring.sensor-id=plant-001"
+      - "com.plant-monitoring.plant-type=tomato"
+
+  # ============================================================================
+  # Plant Sensor 2 - Basil
+  # ============================================================================
+  plant-sensor-2:
+    image: ${DOCKER_REGISTRY:-triciab221}/plant-sensor:latest
+    container_name: plant-sensor-2
+    environment:
+      # Sensor Configuration
+      SENSOR_ID: "plant-002"
+      SENSOR_LOCATION: "edge-herb-garden"
+      SENSOR_TYPE: "basil"
+      SCAN_INTERVAL: "10"
+      
+      # Kafka Configuration (via VPN)
+      KAFKA_BROKER: "10.20.0.1:9093"
+      KAFKA_TOPIC: "plant-sensors"
+      
+      # Sensor Simulation Settings
+      TEMP_MIN: "20"
+      TEMP_MAX: "30"
+      HUMIDITY_MIN: "50"
+      HUMIDITY_MAX: "70"
+      SOIL_MOISTURE_MIN: "35"
+      SOIL_MOISTURE_MAX: "65"
+      LIGHT_MIN: "600"
+      LIGHT_MAX: "1000"
+    
+    restart: unless-stopped
+    
+    networks:
+      - edge-network
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    labels:
+      - "com.plant-monitoring.service=sensor"
+      - "com.plant-monitoring.location=edge"
+      - "com.plant-monitoring.sensor-id=plant-002"
+      - "com.plant-monitoring.plant-type=basil"
+
+  # ============================================================================
+  # Plant Sensor 3 - Lettuce
+  # ============================================================================
+  plant-sensor-3:
+    image: ${DOCKER_REGISTRY:-triciab221}/plant-sensor:latest
+    container_name: plant-sensor-3
+    environment:
+      # Sensor Configuration
+      SENSOR_ID: "plant-003"
+      SENSOR_LOCATION: "edge-greenhouse-a"
+      SENSOR_TYPE: "lettuce"
+      SCAN_INTERVAL: "10"
+      
+      # Kafka Configuration (via VPN)
+      KAFKA_BROKER: "10.20.0.1:9093"
+      KAFKA_TOPIC: "plant-sensors"
+      
+      # Sensor Simulation Settings
+      TEMP_MIN: "15"
+      TEMP_MAX: "22"
+      HUMIDITY_MIN: "60"
+      HUMIDITY_MAX: "80"
+      SOIL_MOISTURE_MIN: "45"
+      SOIL_MOISTURE_MAX: "75"
+      LIGHT_MIN: "300"
+      LIGHT_MAX: "600"
+    
+    restart: unless-stopped
+    
+    networks:
+      - edge-network
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    labels:
+      - "com.plant-monitoring.service=sensor"
+      - "com.plant-monitoring.location=edge"
+      - "com.plant-monitoring.sensor-id=plant-003"
+      - "com.plant-monitoring.plant-type=lettuce"
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  edge-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+    labels:
+      - "com.plant-monitoring.network=edge"
+      - "com.plant-monitoring.site=edge"

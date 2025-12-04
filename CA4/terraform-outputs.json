@@ -1,0 +1,80 @@
+{
+  "cluster_info": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "manager_count": "number",
+        "manager_sg": "string",
+        "nat_gateway_id": "string",
+        "private_subnet_id": "string",
+        "public_subnet_id": "string",
+        "security_architecture": "string",
+        "total_nodes": "number",
+        "vpc_id": "string",
+        "worker_count": "number",
+        "worker_sg": "string"
+      }
+    ],
+    "value": {
+      "manager_count": 1,
+      "manager_sg": "sg-03b56ae350d619267",
+      "nat_gateway_id": "nat-0179e30a78ca90546",
+      "private_subnet_id": "subnet-000185428032de699",
+      "public_subnet_id": "subnet-0e846b4d3d17d2299",
+      "security_architecture": "Manager in public subnet, workers in private subnet with NAT",
+      "total_nodes": 5,
+      "vpc_id": "vpc-030f14ea094b73297",
+      "worker_count": 4,
+      "worker_sg": "sg-028e9c91c024d22b9"
+    }
+  },
+  "manager_private_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "10.0.1.146"
+  },
+  "manager_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "3.137.220.50"
+  },
+  "nat_gateway_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "3.132.83.78"
+  },
+  "security_summary": {
+    "sensitive": false,
+    "type": "string",
+    "value": "Security Architecture:\n- Manager Node: Public subnet with Home Assistant exposed on port 8123\n- Worker Nodes: Private subnet, NO public IPs, NO direct internet access\n- Worker Internet: Via NAT Gateway for updates/Docker Hub\n- SSH to Workers: Only via manager node (bastion host)\n- Internal Communication: Encrypted overlay network\n- Principle: Least privilege access\n"
+  },
+  "ssh_command_manager": {
+    "sensitive": false,
+    "type": "string",
+    "value": "ssh -i ~/.ssh/docker-swarm-key ubuntu@3.137.220.50"
+  },
+  "ssh_to_workers": {
+    "sensitive": false,
+    "type": "string",
+    "value": "SSH to manager first, then use private IPs"
+  },
+  "worker_private_ips": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string",
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "10.0.2.228",
+      "10.0.2.162",
+      "10.0.2.102",
+      "10.0.2.104"
+    ]
+  }
+}
